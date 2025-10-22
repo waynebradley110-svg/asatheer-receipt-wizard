@@ -1,58 +1,11 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import AdminDashboard from "./AdminDashboard";
-import ReceptionistDashboard from "./ReceptionistDashboard";
-import AccountsDashboard from "./AccountsDashboard";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, UserX, TrendingUp } from "lucide-react";
+import { Users, UserCheck, UserX, TrendingUp, DollarSign, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-const Dashboard = () => {
-  const { isAdmin, isReceptionist, isAccounts, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Role-based dashboard rendering
-  if (isAdmin) {
-    return <AdminDashboard />;
-  }
-
-  if (isReceptionist) {
-    return <ReceptionistDashboard />;
-  }
-
-  if (isAccounts) {
-    return <AccountsDashboard />;
-  }
-
-  // Default dashboard for users without specific roles
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Welcome to Asatheer Sports Academy</h1>
-        <p className="text-muted-foreground">Dashboard</p>
-      </div>
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">
-            Please contact an administrator to assign you a role for access to dashboard features.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-const LegacyDashboard = () => {
+const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
@@ -60,6 +13,7 @@ const LegacyDashboard = () => {
     newThisWeek: 0,
     totalCash: 0,
     totalCard: 0,
+    totalRevenue: 0,
   });
 
   useEffect(() => {
@@ -102,6 +56,7 @@ const LegacyDashboard = () => {
       newThisWeek: newMembers?.length || 0,
       totalCash,
       totalCard,
+      totalRevenue: totalCash + totalCard,
     });
   };
 
@@ -110,7 +65,7 @@ const LegacyDashboard = () => {
       title: "Total Members",
       value: stats.totalMembers,
       icon: Users,
-      color: "text-primary",
+      color: "text-blue-600",
     },
     {
       title: "Active Members",
@@ -122,24 +77,33 @@ const LegacyDashboard = () => {
       title: "Expired Members",
       value: stats.expiredMembers,
       icon: UserX,
-      color: "text-destructive",
+      color: "text-red-600",
     },
     {
       title: "New This Week",
       value: stats.newThisWeek,
       icon: TrendingUp,
-      color: "text-accent",
+      color: "text-purple-600",
+    },
+    {
+      title: "Total Revenue",
+      value: `AED ${stats.totalRevenue.toFixed(2)}`,
+      icon: DollarSign,
+      color: "text-emerald-600",
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome to Asatheer Sports Academy</p>
+      <div className="flex items-center gap-2">
+        <Shield className="h-8 w-8 text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground">Full system overview and control</p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -170,15 +134,33 @@ const LegacyDashboard = () => {
             <CardTitle>Card Sales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">
+            <div className="text-3xl font-bold text-blue-600">
               AED {stats.totalCard.toFixed(2)}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin Controls</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            As an admin, you have full access to all system features including user management, financial reports, and system configuration.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => toast.info("User management coming soon")}>
+              Manage Users
+            </Button>
+            <Button variant="outline" onClick={() => toast.info("System settings coming soon")}>
+              System Settings
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default Dashboard;
-export { LegacyDashboard };
+export default AdminDashboard;
