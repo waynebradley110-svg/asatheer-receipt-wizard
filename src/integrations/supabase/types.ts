@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string | null
+          created_by: string | null
+          description: string
+          expense_date: string
+          id: string
+          notes: string | null
+          receipt_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       financial_audit_trail: {
         Row: {
           action_by: string
@@ -285,6 +324,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      expense_category: "business" | "owner"
       gender_type: "male" | "female"
       payment_method: "cash" | "card" | "online"
       subscription_plan:
@@ -293,6 +333,7 @@ export type Database = {
         | "3_months"
         | "6_months"
         | "1_year"
+        | "2_months"
       zone_type:
         | "gym"
         | "crossfit"
@@ -300,6 +341,8 @@ export type Database = {
         | "basketball"
         | "swimming"
         | "other"
+        | "ladies_gym"
+        | "pt"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -427,9 +470,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      expense_category: ["business", "owner"],
       gender_type: ["male", "female"],
       payment_method: ["cash", "card", "online"],
-      subscription_plan: ["1_day", "1_month", "3_months", "6_months", "1_year"],
+      subscription_plan: [
+        "1_day",
+        "1_month",
+        "3_months",
+        "6_months",
+        "1_year",
+        "2_months",
+      ],
       zone_type: [
         "gym",
         "crossfit",
@@ -437,6 +488,8 @@ export const Constants = {
         "basketball",
         "swimming",
         "other",
+        "ladies_gym",
+        "pt",
       ],
     },
   },

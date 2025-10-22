@@ -63,6 +63,9 @@ const Members = () => {
       case "1_month":
         expiry.setMonth(expiry.getMonth() + 1);
         break;
+      case "2_months":
+        expiry.setMonth(expiry.getMonth() + 2);
+        break;
       case "3_months":
         expiry.setMonth(expiry.getMonth() + 3);
         break;
@@ -248,6 +251,8 @@ const Members = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="gym">Gym</SelectItem>
+                      <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
+                      <SelectItem value="pt">PT (Personal Training)</SelectItem>
                       <SelectItem value="crossfit">CrossFit</SelectItem>
                       <SelectItem value="football">Football Academy</SelectItem>
                       <SelectItem value="basketball">Basketball</SelectItem>
@@ -269,6 +274,7 @@ const Members = () => {
                     <SelectContent>
                       <SelectItem value="1_day">1 Day</SelectItem>
                       <SelectItem value="1_month">1 Month</SelectItem>
+                      <SelectItem value="2_months">2 Months</SelectItem>
                       <SelectItem value="3_months">3 Months</SelectItem>
                       <SelectItem value="6_months">6 Months</SelectItem>
                       <SelectItem value="1_year">1 Year</SelectItem>
