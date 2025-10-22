@@ -97,3 +97,51 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  .print-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  .break-inside-avoid {
+    page-break-inside: avoid;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+@media screen {
+  .print-only {
+    display: none;
+  }
+}
