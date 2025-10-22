@@ -355,10 +355,10 @@ const Members = () => {
                       <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
                       <SelectItem value="pt">PT (Personal Training)</SelectItem>
                       <SelectItem value="crossfit">CrossFit</SelectItem>
-                      <SelectItem value="football">Football Academy</SelectItem>
+                      <SelectItem value="football_court">Football Court</SelectItem>
                       <SelectItem value="basketball">Basketball</SelectItem>
                       <SelectItem value="swimming">Swimming</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="paddle_court">Paddle Court</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

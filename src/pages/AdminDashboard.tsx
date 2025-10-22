@@ -9,6 +9,7 @@ import { UserManagement } from "@/components/UserManagement";
 import { SystemSettings } from "@/components/SystemSettings";
 import { FinancialCorrections } from "@/components/FinancialCorrections";
 import { ZoneAnalysis } from "@/components/ZoneAnalysis";
+import { ExcelBackup } from "@/components/ExcelBackup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
@@ -170,8 +171,11 @@ const AdminDashboard = () => {
           <FinancialCorrections />
         </TabsContent>
 
-        <TabsContent value="settings">
-          <SystemSettings />
+        <TabsContent value="settings" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SystemSettings />
+            <ExcelBackup />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -27,11 +27,13 @@ export function MemberCard({ member }: MemberCardProps) {
       try {
         JsBarcode(barcodeRef.current, member.barcode, {
           format: "CODE128",
-          width: 2,
-          height: 60,
+          width: 3,
+          height: 100,
           displayValue: true,
-          fontSize: 14,
+          fontSize: 16,
           margin: 10,
+          background: "#ffffff",
+          lineColor: "#000000",
         });
       } catch (error) {
         console.error("Error generating barcode:", error);
@@ -175,12 +177,13 @@ export function MemberCard({ member }: MemberCardProps) {
             try {
               JsBarcode("#barcode-svg", "${member.barcode}", {
                 format: "CODE128",
-                width: 2,
-                height: 70,
+                width: 3,
+                height: 100,
                 displayValue: true,
-                fontSize: 14,
-                margin: 5,
-                background: "transparent"
+                fontSize: 18,
+                margin: 10,
+                background: "#ffffff",
+                lineColor: "#000000"
               });
             } catch (error) {
               console.error("Barcode generation error:", error);
