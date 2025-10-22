@@ -5,6 +5,11 @@ import { Users, UserCheck, UserX, TrendingUp, DollarSign, Shield } from "lucide-
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ExpiryReminders } from "@/components/ExpiryReminders";
+import { UserManagement } from "@/components/UserManagement";
+import { SystemSettings } from "@/components/SystemSettings";
+import { FinancialCorrections } from "@/components/FinancialCorrections";
+import { ZoneAnalysis } from "@/components/ZoneAnalysis";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -142,28 +147,33 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin Controls</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              As an admin, you have full access to all system features including user management, financial reports, and system configuration.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={() => toast.info("User management coming soon")}>
-                Manage Users
-              </Button>
-              <Button variant="outline" onClick={() => toast.info("System settings coming soon")}>
-                System Settings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="corrections">Financial Corrections</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
 
-        <ExpiryReminders />
-      </div>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ExpiryReminders />
+          </div>
+          <ZoneAnalysis />
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="corrections">
+          <FinancialCorrections />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <SystemSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

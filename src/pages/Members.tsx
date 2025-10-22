@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, MessageCircle } from "lucide-react";
+import { Plus, Search, Trash2, MessageCircle, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MemberCard } from "@/components/MemberCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -23,6 +23,8 @@ const Members = () => {
   const [members, setMembers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -223,6 +225,50 @@ const Members = () => {
     }
     
     return `Hello ${member.full_name},\n\nThank you for being a member of Asatheer Sports Academy!\n\nMember ID: ${member.member_id}\n\nContact us anytime for assistance.`;
+  };
+
+  const handleEditMember = (member: any) => {
+    setEditingMember(member);
+    setFormData({
+      full_name: member.full_name,
+      gender: member.gender,
+      phone_number: member.phone_number,
+      date_of_birth: member.date_of_birth || "",
+      subscription_plan: "",
+      zone: "",
+      notes: member.notes || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from("members")
+        .update({
+          full_name: formData.full_name,
+          gender: formData.gender as 'male' | 'female',
+          phone_number: formData.phone_number,
+          date_of_birth: formData.date_of_birth || null,
+          notes: formData.notes || null,
+        })
+        .eq("id", editingMember.id);
+
+      if (error) throw error;
+
+      toast.success("Member updated successfully");
+      setEditDialogOpen(false);
+      setEditingMember(null);
+      resetForm();
+      fetchMembers();
+    } catch (error: any) {
+      toast.error(error.message || "Error updating member");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -441,7 +487,7 @@ const Members = () => {
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Barcode</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -457,7 +503,14 @@ const Members = () => {
                   </TableCell>
                   <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditMember(member)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <MemberCard member={member} />
                       <WhatsAppButton
                         phoneNumber={member.phone_number}
@@ -473,6 +526,79 @@ const Members = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Member Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Member</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateMember} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_full_name">Full Name *</Label>
+                <Input
+                  id="edit_full_name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_gender">Gender *</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_phone_number">Phone Number *</Label>
+                <Input
+                  id="edit_phone_number"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_date_of_birth">Date of Birth</Label>
+                <Input
+                  id="edit_date_of_birth"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_notes">Notes</Label>
+              <Textarea
+                id="edit_notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Updating..." : "Update Member"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
