@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, Clock, CalendarCheck } from "lucide-react";
+import { ExpiryReminders } from "@/components/ExpiryReminders";
 
 const ReceptionistDashboard = () => {
   const [stats, setStats] = useState({
@@ -98,16 +99,20 @@ const ReceptionistDashboard = () => {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Use the sidebar to access member registration, attendance tracking, and member management features.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Use the sidebar to access member registration, attendance tracking, and member management features.
+            </p>
+          </CardContent>
+        </Card>
+
+        <ExpiryReminders />
+      </div>
     </div>
   );
 };

@@ -47,79 +47,155 @@ export function MemberCard({ member }: MemberCardProps) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const content = document.getElementById('printable-card')?.innerHTML || '';
-    
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>Member Card - ${member.full_name}</title>
           <style>
+            @page { 
+              size: auto; 
+              margin: 15mm; 
+            }
             body {
               margin: 0;
               padding: 20px;
-              font-family: Arial, sans-serif;
+              font-family: 'Arial', sans-serif;
               display: flex;
               justify-content: center;
               align-items: center;
               min-height: 100vh;
+              background: #f5f5f5;
             }
             .card {
-              width: 350px;
-              border: 2px solid #000;
-              border-radius: 12px;
-              padding: 20px;
+              width: 380px;
+              border: 3px solid #1a56db;
+              border-radius: 16px;
+              padding: 24px;
               background: white;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             }
             .header {
               text-align: center;
               margin-bottom: 20px;
               padding-bottom: 15px;
-              border-bottom: 2px solid #e5e7eb;
+              border-bottom: 3px solid #1a56db;
             }
-            .title {
-              font-size: 18px;
-              font-weight: bold;
+            .logo {
+              font-size: 22px;
+              font-weight: 900;
+              color: #1a56db;
               margin-bottom: 5px;
+              letter-spacing: 0.5px;
+            }
+            .subtitle {
+              font-size: 11px;
+              color: #666;
+              text-transform: uppercase;
+              letter-spacing: 1px;
             }
             .info-row {
               display: flex;
               justify-content: space-between;
-              padding: 8px 0;
-              border-bottom: 1px solid #f3f4f6;
+              padding: 10px 0;
+              border-bottom: 1px solid #e5e7eb;
             }
             .label {
               color: #6b7280;
               font-size: 13px;
+              font-weight: 500;
             }
             .value {
-              font-weight: 600;
+              font-weight: 700;
               font-size: 13px;
+              color: #111827;
             }
             .barcode-container {
-              margin-top: 20px;
+              margin-top: 24px;
               text-align: center;
-              padding: 15px;
-              background: #f9fafb;
-              border-radius: 8px;
+              padding: 20px;
+              background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+              border-radius: 12px;
+              border: 2px dashed #cbd5e1;
+            }
+            .barcode-label {
+              font-size: 10px;
+              color: #9ca3af;
+              font-weight: 600;
+              letter-spacing: 1.5px;
+              margin-bottom: 8px;
             }
             @media print {
-              body { padding: 0; }
-              .card { box-shadow: none; }
+              body { 
+                padding: 0; 
+                background: white;
+              }
+              .card { 
+                box-shadow: none;
+                border-color: #000;
+              }
             }
           </style>
         </head>
         <body>
-          ${content}
+          <div class="card">
+            <div class="header">
+              <div class="logo">⚡ ASATHEER SPORTS ACADEMY</div>
+              <div class="subtitle">Member Identification Card</div>
+            </div>
+            <div class="info-row">
+              <span class="label">Member ID</span>
+              <span class="value">${member.member_id}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Full Name</span>
+              <span class="value">${member.full_name}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Phone Number</span>
+              <span class="value">${member.phone_number}</span>
+            </div>
+            ${activeService ? `
+            <div class="info-row">
+              <span class="label">Zone</span>
+              <span class="value">${activeService.zone.replace('_', ' ').toUpperCase()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Expires On</span>
+              <span class="value">${new Date(activeService.expiry_date).toLocaleDateString('en-GB')}</span>
+            </div>
+            ` : ''}
+            <div class="barcode-container">
+              <div class="barcode-label">SCAN BARCODE FOR ACCESS</div>
+              <svg id="barcode-svg"></svg>
+            </div>
+          </div>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+          <script>
+            try {
+              JsBarcode("#barcode-svg", "${member.barcode}", {
+                format: "CODE128",
+                width: 2,
+                height: 70,
+                displayValue: true,
+                fontSize: 14,
+                margin: 5,
+                background: "transparent"
+              });
+            } catch (error) {
+              console.error("Barcode generation error:", error);
+            }
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+              }, 800);
+            };
+          </script>
         </body>
       </html>
     `);
     
     printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   };
 
   return (

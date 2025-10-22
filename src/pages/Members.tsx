@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MemberCard } from "@/components/MemberCard";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 interface PaymentEntry {
   payment_method: string;
@@ -210,6 +211,18 @@ const Members = () => {
       new Date(s.expiry_date) >= new Date() && s.is_active
     );
     return activeService ? "active" : "expired";
+  };
+
+  const getWelcomeMessage = (member: any) => {
+    const activeService = member.member_services?.find((s: any) => 
+      new Date(s.expiry_date) >= new Date() && s.is_active
+    );
+    
+    if (activeService) {
+      return `Welcome to Asatheer Sports Academy, ${member.full_name}!\n\nYour membership details:\nID: ${member.member_id}\nZone: ${activeService.zone.replace('_', ' ').toUpperCase()}\nPlan: ${activeService.subscription_plan.replace('_', ' ')}\nExpires: ${new Date(activeService.expiry_date).toLocaleDateString()}\n\nWe're excited to have you with us!`;
+    }
+    
+    return `Hello ${member.full_name},\n\nThank you for being a member of Asatheer Sports Academy!\n\nMember ID: ${member.member_id}\n\nContact us anytime for assistance.`;
   };
 
   return (
@@ -444,7 +457,15 @@ const Members = () => {
                   </TableCell>
                   <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
                   <TableCell>
-                    <MemberCard member={member} />
+                    <div className="flex gap-2">
+                      <MemberCard member={member} />
+                      <WhatsAppButton
+                        phoneNumber={member.phone_number}
+                        message={getWelcomeMessage(member)}
+                        variant="outline"
+                        size="sm"
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

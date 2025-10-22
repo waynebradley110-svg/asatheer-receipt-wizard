@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, UserCheck, UserX, TrendingUp, DollarSign, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ExpiryReminders } from "@/components/ExpiryReminders";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -141,24 +142,28 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin Controls</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            As an admin, you have full access to all system features including user management, financial reports, and system configuration.
-          </p>
-          <div className="flex gap-2">
-            <Button onClick={() => toast.info("User management coming soon")}>
-              Manage Users
-            </Button>
-            <Button variant="outline" onClick={() => toast.info("System settings coming soon")}>
-              System Settings
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Controls</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              As an admin, you have full access to all system features including user management, financial reports, and system configuration.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => toast.info("User management coming soon")}>
+                Manage Users
+              </Button>
+              <Button variant="outline" onClick={() => toast.info("System settings coming soon")}>
+                System Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <ExpiryReminders />
+      </div>
     </div>
   );
 };
