@@ -270,6 +270,7 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"]
           receipt_pdf_url: string | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          transaction_id: string | null
           zone: Database["public"]["Enums"]["zone_type"]
         }
         Insert: {
@@ -281,6 +282,7 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"]
           receipt_pdf_url?: string | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          transaction_id?: string | null
           zone: Database["public"]["Enums"]["zone_type"]
         }
         Update: {
@@ -292,6 +294,7 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"]
           receipt_pdf_url?: string | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          transaction_id?: string | null
           zone?: Database["public"]["Enums"]["zone_type"]
         }
         Relationships: [

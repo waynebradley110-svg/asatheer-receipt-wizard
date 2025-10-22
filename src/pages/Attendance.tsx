@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, CameraOff, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Camera, CameraOff, CheckCircle2, XCircle, Clock, Keyboard } from "lucide-react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Badge } from "@/components/ui/badge";
 
@@ -22,9 +23,11 @@ const Attendance = () => {
   const [scanning, setScanning] = useState(false);
   const [scannedMember, setScannedMember] = useState<MemberInfo | null>(null);
   const [recentAttendance, setRecentAttendance] = useState<any[]>([]);
+  const [manualInput, setManualInput] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
   const clearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchRecentAttendance();
@@ -95,14 +98,34 @@ const Attendance = () => {
   const handleBarcodeScanned = async (barcode: string) => {
     // Stop scanning temporarily to process
     stopScanning();
+    setManualInput("");
 
     try {
-      // Fetch member by barcode
-      const { data: member, error: memberError } = await supabase
+      // Fetch member by barcode or member_id
+      let member;
+      let memberError;
+
+      // Try barcode first
+      const barcodeResult = await supabase
         .from("members")
         .select("*, member_services(*)")
         .eq("barcode", barcode)
-        .single();
+        .maybeSingle();
+
+      if (barcodeResult.data) {
+        member = barcodeResult.data;
+        memberError = barcodeResult.error;
+      } else {
+        // Try member_id if barcode not found
+        const idResult = await supabase
+          .from("members")
+          .select("*, member_services(*)")
+          .eq("member_id", barcode)
+          .maybeSingle();
+        
+        member = idResult.data;
+        memberError = idResult.error;
+      }
 
       if (memberError || !member) {
         toast.error("Member not found!");
@@ -172,11 +195,18 @@ const Attendance = () => {
     }
   };
 
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualInput.trim()) {
+      handleBarcodeScanned(manualInput.trim());
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Attendance Scanner</h1>
-        <p className="text-muted-foreground">Scan member barcodes to check in</p>
+        <p className="text-muted-foreground">Scan member barcodes or enter manually</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -221,6 +251,35 @@ const Attendance = () => {
                 </>
               )}
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleManualSubmit} className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Keyboard className="h-4 w-4" />
+                  <span>External Scanner / Manual Entry</span>
+                </div>
+                <Input
+                  ref={inputRef}
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  placeholder="Scan barcode or enter Member ID..."
+                  className="text-center font-mono"
+                  autoFocus={!scanning}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={!manualInput.trim()}>
+                Check In
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

@@ -9,8 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { MemberCard } from "@/components/MemberCard";
+
+interface PaymentEntry {
+  payment_method: string;
+  amount: string;
+}
 
 const Members = () => {
   const [members, setMembers] = useState<any[]>([]);
@@ -24,10 +30,11 @@ const Members = () => {
     date_of_birth: "",
     subscription_plan: "",
     zone: "",
-    payment_method: "",
-    amount: "",
     notes: "",
   });
+  const [paymentEntries, setPaymentEntries] = useState<PaymentEntry[]>([
+    { payment_method: "", amount: "" }
+  ]);
 
   useEffect(() => {
     fetchMembers();
@@ -84,10 +91,21 @@ const Members = () => {
     setLoading(true);
 
     try {
+      // Validate payments
+      const validPayments = paymentEntries.filter(p => p.payment_method && p.amount);
+      if (validPayments.length === 0) {
+        toast.error("Please add at least one payment");
+        setLoading(false);
+        return;
+      }
+
+      const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
       const memberId = generateMemberId();
       const barcode = generateBarcode();
       const startDate = new Date();
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
+      const transactionId = crypto.randomUUID();
 
       // Insert member
       const { data: newMember, error: memberError } = await supabase
@@ -119,20 +137,23 @@ const Members = () => {
 
       if (serviceError) throw serviceError;
 
-      // Insert payment receipt
+      // Insert multiple payment receipts with same transaction_id
+      const paymentRecords = validPayments.map(payment => ({
+        member_id: newMember.id,
+        amount: parseFloat(payment.amount),
+        payment_method: payment.payment_method as any,
+        subscription_plan: formData.subscription_plan as any,
+        zone: formData.zone as any,
+        transaction_id: transactionId,
+      }));
+
       const { error: paymentError } = await supabase
         .from("payment_receipts")
-        .insert([{
-          member_id: newMember.id,
-          amount: parseFloat(formData.amount),
-          payment_method: formData.payment_method as any,
-          subscription_plan: formData.subscription_plan as any,
-          zone: formData.zone as any,
-        }]);
+        .insert(paymentRecords);
 
       if (paymentError) throw paymentError;
 
-      toast.success("Member registered successfully!");
+      toast.success(`Member registered! Total paid: ${totalPaid} AED (${validPayments.length} payment${validPayments.length > 1 ? 's' : ''})`);
       setDialogOpen(false);
       resetForm();
       fetchMembers();
@@ -151,10 +172,31 @@ const Members = () => {
       date_of_birth: "",
       subscription_plan: "",
       zone: "",
-      payment_method: "",
-      amount: "",
       notes: "",
     });
+    setPaymentEntries([{ payment_method: "", amount: "" }]);
+  };
+
+  const addPaymentEntry = () => {
+    setPaymentEntries([...paymentEntries, { payment_method: "", amount: "" }]);
+  };
+
+  const removePaymentEntry = (index: number) => {
+    if (paymentEntries.length > 1) {
+      setPaymentEntries(paymentEntries.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePaymentEntry = (index: number, field: keyof PaymentEntry, value: string) => {
+    const updated = [...paymentEntries];
+    updated[index][field] = value;
+    setPaymentEntries(updated);
+  };
+
+  const getTotalPayment = () => {
+    return paymentEntries
+      .filter(p => p.amount)
+      .reduce((sum, p) => sum + parseFloat(p.amount || "0"), 0);
   };
 
   const filteredMembers = members.filter(m =>
@@ -283,34 +325,66 @@ const Members = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="payment_method">Payment Method *</Label>
-                  <Select
-                    value={formData.payment_method}
-                    onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
-                      <SelectItem value="online">Online</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Payment Details *</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={addPaymentEntry}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Payment
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (AED) *</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    required
-                  />
+
+                {paymentEntries.map((entry, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Payment {index + 1}</span>
+                      {paymentEntries.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePaymentEntry(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Payment Method</Label>
+                        <Select
+                          value={entry.payment_method}
+                          onValueChange={(value) => updatePaymentEntry(index, "payment_method", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="card">Card</SelectItem>
+                            <SelectItem value="online">Online</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Amount (AED)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={entry.amount}
+                          onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="bg-muted p-3 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total Payment:</span>
+                    <span className="text-lg font-bold">{getTotalPayment().toFixed(2)} AED</span>
+                  </div>
                 </div>
               </div>
 
@@ -354,6 +428,7 @@ const Members = () => {
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Barcode</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -368,6 +443,9 @@ const Members = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
+                  <TableCell>
+                    <MemberCard member={member} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
