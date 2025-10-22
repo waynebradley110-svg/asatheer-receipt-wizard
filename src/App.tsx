@@ -7,6 +7,7 @@ import Auth from "./pages/Auth";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
+import Attendance from "./pages/Attendance";
 import Reports from "./pages/Reports";
 import Expenses from "./pages/Expenses";
 import Notifications from "./pages/Notifications";
@@ -26,6 +27,7 @@ const App = () => (
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/members" element={<Members />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/notifications" element={<Notifications />} />

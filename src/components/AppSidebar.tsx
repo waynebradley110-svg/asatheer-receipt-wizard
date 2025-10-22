@@ -1,4 +1,4 @@
-import { Home, Users, CreditCard, Bell, LogOut, Dumbbell, Receipt } from "lucide-react";
+import { Home, Users, CreditCard, Bell, LogOut, Dumbbell, Receipt, ScanLine } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -20,6 +20,7 @@ import { toast } from "sonner";
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Members", url: "/members", icon: Users },
+  { title: "Attendance", url: "/attendance", icon: ScanLine },
   { title: "Reports", url: "/reports", icon: CreditCard },
   { title: "Expenses", url: "/expenses", icon: Receipt },
   { title: "Notifications", url: "/notifications", icon: Bell },

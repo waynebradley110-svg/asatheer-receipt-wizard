@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          check_in_time: string
+          created_at: string | null
+          id: string
+          member_id: string
+          status: string | null
+          zone: Database["public"]["Enums"]["zone_type"] | null
+        }
+        Insert: {
+          check_in_time?: string
+          created_at?: string | null
+          id?: string
+          member_id: string
+          status?: string | null
+          zone?: Database["public"]["Enums"]["zone_type"] | null
+        }
+        Update: {
+          check_in_time?: string
+          created_at?: string | null
+          id?: string
+          member_id?: string
+          status?: string | null
+          zone?: Database["public"]["Enums"]["zone_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deleted_members_log: {
         Row: {
           deleted_at: string | null
