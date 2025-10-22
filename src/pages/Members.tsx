@@ -34,7 +34,10 @@ const Members = () => {
     subscription_plan: "",
     zone: "",
     notes: "",
+    coach_name: "",
   });
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewingMember, setRenewingMember] = useState<any>(null);
   const [paymentEntries, setPaymentEntries] = useState<PaymentEntry[]>([
     { payment_method: "", amount: "" }
   ]);
@@ -104,45 +107,66 @@ const Members = () => {
 
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
 
-      const memberId = generateMemberId();
-      const barcode = generateBarcode();
+      // Check for duplicate member by phone number
+      const { data: existingMember } = await supabase
+        .from("members")
+        .select("id, member_id, full_name, member_services(*)")
+        .eq("phone_number", formData.phone_number)
+        .single();
+
+      let memberId, memberDbId, barcode;
+
+      if (existingMember) {
+        // Member exists - add new service only
+        toast.info(`Member ${existingMember.full_name} already exists. Adding new service...`);
+        memberId = existingMember.member_id;
+        memberDbId = existingMember.id;
+        barcode = null; // Use existing barcode
+      } else {
+        // New member - create full record
+        memberId = generateMemberId();
+        barcode = generateBarcode();
+        
+        const { data: newMember, error: memberError } = await supabase
+          .from("members")
+          .insert([{
+            member_id: memberId,
+            barcode,
+            full_name: formData.full_name,
+            gender: formData.gender as 'male' | 'female',
+            phone_number: formData.phone_number,
+            date_of_birth: formData.date_of_birth || null,
+            notes: formData.notes || null,
+          }])
+          .select()
+          .single();
+
+        if (memberError) throw memberError;
+        memberDbId = newMember.id;
+      }
+
       const startDate = new Date();
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
-
-      // Insert member
-      const { data: newMember, error: memberError } = await supabase
-        .from("members")
-        .insert([{
-          member_id: memberId,
-          barcode,
-          full_name: formData.full_name,
-          gender: formData.gender as 'male' | 'female',
-          phone_number: formData.phone_number,
-          date_of_birth: formData.date_of_birth || null,
-          notes: formData.notes || null,
-        }])
-        .select()
-        .single();
-
-      if (memberError) throw memberError;
 
       // Insert service
       const { error: serviceError } = await supabase
         .from("member_services")
         .insert([{
-          member_id: newMember.id,
+          member_id: memberDbId,
           subscription_plan: formData.subscription_plan as any,
           zone: formData.zone as any,
           start_date: startDate.toISOString().split('T')[0],
           expiry_date: expiryDate.toISOString().split('T')[0],
+          coach_name: formData.zone === 'pt' ? formData.coach_name || null : null,
+          notes: formData.zone === 'pt' ? `Coach: ${formData.coach_name}` : null,
         }]);
 
       if (serviceError) throw serviceError;
 
       // Insert multiple payment receipts with same transaction_id
       const paymentRecords = validPayments.map(payment => ({
-        member_id: newMember.id,
+        member_id: memberDbId,
         amount: parseFloat(payment.amount),
         payment_method: payment.payment_method as any,
         subscription_plan: formData.subscription_plan as any,
@@ -156,7 +180,10 @@ const Members = () => {
 
       if (paymentError) throw paymentError;
 
-      toast.success(`Member registered! Total paid: ${totalPaid} AED (${validPayments.length} payment${validPayments.length > 1 ? 's' : ''})`);
+      const message = existingMember 
+        ? `Service added for existing member! Total paid: ${totalPaid} AED`
+        : `Member registered! Total paid: ${totalPaid} AED`;
+      toast.success(message);
       setDialogOpen(false);
       resetForm();
       fetchMembers();
@@ -176,6 +203,7 @@ const Members = () => {
       subscription_plan: "",
       zone: "",
       notes: "",
+      coach_name: "",
     });
     setPaymentEntries([{ payment_method: "", amount: "" }]);
   };
@@ -237,6 +265,7 @@ const Members = () => {
       subscription_plan: "",
       zone: "",
       notes: member.notes || "",
+      coach_name: "",
     });
     setEditDialogOpen(true);
   };
@@ -266,6 +295,78 @@ const Members = () => {
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message || "Error updating member");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRenewMembership = (member: any) => {
+    setRenewingMember(member);
+    setFormData({
+      ...formData,
+      full_name: member.full_name,
+      phone_number: member.phone_number,
+      subscription_plan: "",
+      zone: "",
+    });
+    setRenewDialogOpen(true);
+  };
+
+  const handleRenewalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const validPayments = paymentEntries.filter(p => p.payment_method && p.amount);
+      if (validPayments.length === 0) {
+        toast.error("Please add at least one payment");
+        setLoading(false);
+        return;
+      }
+
+      const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      const startDate = new Date();
+      const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
+      const transactionId = crypto.randomUUID();
+
+      // Add new service
+      const { error: serviceError } = await supabase
+        .from("member_services")
+        .insert([{
+          member_id: renewingMember.id,
+          subscription_plan: formData.subscription_plan as any,
+          zone: formData.zone as any,
+          start_date: startDate.toISOString().split('T')[0],
+          expiry_date: expiryDate.toISOString().split('T')[0],
+          coach_name: formData.zone === 'pt' ? formData.coach_name || null : null,
+          notes: formData.zone === 'pt' ? `Coach: ${formData.coach_name}` : null,
+        }]);
+
+      if (serviceError) throw serviceError;
+
+      // Insert payment receipts
+      const paymentRecords = validPayments.map(payment => ({
+        member_id: renewingMember.id,
+        amount: parseFloat(payment.amount),
+        payment_method: payment.payment_method as any,
+        subscription_plan: formData.subscription_plan as any,
+        zone: formData.zone as any,
+        transaction_id: transactionId,
+      }));
+
+      const { error: paymentError } = await supabase
+        .from("payment_receipts")
+        .insert(paymentRecords);
+
+      if (paymentError) throw paymentError;
+
+      toast.success(`Membership renewed! Total paid: ${totalPaid} AED`);
+      setRenewDialogOpen(false);
+      setRenewingMember(null);
+      resetForm();
+      fetchMembers();
+    } catch (error: any) {
+      toast.error(error.message || "Error renewing membership");
     } finally {
       setLoading(false);
     }
@@ -383,6 +484,18 @@ const Members = () => {
                   </Select>
                 </div>
               </div>
+
+              {formData.zone === 'pt' && (
+                <div className="space-y-2">
+                  <Label htmlFor="coach_name">Coach Name</Label>
+                  <Input
+                    id="coach_name"
+                    value={formData.coach_name}
+                    onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                    placeholder="Enter coach's name"
+                  />
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -504,6 +617,15 @@ const Members = () => {
                   <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
                   <TableCell>
                     <div className="flex gap-2 justify-end">
+                      {getMemberStatus(member) === "expired" && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleRenewMembership(member)}
+                        >
+                          Renew
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -595,6 +717,140 @@ const Members = () => {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Updating..." : "Update Member"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Renew Membership Dialog */}
+      <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Renew Membership - {renewingMember?.full_name}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleRenewalSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="renew_zone">Zone *</Label>
+                <Select
+                  value={formData.zone}
+                  onValueChange={(value) => setFormData({ ...formData, zone: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select zone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gym">Gym</SelectItem>
+                    <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
+                    <SelectItem value="pt">PT (Personal Training)</SelectItem>
+                    <SelectItem value="crossfit">CrossFit</SelectItem>
+                    <SelectItem value="football_court">Football Court</SelectItem>
+                    <SelectItem value="basketball">Basketball</SelectItem>
+                    <SelectItem value="swimming">Swimming</SelectItem>
+                    <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="renew_subscription_plan">Subscription Plan *</Label>
+                <Select
+                  value={formData.subscription_plan}
+                  onValueChange={(value) => setFormData({ ...formData, subscription_plan: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1_day">1 Day</SelectItem>
+                    <SelectItem value="1_month">1 Month</SelectItem>
+                    <SelectItem value="2_months">2 Months</SelectItem>
+                    <SelectItem value="3_months">3 Months</SelectItem>
+                    <SelectItem value="6_months">6 Months</SelectItem>
+                    <SelectItem value="1_year">1 Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {formData.zone === 'pt' && (
+              <div className="space-y-2">
+                <Label htmlFor="renew_coach_name">Coach Name</Label>
+                <Input
+                  id="renew_coach_name"
+                  value={formData.coach_name}
+                  onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                  placeholder="Enter coach's name"
+                />
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Payment Details *</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addPaymentEntry}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Payment
+                </Button>
+              </div>
+
+              {paymentEntries.map((entry, index) => (
+                <div key={index} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Payment {index + 1}</span>
+                    {paymentEntries.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePaymentEntry(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Payment Method</Label>
+                      <Select
+                        value={entry.payment_method}
+                        onValueChange={(value) => updatePaymentEntry(index, "payment_method", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="card">Card</SelectItem>
+                          <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Amount (AED)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={entry.amount}
+                        onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="bg-muted p-3 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total Payment:</span>
+                  <span className="text-lg font-bold">{getTotalPayment().toFixed(2)} AED</span>
+                </div>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Renewing..." : "Renew Membership"}
             </Button>
           </form>
         </DialogContent>

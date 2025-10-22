@@ -49,6 +49,42 @@ export type Database = {
           },
         ]
       }
+      cafe_sales: {
+        Row: {
+          amount: number
+          cashier_name: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          item_description: string
+          notes: string | null
+          payment_method: string
+          sale_date: string
+        }
+        Insert: {
+          amount: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          item_description: string
+          notes?: string | null
+          payment_method: string
+          sale_date?: string
+        }
+        Update: {
+          amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          item_description?: string
+          notes?: string | null
+          payment_method?: string
+          sale_date?: string
+        }
+        Relationships: []
+      }
       deleted_members_log: {
         Row: {
           deleted_at: string | null
@@ -144,31 +180,37 @@ export type Database = {
       }
       member_services: {
         Row: {
+          coach_name: string | null
           created_at: string | null
           expiry_date: string
           id: string
           is_active: boolean | null
           member_id: string
+          notes: string | null
           start_date: string
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           zone: Database["public"]["Enums"]["zone_type"]
         }
         Insert: {
+          coach_name?: string | null
           created_at?: string | null
           expiry_date: string
           id?: string
           is_active?: boolean | null
           member_id: string
+          notes?: string | null
           start_date: string
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           zone: Database["public"]["Enums"]["zone_type"]
         }
         Update: {
+          coach_name?: string | null
           created_at?: string | null
           expiry_date?: string
           id?: string
           is_active?: boolean | null
           member_id?: string
+          notes?: string | null
           start_date?: string
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           zone?: Database["public"]["Enums"]["zone_type"]
