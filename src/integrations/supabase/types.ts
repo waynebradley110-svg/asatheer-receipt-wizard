@@ -14,7 +14,269 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      deleted_members_log: {
+        Row: {
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          member_data: Json
+          original_member_id: string
+        }
+        Insert: {
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          member_data: Json
+          original_member_id: string
+        }
+        Update: {
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          member_data?: Json
+          original_member_id?: string
+        }
+        Relationships: []
+      }
+      financial_audit_trail: {
+        Row: {
+          action_by: string
+          action_type: string
+          description: string | null
+          id: string
+          record_id: string | null
+          table_name: string
+          timestamp: string | null
+        }
+        Insert: {
+          action_by: string
+          action_type: string
+          description?: string | null
+          id?: string
+          record_id?: string | null
+          table_name: string
+          timestamp?: string | null
+        }
+        Update: {
+          action_by?: string
+          action_type?: string
+          description?: string | null
+          id?: string
+          record_id?: string | null
+          table_name?: string
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
+      member_services: {
+        Row: {
+          created_at: string | null
+          expiry_date: string
+          id: string
+          is_active: boolean | null
+          member_id: string
+          start_date: string
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          zone: Database["public"]["Enums"]["zone_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          expiry_date: string
+          id?: string
+          is_active?: boolean | null
+          member_id: string
+          start_date: string
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          zone: Database["public"]["Enums"]["zone_type"]
+        }
+        Update: {
+          created_at?: string | null
+          expiry_date?: string
+          id?: string
+          is_active?: boolean | null
+          member_id?: string
+          start_date?: string
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          zone?: Database["public"]["Enums"]["zone_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_services_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members: {
+        Row: {
+          barcode: string
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          member_id: string
+          notes: string | null
+          phone_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          barcode: string
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id?: string
+          member_id: string
+          notes?: string | null
+          phone_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          barcode?: string
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string
+          gender?: Database["public"]["Enums"]["gender_type"]
+          id?: string
+          member_id?: string
+          notes?: string | null
+          phone_number?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          member_id: string | null
+          message: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          member_id?: string | null
+          message: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          member_id?: string | null
+          message?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_receipts: {
+        Row: {
+          amount: number
+          cashier_name: string | null
+          created_at: string | null
+          id: string
+          member_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_pdf_url: string | null
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          zone: Database["public"]["Enums"]["zone_type"]
+        }
+        Insert: {
+          amount: number
+          cashier_name?: string | null
+          created_at?: string | null
+          id?: string
+          member_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_pdf_url?: string | null
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          zone: Database["public"]["Enums"]["zone_type"]
+        }
+        Update: {
+          amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          id?: string
+          member_id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_pdf_url?: string | null
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          zone?: Database["public"]["Enums"]["zone_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_receipt_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          member_id: string
+          pdf_url: string | null
+          phone: string
+          retry_count: number | null
+          sent_at: string | null
+          status: string | null
+          whatsapp_sender: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          member_id: string
+          pdf_url?: string | null
+          phone: string
+          retry_count?: number | null
+          sent_at?: string | null
+          status?: string | null
+          whatsapp_sender?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          member_id?: string
+          pdf_url?: string | null
+          phone?: string
+          retry_count?: number | null
+          sent_at?: string | null
+          status?: string | null
+          whatsapp_sender?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_receipt_logs_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +285,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      gender_type: "male" | "female"
+      payment_method: "cash" | "card" | "online"
+      subscription_plan:
+        | "1_day"
+        | "1_month"
+        | "3_months"
+        | "6_months"
+        | "1_year"
+      zone_type:
+        | "gym"
+        | "crossfit"
+        | "football"
+        | "basketball"
+        | "swimming"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +426,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender_type: ["male", "female"],
+      payment_method: ["cash", "card", "online"],
+      subscription_plan: ["1_day", "1_month", "3_months", "6_months", "1_year"],
+      zone_type: [
+        "gym",
+        "crossfit",
+        "football",
+        "basketball",
+        "swimming",
+        "other",
+      ],
+    },
   },
 } as const
