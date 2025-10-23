@@ -52,6 +52,8 @@ export type Database = {
       cafe_sales: {
         Row: {
           amount: number
+          card_amount: number | null
+          cash_amount: number | null
           cashier_name: string | null
           created_at: string | null
           created_by: string | null
@@ -63,6 +65,8 @@ export type Database = {
         }
         Insert: {
           amount: number
+          card_amount?: number | null
+          cash_amount?: number | null
           cashier_name?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -74,6 +78,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          card_amount?: number | null
+          cash_amount?: number | null
           cashier_name?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -175,6 +181,45 @@ export type Database = {
           record_id?: string | null
           table_name?: string
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      football_sales: {
+        Row: {
+          card_amount: number
+          cash_amount: number
+          cashier_name: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          notes: string | null
+          sale_date: string
+          total_amount: number | null
+        }
+        Insert: {
+          card_amount?: number
+          cash_amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          sale_date?: string
+          total_amount?: number | null
+        }
+        Update: {
+          card_amount?: number
+          cash_amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          sale_date?: string
+          total_amount?: number | null
         }
         Relationships: []
       }

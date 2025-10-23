@@ -11,6 +11,7 @@ import { FinancialCorrections } from "@/components/FinancialCorrections";
 import { ZoneAnalysis } from "@/components/ZoneAnalysis";
 import { ExcelBackup } from "@/components/ExcelBackup";
 import { CafeSales } from "@/components/CafeSales";
+import { FootballSales } from "@/components/FootballSales";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
@@ -150,11 +151,12 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="cafe">Cafe Sales</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="corrections">Financial Corrections</TabsTrigger>
+          <TabsTrigger value="cafe">Cafe</TabsTrigger>
+          <TabsTrigger value="football">Football</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="corrections">Corrections</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -167,6 +169,10 @@ const AdminDashboard = () => {
 
         <TabsContent value="cafe">
           <CafeSales />
+        </TabsContent>
+
+        <TabsContent value="football">
+          <FootballSales />
         </TabsContent>
 
         <TabsContent value="users">

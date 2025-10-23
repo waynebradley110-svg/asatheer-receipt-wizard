@@ -60,6 +60,13 @@ const Reports = () => {
       .gte("sale_date", format(startDate, "yyyy-MM-dd"))
       .lte("sale_date", format(endDate, "yyyy-MM-dd"));
 
+    // Fetch football sales
+    const { data: footballSales } = await supabase
+      .from("football_sales")
+      .select("*")
+      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
+      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+
     // Calculate totals from membership payments
     let totalCash = payments?.filter(p => p.payment_method === 'cash')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
@@ -71,14 +78,15 @@ const Reports = () => {
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
     // Add cafe sales to totals
-    const cafeCash = cafeSales?.filter(s => s.payment_method === 'cash')
-      .reduce((sum, s) => sum + Number(s.amount), 0) || 0;
-    
-    const cafeCard = cafeSales?.filter(s => s.payment_method === 'card')
-      .reduce((sum, s) => sum + Number(s.amount), 0) || 0;
+    const cafeCash = cafeSales?.reduce((sum, s) => sum + Number(s.cash_amount || 0), 0) || 0;
+    const cafeCard = cafeSales?.reduce((sum, s) => sum + Number(s.card_amount || 0), 0) || 0;
 
-    totalCash += cafeCash;
-    totalCard += cafeCard;
+    // Add football sales to totals
+    const footballCash = footballSales?.reduce((sum, s) => sum + Number(s.cash_amount || 0), 0) || 0;
+    const footballCard = footballSales?.reduce((sum, s) => sum + Number(s.card_amount || 0), 0) || 0;
+
+    totalCash += cafeCash + footballCash;
+    totalCard += cafeCard + footballCard;
 
     setStats({ totalCash, totalCard, totalOnline });
 
@@ -121,9 +129,36 @@ const Reports = () => {
           id: sale.id,
           member_id: sale.id,
           amount: sale.amount,
-          payment_method: sale.payment_method,
+          payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+            ? 'mixed' 
+            : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
           zone: 'cafe',
           subscription_plan: sale.item_description,
+          created_at: sale.sale_date,
+          cashier_name: sale.cashier_name,
+          member_name: undefined,
+        })),
+      };
+    }
+
+    // Add football sales as a separate zone
+    if (footballSales && footballSales.length > 0) {
+      zoneGroups['Football Court'] = {
+        zone: 'Football Court',
+        revenue: footballCash + footballCard,
+        cash: footballCash,
+        card: footballCard,
+        online: 0,
+        salesCount: footballSales.length,
+        transactions: footballSales.map(sale => ({
+          id: sale.id,
+          member_id: sale.id,
+          amount: sale.total_amount,
+          payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+            ? 'mixed' 
+            : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
+          zone: 'football',
+          subscription_plan: sale.description,
           created_at: sale.sale_date,
           cashier_name: sale.cashier_name,
           member_name: undefined,

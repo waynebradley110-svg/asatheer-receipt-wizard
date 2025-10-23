@@ -3,18 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Coffee, DollarSign, Calendar } from "lucide-react";
+import { Trophy, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-interface CafeSale {
+interface FootballSale {
   id: string;
   sale_date: string;
-  item_description: string;
-  amount: number;
+  description: string;
+  total_amount: number;
   cash_amount: number;
   card_amount: number;
   cashier_name: string | null;
@@ -22,10 +21,10 @@ interface CafeSale {
   created_at: string;
 }
 
-export function CafeSales() {
-  const [sales, setSales] = useState<CafeSale[]>([]);
+export function FootballSales() {
+  const [sales, setSales] = useState<FootballSale[]>([]);
   const [formData, setFormData] = useState({
-    item_description: "",
+    description: "",
     cash_amount: "",
     card_amount: "",
     cashier_name: "",
@@ -40,13 +39,13 @@ export function CafeSales() {
 
   const fetchSales = async () => {
     const { data, error } = await supabase
-      .from("cafe_sales")
+      .from("football_sales")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
 
     if (error) {
-      toast.error("Failed to load cafe sales");
+      toast.error("Failed to load football sales");
       return;
     }
 
@@ -54,7 +53,7 @@ export function CafeSales() {
     calculateDailyTotals(data || []);
   };
 
-  const calculateDailyTotals = (salesData: CafeSale[]) => {
+  const calculateDailyTotals = (salesData: FootballSale[]) => {
     const today = format(new Date(), "yyyy-MM-dd");
     const todaySales = salesData.filter(s => s.sale_date === today);
     
@@ -70,8 +69,8 @@ export function CafeSales() {
     const cashAmount = parseFloat(formData.cash_amount || "0");
     const cardAmount = parseFloat(formData.card_amount || "0");
 
-    if (!formData.item_description) {
-      toast.error("Please enter item description");
+    if (!formData.description) {
+      toast.error("Please enter description");
       return;
     }
 
@@ -80,14 +79,13 @@ export function CafeSales() {
       return;
     }
 
-    const { error } = await supabase.from("cafe_sales").insert({
-      sale_date: formData.sale_date,
-      item_description: formData.item_description,
-      amount: cashAmount + cardAmount,
+    const { error } = await supabase.from("football_sales").insert({
+      description: formData.description,
       cash_amount: cashAmount,
       card_amount: cardAmount,
       cashier_name: formData.cashier_name || null,
       notes: formData.notes || null,
+      sale_date: formData.sale_date,
       created_by: (await supabase.auth.getUser()).data.user?.email || "Unknown",
     } as any);
 
@@ -96,9 +94,9 @@ export function CafeSales() {
       return;
     }
 
-    toast.success("Sale recorded successfully!");
+    toast.success("Football sale recorded successfully!");
     setFormData({
-      item_description: "",
+      description: "",
       cash_amount: "",
       card_amount: "",
       cashier_name: formData.cashier_name,
@@ -111,10 +109,10 @@ export function CafeSales() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Coffee className="h-6 w-6 text-primary" />
+        <Trophy className="h-6 w-6 text-primary" />
         <div>
-          <h2 className="text-2xl font-bold">Cafe Sales</h2>
-          <p className="text-muted-foreground">Record daily cafe transactions</p>
+          <h2 className="text-2xl font-bold">Football Court Sales</h2>
+          <p className="text-muted-foreground">Record football court rentals and sales</p>
         </div>
       </div>
 
@@ -174,12 +172,12 @@ export function CafeSales() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="item_description">Item Description *</Label>
+                <Label htmlFor="description">Description *</Label>
                 <Input
-                  id="item_description"
-                  value={formData.item_description}
-                  onChange={(e) => setFormData({ ...formData, item_description: e.target.value })}
-                  placeholder="e.g., Coffee, Sandwich"
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="e.g., Court rental, Tournament"
                   required
                 />
               </div>
@@ -227,7 +225,7 @@ export function CafeSales() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Input
                   id="notes"
@@ -256,7 +254,7 @@ export function CafeSales() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Item</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Cash</TableHead>
                 <TableHead>Card</TableHead>
                 <TableHead>Total</TableHead>
@@ -268,7 +266,7 @@ export function CafeSales() {
               {sales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell>{format(new Date(sale.sale_date), "dd/MM/yyyy")}</TableCell>
-                  <TableCell>{sale.item_description}</TableCell>
+                  <TableCell>{sale.description}</TableCell>
                   <TableCell className="font-semibold text-green-600">
                     {Number(sale.cash_amount || 0).toFixed(2)} AED
                   </TableCell>
@@ -276,7 +274,7 @@ export function CafeSales() {
                     {Number(sale.card_amount || 0).toFixed(2)} AED
                   </TableCell>
                   <TableCell className="font-semibold">
-                    {Number(sale.amount).toFixed(2)} AED
+                    {Number(sale.total_amount).toFixed(2)} AED
                   </TableCell>
                   <TableCell>{sale.cashier_name || "-"}</TableCell>
                   <TableCell>{sale.notes || "-"}</TableCell>
