@@ -3,19 +3,683 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asatheer-receipt-wizard</title>
-    <meta name="description" content="Lovable Generated Project" />
+    <title>asatheer</title>
+    <meta name="description" content="FULL MVP REBUILD PROMPT — Asatheer Sports Academy Dashboard**
+
+**Goal:**
+Rebuild a complete MVP version of the Asatheer Sports Academy Dashboard with stable data sync, full receipt barcodes, and WhatsApp automation using the new sender number **0544765671**.
+
+---
+
+### 1️⃣ APP NAME
+
+**Asatheer Sports Academy Dashboard (MVP)**
+
+---
+
+### 2️⃣ CORE MODULES
+
+#### **A. Member Registration & Management**
+
+* Fields:
+
+  * Full Name
+  * Gender
+  * Phone Number
+  * Subscription Plan (1 Day, 1 Month, 3 Months, etc.)
+  * Date of Birth
+  * Payment Method (Cash, Card, Online)
+  * Amount Paid (auto fetched by plan)
+  * Start Date / Expiry Date (auto-calculated)
+  * Selected Zone (Gym, CrossFit, Football Academy, Basketball, etc.)
+  * Notes (optional)
+* Automatically generate:
+
+  * **Unique Member ID** (e.g., AS6783)
+  * **Scannable Barcode**
+* Store all data in `members` table and related logs (`member_services`, `payment_receipts`, etc.)
+* When registered, system auto-generates a **barcode-based PDF receipt** and sends it via **WhatsApp (0544765671)**.
+
+---
+
+#### **B. Barcode Receipt System**
+
+* Each member’s receipt must contain:
+
+  * Academy logo + receipt title
+  * Member full name
+  * Member ID
+  * Service / Zone
+  * Start Date & Expiry Date
+  * Payment Amount
+  * Payment Method
+  * Scannable barcode generated from `members.barcode`
+* Barcode stays linked to member forever (never disappears).
+* PDF stored in Supabase storage (`receipts/`) and URL logged in `payment_receipts`.
+
+---
+
+#### **C. WhatsApp Integration**
+
+* WhatsApp sender: **0544765671**
+
+* Trigger: on successful registration or renewal.
+
+* Template message:
+
+  ```
+  Hello [Member Name],
+  Thank you for registering with Asatheer Sports Academy.
+  Your payment of AED [Amount] for [Plan] has been received.
+  Attached is your receipt (with barcode) — please keep it safe.
+  You can scan it at the reception for quick check-ins.
+  ```
+
+* Auto-attach the generated receipt PDF.
+
+* Log all messages in table `whatsapp_receipt_logs`:
+
+  ```
+  id | member_id | phone | whatsapp_sender | pdf_url | status | sent_at | error_message
+  ```
+
+* Retry failed messages (max 3 attempts, 10s delay).
+
+---
+
+#### **D. Payments & Reporting**
+
+* `payment_receipts` table tracks all payments:
+
+  ```
+  id | member_id | amount | method | plan | zone | created_at | cashier_name
+  ```
+* Cash vs Card must record correctly (fix bug where totals merge).
+* Add report filter:
+
+  * Date range
+  * Zone
+  * Payment type
+* Dashboard shows totals by category:
+
+  * Total Cash
+  * Total Card
+  * Total Active Members
+  * Expired Members
+  * New Registrations (Last 7 days)
+
+---
+
+#### **E. Data Logs & Recovery**
+
+* `deleted_members_log` table automatically stores deleted/overwritten entries.
+* `financial_audit_trail` logs every payment or edit:
+
+  ```
+  action_by | action_type | table_name | record_id | timestamp | description
+  ```
+
+---
+
+#### **F. Notifications**
+
+* Add in-app notifications when:
+
+  * Member nearing expiry (3 days before)
+  * WhatsApp receipt fails to send
+  * Member barcode not found
+* Store in `notification_logs` table.
+
+---
+
+#### **G. System Reliability**
+
+* All updates synced to Supabase tables:
+
+  * `members`
+  * `member_services`
+  * `payment_receipts`
+  * `whatsapp_receipt_logs`
+  * `notifications`
+* Use async queue to prevent blocking.
+* Validate all phone numbers before sending WhatsApp.
+* Allow admin to manually resend WhatsApp receipt.
+
+---
+
+### 3️⃣ ADMIN PANEL FEATURES
+
+* Dashboard summary cards:
+
+  * Active Members
+  * Expired Members
+  * Total Cash / Card Sales
+  * Today’s Registrations
+* Tabs:
+
+  * Members
+  * Attendance
+  * Sales Reports
+  * Expenses
+  * Notifications
+  * Audit Logs
+* Search, sort, and export all data to Excel.
+
+---
+
+### 4️⃣ BUG FIXES / ENHANCEMENTS
+
+✅ Fix disappearing barcode after registration
+✅ Fix cash/card merging in reports
+✅ Fix WhatsApp sending failures
+✅ Fix member loss after Supabase cloud migration
+✅ Add retry + recovery script for missing receipts
+✅ Add “Resend Receipt” button next to each member in Members List
+
+---
+
+### 5️⃣ TEST FLOW
+
+1. Register test member “Ahmed Test” (phone: your number).
+2. Confirm member record appears in `members` table.
+3. Check barcode field populated.
+4. Receipt generated (PDF with barcode).
+5. WhatsApp receipt sent via 0544765671.
+6. Verify report shows correct totals by payment type.
+
+---
+
+### 6️⃣ DATABASE SUMMARY
+
+Key Tables:
+
+* `members`
+* `member_services`
+* `payment_receipts`
+* `whatsapp_receipt_logs`
+* `deleted_members_log`
+* `financial_audit_trail`
+* `notifications`
+* `audit_log`
+
+Each table must sync to Supabase with consistent foreign keys.
+
+---
+
+### 7️⃣ TECH STACK
+
+* Frontend: Lovable (React + Tailwind)
+* Backend: Supabase (PostgreSQL)
+* API Integrations:
+
+  * WhatsApp Cloud API (sender: 0544765671)
+  * Barcode Generator (JS/Node library)
+* Storage: Supabase storage for receipts
+
+---
+
+### 8️⃣ FINAL DELIVERY
+
+✅ Full rebuild using latest Supabase cloud instance
+✅ WhatsApp receipts stable and logged
+✅ Barcodes visible in both receipt and member list
+✅ Daily report shows exact cash/card breakdown
+✅ Export-ready dashboard">
     <meta name="author" content="Lovable" />
 
-    <meta property="og:title" content="asatheer-receipt-wizard" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    
+    
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+    <meta property="og:title" content="asatheer">
+  <meta name="twitter:title" content="asatheer">
+  <meta property="og:description" content="FULL MVP REBUILD PROMPT — Asatheer Sports Academy Dashboard**
+
+**Goal:**
+Rebuild a complete MVP version of the Asatheer Sports Academy Dashboard with stable data sync, full receipt barcodes, and WhatsApp automation using the new sender number **0544765671**.
+
+---
+
+### 1️⃣ APP NAME
+
+**Asatheer Sports Academy Dashboard (MVP)**
+
+---
+
+### 2️⃣ CORE MODULES
+
+#### **A. Member Registration &amp; Management**
+
+* Fields:
+
+  * Full Name
+  * Gender
+  * Phone Number
+  * Subscription Plan (1 Day, 1 Month, 3 Months, etc.)
+  * Date of Birth
+  * Payment Method (Cash, Card, Online)
+  * Amount Paid (auto fetched by plan)
+  * Start Date / Expiry Date (auto-calculated)
+  * Selected Zone (Gym, CrossFit, Football Academy, Basketball, etc.)
+  * Notes (optional)
+* Automatically generate:
+
+  * **Unique Member ID** (e.g., AS6783)
+  * **Scannable Barcode**
+* Store all data in `members` table and related logs (`member_services`, `payment_receipts`, etc.)
+* When registered, system auto-generates a **barcode-based PDF receipt** and sends it via **WhatsApp (0544765671)**.
+
+---
+
+#### **B. Barcode Receipt System**
+
+* Each member’s receipt must contain:
+
+  * Academy logo + receipt title
+  * Member full name
+  * Member ID
+  * Service / Zone
+  * Start Date &amp; Expiry Date
+  * Payment Amount
+  * Payment Method
+  * Scannable barcode generated from `members.barcode`
+* Barcode stays linked to member forever (never disappears).
+* PDF stored in Supabase storage (`receipts/`) and URL logged in `payment_receipts`.
+
+---
+
+#### **C. WhatsApp Integration**
+
+* WhatsApp sender: **0544765671**
+
+* Trigger: on successful registration or renewal.
+
+* Template message:
+
+  ```
+  Hello [Member Name],
+  Thank you for registering with Asatheer Sports Academy.
+  Your payment of AED [Amount] for [Plan] has been received.
+  Attached is your receipt (with barcode) — please keep it safe.
+  You can scan it at the reception for quick check-ins.
+  ```
+
+* Auto-attach the generated receipt PDF.
+
+* Log all messages in table `whatsapp_receipt_logs`:
+
+  ```
+  id | member_id | phone | whatsapp_sender | pdf_url | status | sent_at | error_message
+  ```
+
+* Retry failed messages (max 3 attempts, 10s delay).
+
+---
+
+#### **D. Payments &amp; Reporting**
+
+* `payment_receipts` table tracks all payments:
+
+  ```
+  id | member_id | amount | method | plan | zone | created_at | cashier_name
+  ```
+* Cash vs Card must record correctly (fix bug where totals merge).
+* Add report filter:
+
+  * Date range
+  * Zone
+  * Payment type
+* Dashboard shows totals by category:
+
+  * Total Cash
+  * Total Card
+  * Total Active Members
+  * Expired Members
+  * New Registrations (Last 7 days)
+
+---
+
+#### **E. Data Logs &amp; Recovery**
+
+* `deleted_members_log` table automatically stores deleted/overwritten entries.
+* `financial_audit_trail` logs every payment or edit:
+
+  ```
+  action_by | action_type | table_name | record_id | timestamp | description
+  ```
+
+---
+
+#### **F. Notifications**
+
+* Add in-app notifications when:
+
+  * Member nearing expiry (3 days before)
+  * WhatsApp receipt fails to send
+  * Member barcode not found
+* Store in `notification_logs` table.
+
+---
+
+#### **G. System Reliability**
+
+* All updates synced to Supabase tables:
+
+  * `members`
+  * `member_services`
+  * `payment_receipts`
+  * `whatsapp_receipt_logs`
+  * `notifications`
+* Use async queue to prevent blocking.
+* Validate all phone numbers before sending WhatsApp.
+* Allow admin to manually resend WhatsApp receipt.
+
+---
+
+### 3️⃣ ADMIN PANEL FEATURES
+
+* Dashboard summary cards:
+
+  * Active Members
+  * Expired Members
+  * Total Cash / Card Sales
+  * Today’s Registrations
+* Tabs:
+
+  * Members
+  * Attendance
+  * Sales Reports
+  * Expenses
+  * Notifications
+  * Audit Logs
+* Search, sort, and export all data to Excel.
+
+---
+
+### 4️⃣ BUG FIXES / ENHANCEMENTS
+
+✅ Fix disappearing barcode after registration
+✅ Fix cash/card merging in reports
+✅ Fix WhatsApp sending failures
+✅ Fix member loss after Supabase cloud migration
+✅ Add retry + recovery script for missing receipts
+✅ Add “Resend Receipt” button next to each member in Members List
+
+---
+
+### 5️⃣ TEST FLOW
+
+1. Register test member “Ahmed Test” (phone: your number).
+2. Confirm member record appears in `members` table.
+3. Check barcode field populated.
+4. Receipt generated (PDF with barcode).
+5. WhatsApp receipt sent via 0544765671.
+6. Verify report shows correct totals by payment type.
+
+---
+
+### 6️⃣ DATABASE SUMMARY
+
+Key Tables:
+
+* `members`
+* `member_services`
+* `payment_receipts`
+* `whatsapp_receipt_logs`
+* `deleted_members_log`
+* `financial_audit_trail`
+* `notifications`
+* `audit_log`
+
+Each table must sync to Supabase with consistent foreign keys.
+
+---
+
+### 7️⃣ TECH STACK
+
+* Frontend: Lovable (React + Tailwind)
+* Backend: Supabase (PostgreSQL)
+* API Integrations:
+
+  * WhatsApp Cloud API (sender: 0544765671)
+  * Barcode Generator (JS/Node library)
+* Storage: Supabase storage for receipts
+
+---
+
+### 8️⃣ FINAL DELIVERY
+
+✅ Full rebuild using latest Supabase cloud instance
+✅ WhatsApp receipts stable and logged
+✅ Barcodes visible in both receipt and member list
+✅ Daily report shows exact cash/card breakdown
+✅ Export-ready dashboard">
+  <meta name="twitter:description" content="FULL MVP REBUILD PROMPT — Asatheer Sports Academy Dashboard**
+
+**Goal:**
+Rebuild a complete MVP version of the Asatheer Sports Academy Dashboard with stable data sync, full receipt barcodes, and WhatsApp automation using the new sender number **0544765671**.
+
+---
+
+### 1️⃣ APP NAME
+
+**Asatheer Sports Academy Dashboard (MVP)**
+
+---
+
+### 2️⃣ CORE MODULES
+
+#### **A. Member Registration &amp; Management**
+
+* Fields:
+
+  * Full Name
+  * Gender
+  * Phone Number
+  * Subscription Plan (1 Day, 1 Month, 3 Months, etc.)
+  * Date of Birth
+  * Payment Method (Cash, Card, Online)
+  * Amount Paid (auto fetched by plan)
+  * Start Date / Expiry Date (auto-calculated)
+  * Selected Zone (Gym, CrossFit, Football Academy, Basketball, etc.)
+  * Notes (optional)
+* Automatically generate:
+
+  * **Unique Member ID** (e.g., AS6783)
+  * **Scannable Barcode**
+* Store all data in `members` table and related logs (`member_services`, `payment_receipts`, etc.)
+* When registered, system auto-generates a **barcode-based PDF receipt** and sends it via **WhatsApp (0544765671)**.
+
+---
+
+#### **B. Barcode Receipt System**
+
+* Each member’s receipt must contain:
+
+  * Academy logo + receipt title
+  * Member full name
+  * Member ID
+  * Service / Zone
+  * Start Date &amp; Expiry Date
+  * Payment Amount
+  * Payment Method
+  * Scannable barcode generated from `members.barcode`
+* Barcode stays linked to member forever (never disappears).
+* PDF stored in Supabase storage (`receipts/`) and URL logged in `payment_receipts`.
+
+---
+
+#### **C. WhatsApp Integration**
+
+* WhatsApp sender: **0544765671**
+
+* Trigger: on successful registration or renewal.
+
+* Template message:
+
+  ```
+  Hello [Member Name],
+  Thank you for registering with Asatheer Sports Academy.
+  Your payment of AED [Amount] for [Plan] has been received.
+  Attached is your receipt (with barcode) — please keep it safe.
+  You can scan it at the reception for quick check-ins.
+  ```
+
+* Auto-attach the generated receipt PDF.
+
+* Log all messages in table `whatsapp_receipt_logs`:
+
+  ```
+  id | member_id | phone | whatsapp_sender | pdf_url | status | sent_at | error_message
+  ```
+
+* Retry failed messages (max 3 attempts, 10s delay).
+
+---
+
+#### **D. Payments &amp; Reporting**
+
+* `payment_receipts` table tracks all payments:
+
+  ```
+  id | member_id | amount | method | plan | zone | created_at | cashier_name
+  ```
+* Cash vs Card must record correctly (fix bug where totals merge).
+* Add report filter:
+
+  * Date range
+  * Zone
+  * Payment type
+* Dashboard shows totals by category:
+
+  * Total Cash
+  * Total Card
+  * Total Active Members
+  * Expired Members
+  * New Registrations (Last 7 days)
+
+---
+
+#### **E. Data Logs &amp; Recovery**
+
+* `deleted_members_log` table automatically stores deleted/overwritten entries.
+* `financial_audit_trail` logs every payment or edit:
+
+  ```
+  action_by | action_type | table_name | record_id | timestamp | description
+  ```
+
+---
+
+#### **F. Notifications**
+
+* Add in-app notifications when:
+
+  * Member nearing expiry (3 days before)
+  * WhatsApp receipt fails to send
+  * Member barcode not found
+* Store in `notification_logs` table.
+
+---
+
+#### **G. System Reliability**
+
+* All updates synced to Supabase tables:
+
+  * `members`
+  * `member_services`
+  * `payment_receipts`
+  * `whatsapp_receipt_logs`
+  * `notifications`
+* Use async queue to prevent blocking.
+* Validate all phone numbers before sending WhatsApp.
+* Allow admin to manually resend WhatsApp receipt.
+
+---
+
+### 3️⃣ ADMIN PANEL FEATURES
+
+* Dashboard summary cards:
+
+  * Active Members
+  * Expired Members
+  * Total Cash / Card Sales
+  * Today’s Registrations
+* Tabs:
+
+  * Members
+  * Attendance
+  * Sales Reports
+  * Expenses
+  * Notifications
+  * Audit Logs
+* Search, sort, and export all data to Excel.
+
+---
+
+### 4️⃣ BUG FIXES / ENHANCEMENTS
+
+✅ Fix disappearing barcode after registration
+✅ Fix cash/card merging in reports
+✅ Fix WhatsApp sending failures
+✅ Fix member loss after Supabase cloud migration
+✅ Add retry + recovery script for missing receipts
+✅ Add “Resend Receipt” button next to each member in Members List
+
+---
+
+### 5️⃣ TEST FLOW
+
+1. Register test member “Ahmed Test” (phone: your number).
+2. Confirm member record appears in `members` table.
+3. Check barcode field populated.
+4. Receipt generated (PDF with barcode).
+5. WhatsApp receipt sent via 0544765671.
+6. Verify report shows correct totals by payment type.
+
+---
+
+### 6️⃣ DATABASE SUMMARY
+
+Key Tables:
+
+* `members`
+* `member_services`
+* `payment_receipts`
+* `whatsapp_receipt_logs`
+* `deleted_members_log`
+* `financial_audit_trail`
+* `notifications`
+* `audit_log`
+
+Each table must sync to Supabase with consistent foreign keys.
+
+---
+
+### 7️⃣ TECH STACK
+
+* Frontend: Lovable (React + Tailwind)
+* Backend: Supabase (PostgreSQL)
+* API Integrations:
+
+  * WhatsApp Cloud API (sender: 0544765671)
+  * Barcode Generator (JS/Node library)
+* Storage: Supabase storage for receipts
+
+---
+
+### 8️⃣ FINAL DELIVERY
+
+✅ Full rebuild using latest Supabase cloud instance
+✅ WhatsApp receipts stable and logged
+✅ Barcodes visible in both receipt and member list
+✅ Daily report shows exact cash/card breakdown
+✅ Export-ready dashboard">
+</head>
 
   <body>
     <div id="root"></div>
