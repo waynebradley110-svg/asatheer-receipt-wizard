@@ -46,24 +46,43 @@ const Reports = () => {
       endDate = endOfMonth(selectedDate);
     }
 
+    // Fetch membership payments
     const { data: payments } = await supabase
       .from("payment_receipts")
       .select("*, members(full_name)")
       .gte("created_at", startDate.toISOString())
       .lte("created_at", endDate.toISOString());
 
-    const totalCash = payments?.filter(p => p.payment_method === 'cash')
+    // Fetch cafe sales
+    const { data: cafeSales } = await supabase
+      .from("cafe_sales")
+      .select("*")
+      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
+      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+
+    // Calculate totals from membership payments
+    let totalCash = payments?.filter(p => p.payment_method === 'cash')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-    const totalCard = payments?.filter(p => p.payment_method === 'card')
+    let totalCard = payments?.filter(p => p.payment_method === 'card')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
     const totalOnline = payments?.filter(p => p.payment_method === 'online')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
+    // Add cafe sales to totals
+    const cafeCash = cafeSales?.filter(s => s.payment_method === 'cash')
+      .reduce((sum, s) => sum + Number(s.amount), 0) || 0;
+    
+    const cafeCard = cafeSales?.filter(s => s.payment_method === 'card')
+      .reduce((sum, s) => sum + Number(s.amount), 0) || 0;
+
+    totalCash += cafeCash;
+    totalCard += cafeCard;
+
     setStats({ totalCash, totalCard, totalOnline });
 
-    // Group by zone
+    // Group membership payments by zone
     const zoneGroups = payments?.reduce((acc, payment) => {
       const zone = payment.zone || 'Unknown';
       if (!acc[zone]) {
@@ -88,6 +107,29 @@ const Reports = () => {
       });
       return acc;
     }, {} as Record<string, ZoneSummary>) || {};
+
+    // Add cafe sales as a separate zone
+    if (cafeSales && cafeSales.length > 0) {
+      zoneGroups['Cafe'] = {
+        zone: 'Cafe',
+        revenue: cafeCash + cafeCard,
+        cash: cafeCash,
+        card: cafeCard,
+        online: 0,
+        salesCount: cafeSales.length,
+        transactions: cafeSales.map(sale => ({
+          id: sale.id,
+          member_id: sale.id,
+          amount: sale.amount,
+          payment_method: sale.payment_method,
+          zone: 'cafe',
+          subscription_plan: sale.item_description,
+          created_at: sale.sale_date,
+          cashier_name: sale.cashier_name,
+          member_name: undefined,
+        })),
+      };
+    }
 
     setZoneSummaries(Object.values(zoneGroups));
   };

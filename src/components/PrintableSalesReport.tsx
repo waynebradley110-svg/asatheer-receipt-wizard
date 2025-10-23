@@ -133,14 +133,14 @@ export const PrintableSalesReport = ({
                   <TableHead className="font-semibold text-black text-right">Cash (AED)</TableHead>
                   <TableHead className="font-semibold text-black text-right">Card (AED)</TableHead>
                   <TableHead className="font-semibold text-black">Payment</TableHead>
-                  <TableHead className="font-semibold text-black">Member</TableHead>
+                  <TableHead className="font-semibold text-black">Member/Item</TableHead>
                   <TableHead className="font-semibold text-black">Cashier</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {zone.transactions.map((transaction) => (
                   <TableRow key={transaction.id} className="text-sm">
-                    <TableCell>Daily Sale</TableCell>
+                    <TableCell>{zone.zone === 'Cafe' ? 'Cafe Sale' : 'Membership'}</TableCell>
                     <TableCell>{transaction.subscription_plan}</TableCell>
                     <TableCell className="text-right">{Number(transaction.amount).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
@@ -150,7 +150,7 @@ export const PrintableSalesReport = ({
                       {transaction.payment_method === 'card' ? Number(transaction.amount).toFixed(2) : '-'}
                     </TableCell>
                     <TableCell className="capitalize">{transaction.payment_method}</TableCell>
-                    <TableCell>{transaction.member_name || '-'}</TableCell>
+                    <TableCell>{transaction.member_name || (zone.zone === 'Cafe' ? transaction.subscription_plan : '-')}</TableCell>
                     <TableCell>{transaction.cashier_name || '-'}</TableCell>
                   </TableRow>
                 ))}
