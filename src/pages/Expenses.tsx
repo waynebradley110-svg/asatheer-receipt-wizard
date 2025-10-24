@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,11 +12,8 @@ import { toast } from "sonner";
 import { Plus, Download, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import * as XLSX from 'xlsx';
-import { useAuth } from "@/hooks/useAuth";
 
 const Expenses = () => {
-  const navigate = useNavigate();
-  const { isReceptionist, loading: authLoading } = useAuth();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,17 +30,8 @@ const Expenses = () => {
   });
 
   useEffect(() => {
-    if (!authLoading && isReceptionist) {
-      toast.error("Access denied: This page is only for admin and accounts staff");
-      navigate("/dashboard");
-    }
-  }, [isReceptionist, authLoading, navigate]);
-
-  useEffect(() => {
-    if (!isReceptionist && !authLoading) {
-      fetchExpenses();
-    }
-  }, [isReceptionist, authLoading]);
+    fetchExpenses();
+  }, []);
 
   const fetchExpenses = async () => {
     const { data, error } = await supabase

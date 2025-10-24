@@ -16,26 +16,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home, roles: ['admin', 'receptionist', 'accounts'] },
-  { title: "Members", url: "/members", icon: Users, roles: ['admin', 'receptionist'] },
-  { title: "Attendance", url: "/attendance", icon: ScanLine, roles: ['admin', 'receptionist'] },
-  { title: "Reports", url: "/reports", icon: CreditCard, roles: ['admin', 'receptionist', 'accounts'] },
-  { title: "Expenses", url: "/expenses", icon: Receipt, roles: ['admin', 'accounts'] },
-  { title: "Notifications", url: "/notifications", icon: Bell, roles: ['admin', 'receptionist', 'accounts'] },
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Members", url: "/members", icon: Users },
+  { title: "Attendance", url: "/attendance", icon: ScanLine },
+  { title: "Reports", url: "/reports", icon: CreditCard },
+  { title: "Expenses", url: "/expenses", icon: Receipt },
+  { title: "Notifications", url: "/notifications", icon: Bell },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const navigate = useNavigate();
-  const { roles } = useAuth();
   const collapsed = state === "collapsed";
-  
-  const visibleMenuItems = menuItems.filter(item => 
-    item.roles.some(role => roles.includes(role as any))
-  );
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -68,7 +62,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {visibleMenuItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
