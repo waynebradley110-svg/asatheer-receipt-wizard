@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PrintableSalesReport } from "@/components/PrintableSalesReport";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ZoneSummary {
   zone: string;
@@ -20,6 +21,7 @@ interface ZoneSummary {
 }
 
 const Reports = () => {
+  const { isReceptionist } = useAuth();
   const [stats, setStats] = useState({
     totalCash: 0,
     totalCard: 0,
@@ -189,12 +191,14 @@ const Reports = () => {
             >
               Daily Report
             </Button>
-            <Button
-              variant={reportType === "monthly" ? "default" : "outline"}
-              onClick={() => setReportType("monthly")}
-            >
-              Monthly Report
-            </Button>
+            {!isReceptionist && (
+              <Button
+                variant={reportType === "monthly" ? "default" : "outline"}
+                onClick={() => setReportType("monthly")}
+              >
+                Monthly Report
+              </Button>
+            )}
           </div>
 
           <Popover>
@@ -218,54 +222,58 @@ const Reports = () => {
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        {!isReceptionist && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Cash Payments</CardTitle>
+                <DollarSign className="h-5 w-5 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  AED {stats.totalCash.toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Card Payments</CardTitle>
+                <DollarSign className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">
+                  AED {stats.totalCard.toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Online Payments</CardTitle>
+                <DollarSign className="h-5 w-5 text-accent" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-accent">
+                  AED {stats.totalOnline.toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {!isReceptionist && (
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Cash Payments</CardTitle>
-              <DollarSign className="h-5 w-5 text-green-600" />
+            <CardHeader>
+              <CardTitle>Total Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                AED {stats.totalCash.toFixed(2)}
+              <div className="text-4xl font-bold">
+                AED {(stats.totalCash + stats.totalCard + stats.totalOnline).toFixed(2)}
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Card Payments</CardTitle>
-              <DollarSign className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">
-                AED {stats.totalCard.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Online Payments</CardTitle>
-              <DollarSign className="h-5 w-5 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-accent">
-                AED {stats.totalOnline.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">
-              AED {(stats.totalCash + stats.totalCard + stats.totalOnline).toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
+        )}
       </div>
 
       {/* Printable Report */}
