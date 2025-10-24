@@ -495,7 +495,7 @@ export type Database = {
         | "gym"
         | "crossfit"
         | "football"
-        | "basketball"
+        | "football_student"
         | "swimming"
         | "other"
         | "ladies_gym"
@@ -645,7 +645,7 @@ export const Constants = {
         "gym",
         "crossfit",
         "football",
-        "basketball",
+        "football_student",
         "swimming",
         "other",
         "ladies_gym",

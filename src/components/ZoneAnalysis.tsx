@@ -29,7 +29,7 @@ export function ZoneAnalysis() {
       .from("members")
       .select("*, member_services(zone, expiry_date, is_active)");
 
-    const zones = ["gym", "ladies_gym", "pt", "crossfit", "football_court", "basketball", "swimming", "paddle_court"];
+    const zones = ["gym", "ladies_gym", "pt", "crossfit", "football_court", "football_student", "swimming", "paddle_court"];
     
     const stats = zones.map((zone) => {
       const zonePayments = payments?.filter((p) => p.zone === zone) || [];

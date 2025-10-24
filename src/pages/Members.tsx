@@ -13,6 +13,7 @@ import { Plus, Search, Trash2, MessageCircle, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MemberCard } from "@/components/MemberCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { DigitalMemberCard } from "@/components/DigitalMemberCard";
 
 interface PaymentEntry {
   payment_method: string;
@@ -41,6 +42,8 @@ const Members = () => {
   const [paymentEntries, setPaymentEntries] = useState<PaymentEntry[]>([
     { payment_method: "", amount: "" }
   ]);
+  const [cardDialogOpen, setCardDialogOpen] = useState(false);
+  const [newMemberData, setNewMemberData] = useState<any>(null);
 
   useEffect(() => {
     fetchMembers();
@@ -184,8 +187,29 @@ const Members = () => {
         ? `Service added for existing member! Total paid: ${totalPaid} AED`
         : `Member registered! Total paid: ${totalPaid} AED`;
       toast.success(message);
-      setDialogOpen(false);
-      resetForm();
+      
+      // Fetch the newly created/updated member with services to display card
+      const { data: memberWithServices } = await supabase
+        .from("members")
+        .select("*, member_services(*)")
+        .eq("id", memberDbId)
+        .single();
+      
+      if (memberWithServices && !existingMember) {
+        // Show digital card for new members only
+        const activeService = memberWithServices.member_services?.find((s: any) => s.is_active);
+        setNewMemberData({
+          ...memberWithServices,
+          activeService,
+          totalPaid
+        });
+        setDialogOpen(false);
+        setCardDialogOpen(true);
+      } else {
+        setDialogOpen(false);
+        resetForm();
+      }
+      
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message || "Error registering member");
@@ -457,7 +481,7 @@ const Members = () => {
                       <SelectItem value="pt">PT (Personal Training)</SelectItem>
                       <SelectItem value="crossfit">CrossFit</SelectItem>
                       <SelectItem value="football_court">Football Court</SelectItem>
-                      <SelectItem value="basketball">Basketball</SelectItem>
+                      <SelectItem value="football_student">Football Student Zone</SelectItem>
                       <SelectItem value="swimming">Swimming</SelectItem>
                       <SelectItem value="paddle_court">Paddle Court</SelectItem>
                     </SelectContent>
@@ -853,6 +877,32 @@ const Members = () => {
               {loading ? "Renewing..." : "Renew Membership"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Digital Member Card Dialog */}
+      <Dialog open={cardDialogOpen} onOpenChange={(open) => {
+        setCardDialogOpen(open);
+        if (!open) {
+          resetForm();
+          setNewMemberData(null);
+        }
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Member Card Created Successfully!</DialogTitle>
+          </DialogHeader>
+          {newMemberData && newMemberData.activeService && (
+            <DigitalMemberCard
+              memberId={newMemberData.member_id}
+              memberName={newMemberData.full_name}
+              phone={newMemberData.phone_number}
+              zone={newMemberData.activeService.zone}
+              expiryDate={newMemberData.activeService.expiry_date}
+              barcode={newMemberData.barcode}
+              paymentAmount={newMemberData.totalPaid}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
