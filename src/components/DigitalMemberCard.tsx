@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2, Zap } from "lucide-react";
 import JsBarcode from "jsbarcode";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
@@ -31,15 +31,16 @@ export const DigitalMemberCard = ({
   const [paymentAmount, setPaymentAmount] = useState<number>(initialAmount || 0);
 
   useEffect(() => {
-    // Generate barcode
+    // Generate barcode with larger dimensions for WhatsApp
     if (barcodeRef.current) {
       JsBarcode(barcodeRef.current, barcode, {
         format: "CODE128",
-        width: 2,
-        height: 80,
+        width: 4,
+        height: 120,
         displayValue: true,
-        fontSize: 14,
-        margin: 0,
+        fontSize: 32,
+        margin: 10,
+        fontOptions: "bold",
       });
     }
 
@@ -87,8 +88,9 @@ export const DigitalMemberCard = ({
     try {
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 3,
         logging: false,
+        useCORS: true,
       });
 
       const link = document.createElement('a');
@@ -109,9 +111,13 @@ export const DigitalMemberCard = ({
     try {
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 3,
         logging: false,
+        useCORS: true,
       });
+
+      // WhatsApp message template
+      const whatsappMessage = `Hello ${memberName}, here is your Asatheer membership card. Member ID: ${memberId}. Amount paid: AED ${paymentAmount.toFixed(2)}. Expires: ${new Date(expiryDate).toLocaleDateString('en-GB')}. Present this on arrival. ⚡️`;
 
       canvas.toBlob(async (blob) => {
         if (!blob) {
@@ -127,7 +133,7 @@ export const DigitalMemberCard = ({
             await navigator.share({
               files: [file],
               title: 'Asatheer Sports Academy Member Card',
-              text: `Member ID: ${memberId}\nName: ${memberName}`,
+              text: whatsappMessage,
             });
             toast.success("Shared successfully!");
           } catch (shareError) {
@@ -154,66 +160,76 @@ export const DigitalMemberCard = ({
 
   return (
     <div className="space-y-4">
-      {/* Digital Card - Optimized for phone screens (portrait) */}
+      {/* Digital Card - Optimized for WhatsApp (1080×1350px) */}
       <div 
         ref={cardRef} 
-        className="mx-auto bg-gradient-to-br from-primary/10 via-background to-secondary/10 rounded-2xl shadow-2xl overflow-hidden"
-        style={{ width: '400px', minHeight: '600px' }}
+        className="mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-blue-500"
+        style={{ width: '1080px', height: '1350px' }}
       >
-        {/* Header */}
-        <div className="bg-primary text-primary-foreground p-6 text-center">
-          <h2 className="text-2xl font-bold tracking-wide">ASATHEER SPORTS ACADEMY</h2>
-          <p className="text-sm opacity-90 mt-1">Member Digital Card</p>
+        {/* Header with Bolt Icon */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-12 text-center relative">
+          <div className="absolute top-8 left-8">
+            <Zap className="h-12 w-12 text-yellow-300 fill-yellow-300" />
+          </div>
+          <h1 className="text-5xl font-bold tracking-wide mb-3">ASATHEER SPORTS ACADEMY</h1>
+          <p className="text-xl text-blue-100 font-medium">MEMBER IDENTIFICATION CARD</p>
         </div>
 
-        {/* Member Details */}
-        <div className="p-6 space-y-4">
-          <div className="bg-background/50 backdrop-blur rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="text-sm font-medium text-muted-foreground">Member ID</span>
-              <span className="text-lg font-bold text-primary">{memberId}</span>
-            </div>
+        {/* Member Details Section */}
+        <div className="p-12 space-y-8">
+          <div className="bg-gray-50 rounded-2xl p-10 space-y-6 border border-gray-200">
+            <div className="grid grid-cols-1 gap-5">
+              <div className="flex items-baseline gap-4">
+                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Member ID:</span>
+                <span className="text-3xl font-bold text-blue-600">{memberId}</span>
+              </div>
 
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="text-sm font-medium text-muted-foreground">Full Name</span>
-              <span className="font-semibold">{memberName}</span>
-            </div>
+              <div className="flex items-baseline gap-4">
+                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Full Name:</span>
+                <span className="text-3xl font-semibold text-gray-900">{memberName}</span>
+              </div>
 
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="text-sm font-medium text-muted-foreground">Phone</span>
-              <span className="font-semibold">{phone}</span>
-            </div>
+              <div className="flex items-baseline gap-4">
+                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Phone Number:</span>
+                <span className="text-3xl font-semibold text-gray-900">{phone}</span>
+              </div>
 
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="text-sm font-medium text-muted-foreground">Zone</span>
-              <span className="font-semibold">{formatZoneName(zone)}</span>
-            </div>
+              <div className="flex items-baseline gap-4">
+                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Zone:</span>
+                <span className="text-3xl font-semibold text-gray-900">{formatZoneName(zone)}</span>
+              </div>
 
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="text-sm font-medium text-muted-foreground">Expires On</span>
-              <span className="font-semibold text-destructive">
-                {new Date(expiryDate).toLocaleDateString('en-GB')}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-muted-foreground">Amount Paid</span>
-              <span className="font-bold text-green-600 text-lg">
-                {paymentAmount.toFixed(2)} AED
-              </span>
+              <div className="flex items-baseline gap-4">
+                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Expires On:</span>
+                <span className="text-3xl font-semibold text-red-600">
+                  {new Date(expiryDate).toLocaleDateString('en-GB')}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Barcode Section - Perfectly Centered */}
-          <div className="bg-white p-6 rounded-lg flex flex-col items-center justify-center">
-            <svg ref={barcodeRef} className="mx-auto"></svg>
+          {/* Payment Section */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 border-2 border-green-200">
+            <div className="text-center space-y-3">
+              <div className="text-2xl font-semibold text-gray-700">Amount Paid</div>
+              <div className="text-6xl font-bold text-green-600">AED {paymentAmount.toFixed(2)}</div>
+            </div>
+          </div>
+
+          {/* Barcode Section - Centered and Prominent */}
+          <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center border-2 border-gray-300">
+            <svg 
+              ref={barcodeRef} 
+              className="mx-auto" 
+              style={{ width: '70%', maxWidth: '756px' }}
+            ></svg>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-secondary/20 p-4 text-center">
-          <p className="text-xs text-muted-foreground">
-            Please present this card for gym access
+        <div className="bg-gray-100 p-8 text-center border-t-2 border-gray-300">
+          <p className="text-2xl text-gray-600 font-medium">
+            Please present this card for access
           </p>
         </div>
       </div>
