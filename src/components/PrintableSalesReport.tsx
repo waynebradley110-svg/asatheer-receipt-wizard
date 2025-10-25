@@ -11,6 +11,8 @@ interface Transaction {
   created_at: string;
   cashier_name: string | null;
   member_name?: string;
+  cash_amount?: number;
+  card_amount?: number;
 }
 
 interface ZoneSummary {
@@ -144,10 +146,20 @@ export const PrintableSalesReport = ({
                     <TableCell>{transaction.subscription_plan}</TableCell>
                     <TableCell className="text-right">{Number(transaction.amount).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      {transaction.payment_method === 'cash' ? Number(transaction.amount).toFixed(2) : '-'}
+                      {transaction.payment_method === 'mixed' 
+                        ? Number(transaction.cash_amount || 0).toFixed(2)
+                        : transaction.payment_method === 'cash' 
+                          ? Number(transaction.amount).toFixed(2) 
+                          : '-'
+                      }
                     </TableCell>
                     <TableCell className="text-right">
-                      {transaction.payment_method === 'card' ? Number(transaction.amount).toFixed(2) : '-'}
+                      {transaction.payment_method === 'mixed'
+                        ? Number(transaction.card_amount || 0).toFixed(2)
+                        : transaction.payment_method === 'card'
+                          ? Number(transaction.amount).toFixed(2)
+                          : '-'
+                      }
                     </TableCell>
                     <TableCell className="capitalize">{transaction.payment_method}</TableCell>
                     <TableCell>{transaction.member_name || (zone.zone === 'Cafe' ? transaction.subscription_plan : '-')}</TableCell>
