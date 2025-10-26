@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Search, Trash2, MessageCircle, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { MemberCard } from "@/components/MemberCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { DigitalMemberCard } from "@/components/DigitalMemberCard";
 
@@ -44,6 +43,8 @@ const Members = () => {
   ]);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [newMemberData, setNewMemberData] = useState<any>(null);
+  const [viewCardDialogOpen, setViewCardDialogOpen] = useState(false);
+  const [viewingMember, setViewingMember] = useState<any>(null);
 
   useEffect(() => {
     fetchMembers();
@@ -657,7 +658,16 @@ const Members = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <MemberCard member={member} />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setViewingMember(member);
+                          setViewCardDialogOpen(true);
+                        }}
+                      >
+                        View Card
+                      </Button>
                       <WhatsAppButton
                         phoneNumber={member.phone_number}
                         message={getWelcomeMessage(member)}
@@ -877,6 +887,25 @@ const Members = () => {
               {loading ? "Renewing..." : "Renew Membership"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Member Card Dialog */}
+      <Dialog open={viewCardDialogOpen} onOpenChange={setViewCardDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Member Card</DialogTitle>
+          </DialogHeader>
+          {viewingMember && viewingMember.member_services && viewingMember.member_services.length > 0 && (
+            <DigitalMemberCard
+              memberId={viewingMember.member_id}
+              memberName={viewingMember.full_name}
+              phone={viewingMember.phone_number}
+              zone={viewingMember.member_services.find((s: any) => s.is_active)?.zone || viewingMember.member_services[0].zone}
+              expiryDate={viewingMember.member_services.find((s: any) => s.is_active)?.expiry_date || viewingMember.member_services[0].expiry_date}
+              barcode={viewingMember.barcode}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
