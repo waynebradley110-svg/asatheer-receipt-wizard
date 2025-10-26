@@ -31,15 +31,15 @@ export const DigitalMemberCard = ({
   const [paymentAmount, setPaymentAmount] = useState<number>(initialAmount || 0);
 
   useEffect(() => {
-    // Generate barcode with larger dimensions for WhatsApp
+    // Generate barcode for preview card
     if (barcodeRef.current) {
       JsBarcode(barcodeRef.current, barcode, {
         format: "CODE128",
-        width: 4,
-        height: 120,
+        width: 1.5,
+        height: 40,
         displayValue: true,
-        fontSize: 32,
-        margin: 10,
+        fontSize: 12,
+        margin: 5,
         fontOptions: "bold",
       });
     }
@@ -86,7 +86,29 @@ export const DigitalMemberCard = ({
     if (!cardRef.current) return;
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      // Clone the barcode to the hidden full-size card
+      const downloadCard = document.getElementById('download-card');
+      const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
+      
+      if (downloadCard && barcodeClone) {
+        const barcodeSvg = downloadCard.querySelector('svg');
+        if (barcodeSvg && barcodeSvg.parentElement) {
+          barcodeSvg.parentElement.replaceChild(barcodeClone, barcodeSvg);
+          
+          // Regenerate barcode at full size
+          JsBarcode(barcodeClone, barcode, {
+            format: "CODE128",
+            width: 4,
+            height: 120,
+            displayValue: true,
+            fontSize: 32,
+            margin: 10,
+            fontOptions: "bold",
+          });
+        }
+      }
+
+      const canvas = await html2canvas(downloadCard!, {
         backgroundColor: '#ffffff',
         scale: 3,
         logging: false,
@@ -109,7 +131,29 @@ export const DigitalMemberCard = ({
     if (!cardRef.current) return;
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      // Clone the barcode to the hidden full-size card
+      const downloadCard = document.getElementById('download-card');
+      const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
+      
+      if (downloadCard && barcodeClone) {
+        const barcodeSvg = downloadCard.querySelector('svg');
+        if (barcodeSvg && barcodeSvg.parentElement) {
+          barcodeSvg.parentElement.replaceChild(barcodeClone, barcodeSvg);
+          
+          // Regenerate barcode at full size
+          JsBarcode(barcodeClone, barcode, {
+            format: "CODE128",
+            width: 4,
+            height: 120,
+            displayValue: true,
+            fontSize: 32,
+            margin: 10,
+            fontOptions: "bold",
+          });
+        }
+      }
+
+      const canvas = await html2canvas(downloadCard!, {
         backgroundColor: '#ffffff',
         scale: 3,
         logging: false,
@@ -159,91 +203,169 @@ export const DigitalMemberCard = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Digital Card - Optimized for WhatsApp (1080×1350px) */}
-      <div 
-        ref={cardRef} 
-        className="mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-blue-500"
-        style={{ width: '1080px', height: '1350px' }}
-      >
-        {/* Header with Bolt Icon */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-12 text-center relative">
-          <div className="absolute top-8 left-8">
-            <Zap className="h-12 w-12 text-yellow-300 fill-yellow-300" />
+    <div className="w-full space-y-4">
+      {/* Action Buttons - Moved to top for better visibility */}
+      <div className="flex gap-3 justify-center flex-wrap">
+        <Button onClick={downloadCard} variant="default" size="default" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download Card
+        </Button>
+        <Button onClick={shareOnWhatsApp} variant="outline" size="default" className="gap-2">
+          <Share2 className="h-4 w-4" />
+          Share on WhatsApp
+        </Button>
+      </div>
+
+      {/* Card Preview - Scaled down for viewing, but full size for download */}
+      <div className="overflow-x-auto">
+        <div 
+          ref={cardRef} 
+          className="mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-primary/20"
+          style={{ 
+            width: '360px', 
+            height: '450px',
+            transformOrigin: 'top center'
+          }}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground p-3 text-center relative">
+            <div className="absolute top-2 left-2">
+              <Zap className="h-3 w-3 text-yellow-300 fill-yellow-300" />
+            </div>
+            <h1 className="text-sm font-bold tracking-wide mb-1">ASATHEER SPORTS ACADEMY</h1>
+            <p className="text-[10px] opacity-90 font-medium">MEMBER IDENTIFICATION CARD</p>
           </div>
-          <h1 className="text-5xl font-bold tracking-wide mb-3">ASATHEER SPORTS ACADEMY</h1>
-          <p className="text-xl text-blue-100 font-medium">MEMBER IDENTIFICATION CARD</p>
-        </div>
 
-        {/* Member Details Section */}
-        <div className="p-12 space-y-8">
-          <div className="bg-gray-50 rounded-2xl p-10 space-y-6 border border-gray-200">
-            <div className="grid grid-cols-1 gap-5">
-              <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Member ID:</span>
-                <span className="text-3xl font-bold text-blue-600">{memberId}</span>
+          {/* Member Details */}
+          <div className="p-3 space-y-2">
+            <div className="bg-muted/50 rounded-lg p-2.5 space-y-1.5 border border-border">
+              <div className="flex items-baseline gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground min-w-[85px]">Member ID:</span>
+                <span className="font-bold text-primary">{memberId}</span>
               </div>
 
-              <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Full Name:</span>
-                <span className="text-3xl font-semibold text-gray-900">{memberName}</span>
+              <div className="flex items-baseline gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground min-w-[85px]">Full Name:</span>
+                <span className="font-semibold text-foreground">{memberName}</span>
               </div>
 
-              <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Phone Number:</span>
-                <span className="text-3xl font-semibold text-gray-900">{phone}</span>
+              <div className="flex items-baseline gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground min-w-[85px]">Phone Number:</span>
+                <span className="font-semibold text-foreground">{phone}</span>
               </div>
 
-              <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Zone:</span>
-                <span className="text-3xl font-semibold text-gray-900">{formatZoneName(zone)}</span>
+              <div className="flex items-baseline gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground min-w-[85px]">Zone:</span>
+                <span className="font-semibold text-foreground">{formatZoneName(zone)}</span>
               </div>
 
-              <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Expires On:</span>
-                <span className="text-3xl font-semibold text-red-600">
+              <div className="flex items-baseline gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground min-w-[85px]">Expires On:</span>
+                <span className="font-semibold text-destructive">
                   {new Date(expiryDate).toLocaleDateString('en-GB')}
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Payment Section */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 border-2 border-green-200">
-            <div className="text-center space-y-3">
-              <div className="text-2xl font-semibold text-gray-700">Amount Paid</div>
-              <div className="text-6xl font-bold text-green-600">AED {paymentAmount.toFixed(2)}</div>
+            {/* Payment Section */}
+            <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-2.5 border border-green-200 dark:border-green-800">
+              <div className="text-center space-y-0.5">
+                <div className="text-[10px] font-semibold text-muted-foreground">Amount Paid</div>
+                <div className="text-xl font-bold text-green-600 dark:text-green-500">AED {paymentAmount.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {/* Barcode Section */}
+            <div className="bg-white dark:bg-background p-2 rounded-lg flex flex-col items-center justify-center border border-border">
+              <svg 
+                ref={barcodeRef} 
+                className="w-full"
+                style={{ maxHeight: '80px' }}
+              ></svg>
             </div>
           </div>
 
-          {/* Barcode Section - Centered and Prominent */}
-          <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center border-2 border-gray-300">
-            <svg 
-              ref={barcodeRef} 
-              className="mx-auto" 
-              style={{ width: '70%', maxWidth: '756px' }}
-            ></svg>
+          {/* Footer */}
+          <div className="bg-muted/30 p-2 text-center border-t border-border">
+            <p className="text-[10px] text-muted-foreground font-medium">
+              Please present this card for access
+            </p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-gray-100 p-8 text-center border-t-2 border-gray-300">
-          <p className="text-2xl text-gray-600 font-medium">
-            Please present this card for access
-          </p>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 justify-center">
-        <Button onClick={downloadCard} variant="default" size="lg" className="gap-2">
-          <Download className="h-5 w-5" />
-          Download Card
-        </Button>
-        <Button onClick={shareOnWhatsApp} variant="outline" size="lg" className="gap-2">
-          <Share2 className="h-5 w-5" />
-          Share on WhatsApp
-        </Button>
+      {/* Hidden full-size card for download (1080×1350px) */}
+      <div className="hidden">
+        <div 
+          id="download-card"
+          className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-blue-500"
+          style={{ width: '1080px', height: '1350px' }}
+        >
+          {/* Header with Bolt Icon */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-12 text-center relative">
+            <div className="absolute top-8 left-8">
+              <Zap className="h-12 w-12 text-yellow-300 fill-yellow-300" />
+            </div>
+            <h1 className="text-5xl font-bold tracking-wide mb-3">ASATHEER SPORTS ACADEMY</h1>
+            <p className="text-xl text-blue-100 font-medium">MEMBER IDENTIFICATION CARD</p>
+          </div>
+
+          {/* Member Details Section */}
+          <div className="p-12 space-y-8">
+            <div className="bg-gray-50 rounded-2xl p-10 space-y-6 border border-gray-200">
+              <div className="grid grid-cols-1 gap-5">
+                <div className="flex items-baseline gap-4">
+                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Member ID:</span>
+                  <span className="text-3xl font-bold text-blue-600">{memberId}</span>
+                </div>
+
+                <div className="flex items-baseline gap-4">
+                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Full Name:</span>
+                  <span className="text-3xl font-semibold text-gray-900">{memberName}</span>
+                </div>
+
+                <div className="flex items-baseline gap-4">
+                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Phone Number:</span>
+                  <span className="text-3xl font-semibold text-gray-900">{phone}</span>
+                </div>
+
+                <div className="flex items-baseline gap-4">
+                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Zone:</span>
+                  <span className="text-3xl font-semibold text-gray-900">{formatZoneName(zone)}</span>
+                </div>
+
+                <div className="flex items-baseline gap-4">
+                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Expires On:</span>
+                  <span className="text-3xl font-semibold text-red-600">
+                    {new Date(expiryDate).toLocaleDateString('en-GB')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Section */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 border-2 border-green-200">
+              <div className="text-center space-y-3">
+                <div className="text-2xl font-semibold text-gray-700">Amount Paid</div>
+                <div className="text-6xl font-bold text-green-600">AED {paymentAmount.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {/* Barcode Section */}
+            <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center border-2 border-gray-300">
+              <svg className="mx-auto" style={{ width: '70%', maxWidth: '756px' }}>
+                {/* Barcode will be cloned here during download */}
+              </svg>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="bg-gray-100 p-8 text-center border-t-2 border-gray-300">
+            <p className="text-2xl text-gray-600 font-medium">
+              Please present this card for access
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
