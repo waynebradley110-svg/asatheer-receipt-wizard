@@ -899,6 +899,7 @@ const Members = () => {
           {viewingMember && viewingMember.member_services && viewingMember.member_services.length > 0 && (
             <DigitalMemberCard
               memberId={viewingMember.member_id}
+              memberUuid={viewingMember.id}
               memberName={viewingMember.full_name}
               phone={viewingMember.phone_number}
               zone={viewingMember.member_services.find((s: any) => s.is_active)?.zone || viewingMember.member_services[0].zone}
@@ -924,6 +925,7 @@ const Members = () => {
           {newMemberData && newMemberData.activeService && (
             <DigitalMemberCard
               memberId={newMemberData.member_id}
+              memberUuid={newMemberData.id}
               memberName={newMemberData.full_name}
               phone={newMemberData.phone_number}
               zone={newMemberData.activeService.zone}

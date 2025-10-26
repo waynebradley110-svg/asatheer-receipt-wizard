@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface DigitalMemberCardProps {
   memberId: string;
+  memberUuid: string; // The actual UUID id from the members table
   memberName: string;
   phone: string;
   zone: string;
@@ -19,6 +20,7 @@ interface DigitalMemberCardProps {
 
 export const DigitalMemberCard = ({
   memberId,
+  memberUuid,
   memberName,
   phone,
   zone,
@@ -55,10 +57,10 @@ export const DigitalMemberCard = ({
       const { data } = await supabase
         .from('payment_receipts')
         .select('amount')
-        .eq('member_id', memberId)
+        .eq('member_id', memberUuid)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       if (data) {
         setPaymentAmount(Number(data.amount));
@@ -294,65 +296,65 @@ export const DigitalMemberCard = ({
         </div>
       </div>
 
-      {/* Hidden full-size card for download (1080×1350px) */}
+      {/* Hidden full-size card for download (1080×1350px) - simplified for html2canvas */}
       <div className="hidden">
         <div 
           id="download-card"
-          className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-blue-500"
-          style={{ width: '1080px', height: '1350px' }}
+          className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+          style={{ width: '1080px', height: '1350px', border: '6px solid #3b82f6' }}
         >
-          {/* Header with Bolt Icon */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-12 text-center relative">
+          {/* Header - Solid color instead of gradient */}
+          <div className="text-white p-12 text-center relative" style={{ backgroundColor: '#2563eb' }}>
             <div className="absolute top-8 left-8">
               <Zap className="h-12 w-12 text-yellow-300 fill-yellow-300" />
             </div>
             <h1 className="text-5xl font-bold tracking-wide mb-3">ASATHEER SPORTS ACADEMY</h1>
-            <p className="text-xl text-blue-100 font-medium">MEMBER IDENTIFICATION CARD</p>
+            <p className="text-xl opacity-90 font-medium">MEMBER IDENTIFICATION CARD</p>
           </div>
 
           {/* Member Details Section */}
           <div className="p-12 space-y-8">
-            <div className="bg-gray-50 rounded-2xl p-10 space-y-6 border border-gray-200">
+            <div className="rounded-2xl p-10 space-y-6" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
               <div className="grid grid-cols-1 gap-5">
                 <div className="flex items-baseline gap-4">
-                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Member ID:</span>
-                  <span className="text-3xl font-bold text-blue-600">{memberId}</span>
+                  <span className="text-2xl font-semibold min-w-[280px]" style={{ color: '#374151' }}>Member ID:</span>
+                  <span className="text-3xl font-bold" style={{ color: '#2563eb' }}>{memberId}</span>
                 </div>
 
                 <div className="flex items-baseline gap-4">
-                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Full Name:</span>
-                  <span className="text-3xl font-semibold text-gray-900">{memberName}</span>
+                  <span className="text-2xl font-semibold min-w-[280px]" style={{ color: '#374151' }}>Full Name:</span>
+                  <span className="text-3xl font-semibold" style={{ color: '#111827' }}>{memberName}</span>
                 </div>
 
                 <div className="flex items-baseline gap-4">
-                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Phone Number:</span>
-                  <span className="text-3xl font-semibold text-gray-900">{phone}</span>
+                  <span className="text-2xl font-semibold min-w-[280px]" style={{ color: '#374151' }}>Phone Number:</span>
+                  <span className="text-3xl font-semibold" style={{ color: '#111827' }}>{phone}</span>
                 </div>
 
                 <div className="flex items-baseline gap-4">
-                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Zone:</span>
-                  <span className="text-3xl font-semibold text-gray-900">{formatZoneName(zone)}</span>
+                  <span className="text-2xl font-semibold min-w-[280px]" style={{ color: '#374151' }}>Zone:</span>
+                  <span className="text-3xl font-semibold" style={{ color: '#111827' }}>{formatZoneName(zone)}</span>
                 </div>
 
                 <div className="flex items-baseline gap-4">
-                  <span className="text-2xl font-semibold text-gray-700 min-w-[280px]">Expires On:</span>
-                  <span className="text-3xl font-semibold text-red-600">
+                  <span className="text-2xl font-semibold min-w-[280px]" style={{ color: '#374151' }}>Expires On:</span>
+                  <span className="text-3xl font-semibold" style={{ color: '#dc2626' }}>
                     {new Date(expiryDate).toLocaleDateString('en-GB')}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Payment Section */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 border-2 border-green-200">
+            {/* Payment Section - Solid color */}
+            <div className="rounded-2xl p-10" style={{ backgroundColor: '#d1fae5', border: '2px solid #86efac' }}>
               <div className="text-center space-y-3">
-                <div className="text-2xl font-semibold text-gray-700">Amount Paid</div>
-                <div className="text-6xl font-bold text-green-600">AED {paymentAmount.toFixed(2)}</div>
+                <div className="text-2xl font-semibold" style={{ color: '#374151' }}>Amount Paid</div>
+                <div className="text-6xl font-bold" style={{ color: '#16a34a' }}>AED {paymentAmount.toFixed(2)}</div>
               </div>
             </div>
 
             {/* Barcode Section */}
-            <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center border-2 border-gray-300">
+            <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center" style={{ border: '2px solid #d1d5db' }}>
               <svg className="mx-auto" style={{ width: '70%', maxWidth: '756px' }}>
                 {/* Barcode will be cloned here during download */}
               </svg>
@@ -360,8 +362,8 @@ export const DigitalMemberCard = ({
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-100 p-8 text-center border-t-2 border-gray-300">
-            <p className="text-2xl text-gray-600 font-medium">
+          <div className="p-8 text-center" style={{ backgroundColor: '#f3f4f6', borderTop: '2px solid #d1d5db' }}>
+            <p className="text-2xl font-medium" style={{ color: '#4b5563' }}>
               Please present this card for access
             </p>
           </div>
