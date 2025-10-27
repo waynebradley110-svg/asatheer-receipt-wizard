@@ -5,6 +5,7 @@ import { Users, UserCheck, Clock, CalendarCheck } from "lucide-react";
 import { ExpiryReminders } from "@/components/ExpiryReminders";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CafeSales } from "@/components/CafeSales";
+import { FootballSales } from "@/components/FootballSales";
 
 const ReceptionistDashboard = () => {
   const [stats, setStats] = useState({
@@ -91,6 +92,7 @@ const ReceptionistDashboard = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="cafe">Cafe Sales</TabsTrigger>
+          <TabsTrigger value="football">Football Court</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -126,6 +128,10 @@ const ReceptionistDashboard = () => {
 
         <TabsContent value="cafe">
           <CafeSales />
+        </TabsContent>
+
+        <TabsContent value="football">
+          <FootballSales />
         </TabsContent>
       </Tabs>
     </div>

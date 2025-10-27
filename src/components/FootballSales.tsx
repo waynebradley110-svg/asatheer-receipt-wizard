@@ -69,7 +69,7 @@ export function FootballSales() {
     const cashAmount = parseFloat(formData.cash_amount || "0");
     const cardAmount = parseFloat(formData.card_amount || "0");
 
-    if (!formData.description) {
+    if (!formData.description.trim()) {
       toast.error("Please enter description");
       return;
     }
@@ -79,31 +79,48 @@ export function FootballSales() {
       return;
     }
 
-    const { error } = await supabase.from("football_sales").insert({
-      description: formData.description,
-      cash_amount: cashAmount,
-      card_amount: cardAmount,
-      cashier_name: formData.cashier_name || null,
-      notes: formData.notes || null,
-      sale_date: formData.sale_date,
-      created_by: (await supabase.auth.getUser()).data.user?.email || "Unknown",
-    } as any);
+    try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        toast.error("Authentication required. Please log in.");
+        console.error("Auth error:", authError);
+        return;
+      }
 
-    if (error) {
-      toast.error("Failed to record sale");
-      return;
+      const totalAmount = cashAmount + cardAmount;
+
+      const { error } = await supabase.from("football_sales").insert({
+        description: formData.description.trim(),
+        cash_amount: cashAmount,
+        card_amount: cardAmount,
+        total_amount: totalAmount,
+        cashier_name: formData.cashier_name?.trim() || null,
+        notes: formData.notes?.trim() || null,
+        sale_date: formData.sale_date,
+        created_by: user.email || "system",
+      } as any);
+
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+
+      toast.success("Football sale recorded successfully!");
+      setFormData({
+        description: "",
+        cash_amount: "",
+        card_amount: "",
+        cashier_name: formData.cashier_name,
+        notes: "",
+        sale_date: format(new Date(), "yyyy-MM-dd"),
+      });
+      fetchSales();
+    } catch (error) {
+      console.error("Error recording sale:", error);
+      toast.error("Failed to record sale. Please try again.");
     }
-
-    toast.success("Football sale recorded successfully!");
-    setFormData({
-      description: "",
-      cash_amount: "",
-      card_amount: "",
-      cashier_name: formData.cashier_name,
-      notes: "",
-      sale_date: format(new Date(), "yyyy-MM-dd"),
-    });
-    fetchSales();
   };
 
   return (
