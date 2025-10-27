@@ -139,6 +139,7 @@ const Reports = () => {
           member_name: undefined,
           cash_amount: Number(sale.cash_amount || 0),
           card_amount: Number(sale.card_amount || 0),
+          notes: sale.notes,
         })),
       };
     }
@@ -166,6 +167,7 @@ const Reports = () => {
           member_name: undefined,
           cash_amount: Number(sale.cash_amount || 0),
           card_amount: Number(sale.card_amount || 0),
+          notes: sale.notes,
         })),
       };
     }

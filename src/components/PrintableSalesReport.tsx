@@ -13,6 +13,7 @@ interface Transaction {
   member_name?: string;
   cash_amount?: number;
   card_amount?: number;
+  notes?: string | null;
 }
 
 interface ZoneSummary {
@@ -137,6 +138,7 @@ export const PrintableSalesReport = ({
                   <TableHead className="font-semibold text-black">Payment</TableHead>
                   <TableHead className="font-semibold text-black">Member/Item</TableHead>
                   <TableHead className="font-semibold text-black">Cashier</TableHead>
+                  <TableHead className="font-semibold text-black">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -164,6 +166,7 @@ export const PrintableSalesReport = ({
                     <TableCell className="capitalize">{transaction.payment_method}</TableCell>
                     <TableCell>{transaction.member_name || (zone.zone === 'Cafe' ? transaction.subscription_plan : '-')}</TableCell>
                     <TableCell>{transaction.cashier_name || '-'}</TableCell>
+                    <TableCell>{transaction.notes || '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
