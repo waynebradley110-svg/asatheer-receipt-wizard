@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import "./PrintableSalesReport.css";
 
 interface Transaction {
   id: string;
@@ -55,7 +56,7 @@ export const PrintableSalesReport = ({
   };
 
   return (
-    <div className="print-container bg-white text-black p-8">
+    <div className="print-report print-container bg-white text-black p-8">
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold mb-2">ASATHEER SPORT ACADEMY</h1>

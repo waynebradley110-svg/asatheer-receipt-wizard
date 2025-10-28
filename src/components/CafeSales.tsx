@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Coffee, DollarSign, Calendar } from "lucide-react";
+import { Coffee, DollarSign, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CafeSale {
   id: string;
@@ -33,6 +35,8 @@ export function CafeSales() {
     sale_date: format(new Date(), "yyyy-MM-dd"),
   });
   const [dailyTotals, setDailyTotals] = useState({ cash: 0, card: 0, total: 0 });
+  const [deletingSale, setDeletingSale] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchSales();
@@ -120,6 +124,24 @@ export function CafeSales() {
     } catch (error) {
       console.error("Error recording sale:", error);
       toast.error("Failed to record sale. Please try again.");
+    }
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    try {
+      const { error } = await supabase
+        .from('cafe_sales')
+        .delete()
+        .eq('id', saleId);
+      
+      if (error) throw error;
+      
+      toast.success("Sale deleted successfully");
+      fetchSales();
+      setDeletingSale(null);
+    } catch (error) {
+      console.error('Error deleting sale:', error);
+      toast.error("Failed to delete sale");
     }
   };
 
@@ -277,6 +299,7 @@ export function CafeSales() {
                 <TableHead>Total</TableHead>
                 <TableHead>Cashier</TableHead>
                 <TableHead>Notes</TableHead>
+                {isAdmin && <TableHead>Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -295,6 +318,34 @@ export function CafeSales() {
                   </TableCell>
                   <TableCell>{sale.cashier_name || "-"}</TableCell>
                   <TableCell>{sale.notes || "-"}</TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Sale</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this sale record? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteSale(sale.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
               {sales.length === 0 && (

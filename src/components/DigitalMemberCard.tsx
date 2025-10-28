@@ -88,6 +88,8 @@ export const DigitalMemberCard = ({
     if (!cardRef.current) return;
 
     try {
+      toast.loading("Generating card...");
+      
       // Clone the barcode to the hidden full-size card
       const downloadCard = document.getElementById('download-card');
       const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
@@ -110,13 +112,25 @@ export const DigitalMemberCard = ({
         }
       }
 
-      const canvas = await html2canvas(downloadCard!, {
+      // Wait for DOM to fully render the barcode
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      if (!downloadCard) {
+        throw new Error("Download card element not found");
+      }
+
+      const canvas = await html2canvas(downloadCard, {
         backgroundColor: '#ffffff',
         scale: 3,
-        logging: false,
+        logging: true,
         useCORS: true,
+        allowTaint: true,
+        width: 1080,
+        height: 1350,
       });
 
+      toast.dismiss();
+      
       const link = document.createElement('a');
       link.download = `member-card-${memberId}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -124,8 +138,9 @@ export const DigitalMemberCard = ({
 
       toast.success("Card downloaded successfully!");
     } catch (error) {
+      toast.dismiss();
       console.error('Error downloading card:', error);
-      toast.error("Failed to download card");
+      toast.error(`Failed to download card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -133,6 +148,8 @@ export const DigitalMemberCard = ({
     if (!cardRef.current) return;
 
     try {
+      toast.loading("Generating card for sharing...");
+      
       // Clone the barcode to the hidden full-size card
       const downloadCard = document.getElementById('download-card');
       const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
@@ -155,12 +172,24 @@ export const DigitalMemberCard = ({
         }
       }
 
-      const canvas = await html2canvas(downloadCard!, {
+      // Wait for DOM to fully render the barcode
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      if (!downloadCard) {
+        throw new Error("Download card element not found");
+      }
+
+      const canvas = await html2canvas(downloadCard, {
         backgroundColor: '#ffffff',
         scale: 3,
-        logging: false,
+        logging: true,
         useCORS: true,
+        allowTaint: true,
+        width: 1080,
+        height: 1350,
       });
+
+      toast.dismiss();
 
       // WhatsApp message template
       const whatsappMessage = `Hello ${memberName}, here is your Asatheer membership card. Member ID: ${memberId}. Amount paid: AED ${paymentAmount.toFixed(2)}. Expires: ${new Date(expiryDate).toLocaleDateString('en-GB')}. Present this on arrival. ⚡️`;

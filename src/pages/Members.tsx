@@ -9,10 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, MessageCircle, Edit } from "lucide-react";
+import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { DigitalMemberCard } from "@/components/DigitalMemberCard";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PaymentEntry {
   payment_method: string;
@@ -45,6 +47,10 @@ const Members = () => {
   const [newMemberData, setNewMemberData] = useState<any>(null);
   const [viewCardDialogOpen, setViewCardDialogOpen] = useState(false);
   const [viewingMember, setViewingMember] = useState<any>(null);
+  const [filterZone, setFilterZone] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [deletingMember, setDeletingMember] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchMembers();
@@ -255,11 +261,57 @@ const Members = () => {
       .reduce((sum, p) => sum + parseFloat(p.amount || "0"), 0);
   };
 
-  const filteredMembers = members.filter(m =>
-    m.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    m.member_id.toLowerCase().includes(search.toLowerCase()) ||
-    m.phone_number.includes(search)
-  );
+  const filteredMembers = members.filter(m => {
+    const matchesSearch = m.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      m.member_id.toLowerCase().includes(search.toLowerCase()) ||
+      m.phone_number.includes(search);
+    
+    const activeService = m.member_services?.find((s: any) => 
+      new Date(s.expiry_date) >= new Date() && s.is_active
+    );
+    
+    const matchesZone = filterZone === "all" || 
+      m.member_services?.some((s: any) => s.zone === filterZone && s.is_active);
+    
+    const status = activeService ? "active" : "expired";
+    const matchesStatus = filterStatus === "all" || status === filterStatus;
+    
+    return matchesSearch && matchesZone && matchesStatus;
+  });
+
+  // Calculate statistics
+  const stats = {
+    total: members.length,
+    active: members.filter(m => getMemberStatus(m) === "active").length,
+    expired: members.filter(m => getMemberStatus(m) === "expired").length,
+    byZone: {
+      gym: { 
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active)).length,
+        active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
+        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active && new Date(s.expiry_date) < new Date())).length
+      },
+      ladies_gym: { 
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active)).length,
+        active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
+        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active && new Date(s.expiry_date) < new Date())).length
+      },
+      crossfit: { 
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active)).length,
+        active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
+        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active && new Date(s.expiry_date) < new Date())).length
+      },
+      football_student: { 
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active)).length,
+        active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
+        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active && new Date(s.expiry_date) < new Date())).length
+      },
+      pt: { 
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active)).length,
+        active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
+        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) < new Date())).length
+      },
+    }
+  };
 
   const getMemberStatus = (member: any) => {
     const activeService = member.member_services?.find((s: any) => 
@@ -394,6 +446,24 @@ const Members = () => {
       toast.error(error.message || "Error renewing membership");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteMember = async (memberId: string) => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .delete()
+        .eq('id', memberId);
+      
+      if (error) throw error;
+      
+      toast.success("Member deleted successfully");
+      fetchMembers();
+      setDeletingMember(null);
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast.error("Failed to delete member");
     }
   };
 
@@ -603,6 +673,149 @@ const Members = () => {
         </Dialog>
       </div>
 
+      {/* Statistics Section */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Total Members
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Gym</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.byZone.gym.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.byZone.gym.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.byZone.gym.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Ladies Gym</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.byZone.ladies_gym.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.byZone.ladies_gym.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.byZone.ladies_gym.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">CrossFit</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.byZone.crossfit.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.byZone.crossfit.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.byZone.crossfit.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Football Academy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.byZone.football_student.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.byZone.football_student.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.byZone.football_student.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Personal Training</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.byZone.pt.total}</div>
+            <div className="flex gap-3 mt-2 text-xs">
+              <span className="text-green-600 font-medium">Active: {stats.byZone.pt.active}</span>
+              <span className="text-red-600 font-medium">Expired: {stats.byZone.pt.expired}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-2 flex-1 min-w-[200px]">
+              <Label>Zone</Label>
+              <Select value={filterZone} onValueChange={setFilterZone}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Zones" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Zones</SelectItem>
+                  <SelectItem value="gym">Gym</SelectItem>
+                  <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
+                  <SelectItem value="pt">Personal Training</SelectItem>
+                  <SelectItem value="crossfit">CrossFit</SelectItem>
+                  <SelectItem value="football_court">Football Court</SelectItem>
+                  <SelectItem value="football_student">Football Student Zone</SelectItem>
+                  <SelectItem value="swimming">Swimming</SelectItem>
+                  <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 flex-1 min-w-[200px]">
+              <Label>Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active Only</SelectItem>
+                  <SelectItem value="expired">Expired Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(filterZone !== "all" || filterStatus !== "all") && (
+              <div className="flex items-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setFilterZone("all");
+                    setFilterStatus("all");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Members List</CardTitle>
@@ -674,6 +887,32 @@ const Members = () => {
                         variant="outline"
                         size="sm"
                       />
+                      {isAdmin && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Member</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {member.full_name}? This action cannot be undone and will remove all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteMember(member.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
