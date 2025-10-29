@@ -279,6 +279,14 @@ const Members = () => {
     return matchesSearch && matchesZone && matchesStatus;
   });
 
+  // Helper function to determine member status
+  const getMemberStatus = (member: any) => {
+    const activeService = member.member_services?.find((s: any) => 
+      new Date(s.expiry_date) >= new Date() && s.is_active
+    );
+    return activeService ? "active" : "expired";
+  };
+
   // Calculate statistics
   const stats = {
     total: members.length,
@@ -311,13 +319,6 @@ const Members = () => {
         expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) < new Date())).length
       },
     }
-  };
-
-  const getMemberStatus = (member: any) => {
-    const activeService = member.member_services?.find((s: any) => 
-      new Date(s.expiry_date) >= new Date() && s.is_active
-    );
-    return activeService ? "active" : "expired";
   };
 
   const getWelcomeMessage = (member: any) => {

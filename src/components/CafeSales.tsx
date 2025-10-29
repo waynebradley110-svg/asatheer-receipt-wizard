@@ -84,17 +84,24 @@ export function CafeSales() {
       return;
     }
 
+    const loadingToast = toast.loading("Recording sale...");
+
     try {
+      console.log("Starting cafe sale submission...");
+      
       // Check authentication first
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
+        toast.dismiss(loadingToast);
         toast.error("Authentication required. Please log in.");
         console.error("Auth error:", authError);
         return;
       }
 
-      const { error } = await supabase.from("cafe_sales").insert({
+      console.log("User authenticated:", user.email);
+
+      const saleData = {
         sale_date: formData.sale_date,
         item_description: formData.item_description.trim(),
         amount: cashAmount + cardAmount,
@@ -104,14 +111,23 @@ export function CafeSales() {
         notes: formData.notes?.trim() || null,
         created_by: user.email || "system",
         payment_method: cashAmount > 0 && cardAmount > 0 ? "mixed" : (cashAmount > 0 ? "cash" : "card")
-      } as any);
+      };
+
+      console.log("Inserting sale data:", saleData);
+
+      const { error } = await supabase.from("cafe_sales").insert(saleData as any);
 
       if (error) {
         console.error("Database error:", error);
-        throw error;
+        toast.dismiss(loadingToast);
+        toast.error(`Database error: ${error.message}`);
+        return;
       }
 
+      console.log("Sale recorded successfully");
+      toast.dismiss(loadingToast);
       toast.success("Sale recorded successfully!");
+      
       setFormData({
         item_description: "",
         cash_amount: "",
@@ -120,10 +136,12 @@ export function CafeSales() {
         notes: "",
         sale_date: format(new Date(), "yyyy-MM-dd"),
       });
+      
       fetchSales();
     } catch (error) {
       console.error("Error recording sale:", error);
-      toast.error("Failed to record sale. Please try again.");
+      toast.dismiss(loadingToast);
+      toast.error(`Failed to record sale: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
