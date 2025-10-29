@@ -87,58 +87,72 @@ export const DigitalMemberCard = ({
   const downloadCard = async () => {
     if (!cardRef.current) return;
 
+    const loadingToast = toast.loading("Generating card...");
+
     try {
-      toast.loading("Generating card...");
-      
-      // Clone the barcode to the hidden full-size card
+      // Get the download card element
       const downloadCard = document.getElementById('download-card');
-      const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
       
-      if (downloadCard && barcodeClone) {
-        const barcodeSvg = downloadCard.querySelector('svg');
-        if (barcodeSvg && barcodeSvg.parentElement) {
-          barcodeSvg.parentElement.replaceChild(barcodeClone, barcodeSvg);
-          
-          // Regenerate barcode at full size
-          JsBarcode(barcodeClone, barcode, {
-            format: "CODE128",
-            width: 4,
-            height: 120,
-            displayValue: true,
-            fontSize: 32,
-            margin: 10,
-            fontOptions: "bold",
-          });
-        }
-      }
-
-      // Wait for DOM to fully render the barcode
-      await new Promise(resolve => setTimeout(resolve, 200));
-
       if (!downloadCard) {
         throw new Error("Download card element not found");
       }
 
+      // Get the barcode container in the download card
+      const downloadBarcodeContainer = downloadCard.querySelector('.barcode-container');
+      
+      if (!downloadBarcodeContainer) {
+        throw new Error("Barcode container not found");
+      }
+
+      // Clear any existing SVG
+      downloadBarcodeContainer.innerHTML = '';
+      
+      // Create a new SVG for the barcode
+      const barcodeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      downloadBarcodeContainer.appendChild(barcodeSvg);
+      
+      // Generate barcode at full size
+      JsBarcode(barcodeSvg, barcode, {
+        format: "CODE128",
+        width: 4,
+        height: 120,
+        displayValue: true,
+        fontSize: 32,
+        margin: 10,
+        fontOptions: "bold",
+      });
+
+      // Wait longer for DOM to fully render the barcode
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(downloadCard, {
         backgroundColor: '#ffffff',
-        scale: 3,
-        logging: true,
+        scale: 2,
+        logging: false,
         useCORS: true,
         allowTaint: true,
         width: 1080,
         height: 1350,
+        windowWidth: 1080,
+        windowHeight: 1350,
       });
 
-      toast.dismiss();
+      toast.dismiss(loadingToast);
+      
+      // Verify canvas has content
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error("Failed to get canvas context");
+      }
       
       const link = document.createElement('a');
       link.download = `member-card-${memberId}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
 
       toast.success("Card downloaded successfully!");
     } catch (error) {
-      toast.dismiss();
+      toast.dismiss(loadingToast);
       console.error('Error downloading card:', error);
       toast.error(`Failed to download card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -147,49 +161,57 @@ export const DigitalMemberCard = ({
   const shareOnWhatsApp = async () => {
     if (!cardRef.current) return;
 
+    const loadingToast = toast.loading("Generating card for sharing...");
+
     try {
-      toast.loading("Generating card for sharing...");
-      
-      // Clone the barcode to the hidden full-size card
+      // Get the download card element
       const downloadCard = document.getElementById('download-card');
-      const barcodeClone = barcodeRef.current?.cloneNode(true) as SVGSVGElement;
       
-      if (downloadCard && barcodeClone) {
-        const barcodeSvg = downloadCard.querySelector('svg');
-        if (barcodeSvg && barcodeSvg.parentElement) {
-          barcodeSvg.parentElement.replaceChild(barcodeClone, barcodeSvg);
-          
-          // Regenerate barcode at full size
-          JsBarcode(barcodeClone, barcode, {
-            format: "CODE128",
-            width: 4,
-            height: 120,
-            displayValue: true,
-            fontSize: 32,
-            margin: 10,
-            fontOptions: "bold",
-          });
-        }
-      }
-
-      // Wait for DOM to fully render the barcode
-      await new Promise(resolve => setTimeout(resolve, 200));
-
       if (!downloadCard) {
         throw new Error("Download card element not found");
       }
 
+      // Get the barcode container in the download card
+      const downloadBarcodeContainer = downloadCard.querySelector('.barcode-container');
+      
+      if (!downloadBarcodeContainer) {
+        throw new Error("Barcode container not found");
+      }
+
+      // Clear any existing SVG
+      downloadBarcodeContainer.innerHTML = '';
+      
+      // Create a new SVG for the barcode
+      const barcodeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      downloadBarcodeContainer.appendChild(barcodeSvg);
+      
+      // Generate barcode at full size
+      JsBarcode(barcodeSvg, barcode, {
+        format: "CODE128",
+        width: 4,
+        height: 120,
+        displayValue: true,
+        fontSize: 32,
+        margin: 10,
+        fontOptions: "bold",
+      });
+
+      // Wait longer for DOM to fully render the barcode
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(downloadCard, {
         backgroundColor: '#ffffff',
-        scale: 3,
-        logging: true,
+        scale: 2,
+        logging: false,
         useCORS: true,
         allowTaint: true,
         width: 1080,
         height: 1350,
+        windowWidth: 1080,
+        windowHeight: 1350,
       });
 
-      toast.dismiss();
+      toast.dismiss(loadingToast);
 
       // WhatsApp message template
       const whatsappMessage = `Hello ${memberName}, here is your Asatheer membership card. Member ID: ${memberId}. Amount paid: AED ${paymentAmount.toFixed(2)}. Expires: ${new Date(expiryDate).toLocaleDateString('en-GB')}. Present this on arrival. ⚡️`;
@@ -228,8 +250,9 @@ export const DigitalMemberCard = ({
         }
       }, 'image/png');
     } catch (error) {
+      toast.dismiss(loadingToast);
       console.error('Error sharing card:', error);
-      toast.error("Failed to share card");
+      toast.error(`Failed to share card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -325,8 +348,8 @@ export const DigitalMemberCard = ({
         </div>
       </div>
 
-      {/* Hidden full-size card for download (1080×1350px) - simplified for html2canvas */}
-      <div className="hidden">
+      {/* Hidden full-size card for download (1080×1350px) - positioned off-screen for proper rendering */}
+      <div style={{ position: 'fixed', left: '-9999px', top: '0', pointerEvents: 'none' }}>
         <div 
           id="download-card"
           className="bg-white rounded-3xl shadow-2xl overflow-hidden"
@@ -383,10 +406,8 @@ export const DigitalMemberCard = ({
             </div>
 
             {/* Barcode Section */}
-            <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center" style={{ border: '2px solid #d1d5db' }}>
-              <svg className="mx-auto" style={{ width: '70%', maxWidth: '756px' }}>
-                {/* Barcode will be cloned here during download */}
-              </svg>
+            <div className="bg-white p-10 rounded-2xl flex flex-col items-center justify-center barcode-container" style={{ border: '2px solid #d1d5db', minHeight: '180px' }}>
+              {/* Barcode will be generated here during download */}
             </div>
           </div>
 
