@@ -35,8 +35,12 @@
   .print-report p,
   .print-report td,
   .print-report th {
-    font-size: 9pt !important;
-    line-height: 1.3;
+    font-size: 8pt !important;
+    line-height: 1.2;
+  }
+
+  .print-report .text-xs {
+    font-size: 7pt !important;
   }
 
   /* Summary cards */
@@ -68,14 +72,24 @@
   .print-report th {
     background-color: #f3f4f6 !important;
     border: 1px solid #d1d5db !important;
-    padding: 6pt !important;
+    padding: 4pt 6pt !important;
     font-weight: 600;
     text-align: left;
   }
 
   .print-report td {
     border: 1px solid #e5e7eb !important;
-    padding: 4pt 6pt !important;
+    padding: 3pt 6pt !important;
+  }
+
+  /* Optimize column widths for better fit */
+  .print-report table {
+    table-layout: fixed;
+  }
+
+  .print-report th:nth-child(1),
+  .print-report td:nth-child(1) {
+    width: 20%;
   }
 
   /* Zone sections */

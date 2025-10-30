@@ -82,7 +82,7 @@ export const PrintableSalesReport = ({
       </div>
 
       {/* Zone Summary Table */}
-      <div className="mb-6">
+      <div className="mb-6 break-inside-avoid">
         <h3 className="font-bold text-lg mb-3">Zone Summary</h3>
         <Table>
           <TableHeader>
@@ -92,12 +92,12 @@ export const PrintableSalesReport = ({
               <TableHead className="font-bold text-black text-right">Cash (AED)</TableHead>
               <TableHead className="font-bold text-black text-right">Card (AED)</TableHead>
               <TableHead className="font-bold text-black text-right">Online (AED)</TableHead>
-              <TableHead className="font-bold text-black text-right">Sales Count</TableHead>
+              <TableHead className="font-bold text-black text-right">Sales</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {zoneSummaries.map((zone) => (
-              <TableRow key={zone.zone}>
+              <TableRow key={zone.zone} className={zone.salesCount === 0 ? "text-gray-400" : ""}>
                 <TableCell className="font-medium">{zone.zone}</TableCell>
                 <TableCell className="text-right">{zone.revenue.toFixed(2)}</TableCell>
                 <TableCell className="text-right">{zone.cash.toFixed(2)}</TableCell>
@@ -122,58 +122,67 @@ export const PrintableSalesReport = ({
 
       {/* Detailed Transactions by Zone */}
       <div className="space-y-6">
-        <h3 className="font-bold text-lg">Detailed Transactions by Zone</h3>
-        {zoneSummaries.map((zone) => (
-          <div key={zone.zone} className="break-inside-avoid">
-            <h4 className="font-semibold text-base mb-2 bg-gray-100 p-2 rounded">
-              {zone.zone} - {zone.revenue.toFixed(2)} AED ({zone.transactions.length} transactions)
-            </h4>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-black">Type</TableHead>
-                  <TableHead className="font-semibold text-black">Item/Service</TableHead>
-                  <TableHead className="font-semibold text-black text-right">Amount (AED)</TableHead>
-                  <TableHead className="font-semibold text-black text-right">Cash (AED)</TableHead>
-                  <TableHead className="font-semibold text-black text-right">Card (AED)</TableHead>
-                  <TableHead className="font-semibold text-black">Payment</TableHead>
-                  <TableHead className="font-semibold text-black">Member/Item</TableHead>
-                  <TableHead className="font-semibold text-black">Cashier</TableHead>
-                  <TableHead className="font-semibold text-black">Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {zone.transactions.map((transaction) => (
-                  <TableRow key={transaction.id} className="text-sm">
-                    <TableCell>{zone.zone === 'Cafe' ? 'Cafe Sale' : 'Membership'}</TableCell>
-                    <TableCell>{transaction.subscription_plan}</TableCell>
-                    <TableCell className="text-right">{Number(transaction.amount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      {transaction.payment_method === 'mixed' 
-                        ? Number(transaction.cash_amount || 0).toFixed(2)
-                        : transaction.payment_method === 'cash' 
-                          ? Number(transaction.amount).toFixed(2) 
-                          : '-'
-                      }
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {transaction.payment_method === 'mixed'
-                        ? Number(transaction.card_amount || 0).toFixed(2)
-                        : transaction.payment_method === 'card'
-                          ? Number(transaction.amount).toFixed(2)
-                          : '-'
-                      }
-                    </TableCell>
-                    <TableCell className="capitalize">{transaction.payment_method}</TableCell>
-                    <TableCell>{transaction.member_name || (zone.zone === 'Cafe' ? transaction.subscription_plan : '-')}</TableCell>
-                    <TableCell>{transaction.cashier_name || '-'}</TableCell>
-                    <TableCell>{transaction.notes || '-'}</TableCell>
+        <h3 className="font-bold text-lg mb-4">Detailed Transactions by Zone</h3>
+        {zoneSummaries.map((zone, index) => {
+          if (zone.transactions.length === 0) return null;
+          
+          return (
+            <div key={zone.zone} className="break-inside-avoid print-zone-section">
+              <h4 className="font-semibold text-base mb-2 bg-gray-100 p-2 rounded">
+                {zone.zone} - {zone.revenue.toFixed(2)} AED ({zone.transactions.length} transactions)
+              </h4>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold text-black">Item/Service</TableHead>
+                    <TableHead className="font-semibold text-black text-right">Amount</TableHead>
+                    <TableHead className="font-semibold text-black text-right">Cash</TableHead>
+                    <TableHead className="font-semibold text-black text-right">Card</TableHead>
+                    <TableHead className="font-semibold text-black">Payment</TableHead>
+                    <TableHead className="font-semibold text-black">Member</TableHead>
+                    <TableHead className="font-semibold text-black">Cashier</TableHead>
+                    <TableHead className="font-semibold text-black">Notes</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ))}
+                </TableHeader>
+                <TableBody>
+                  {zone.transactions.map((transaction) => (
+                    <TableRow key={transaction.id} className="text-sm">
+                      <TableCell>{transaction.subscription_plan}</TableCell>
+                      <TableCell className="text-right font-medium">{Number(transaction.amount).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {transaction.payment_method === 'mixed' 
+                          ? Number(transaction.cash_amount || 0).toFixed(2)
+                          : transaction.payment_method === 'cash' 
+                            ? Number(transaction.amount).toFixed(2) 
+                            : '-'
+                        }
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {transaction.payment_method === 'mixed'
+                          ? Number(transaction.card_amount || 0).toFixed(2)
+                          : transaction.payment_method === 'card'
+                            ? Number(transaction.amount).toFixed(2)
+                            : '-'
+                        }
+                      </TableCell>
+                      <TableCell className="capitalize">{transaction.payment_method}</TableCell>
+                      <TableCell>{transaction.member_name || '-'}</TableCell>
+                      <TableCell>{transaction.cashier_name || '-'}</TableCell>
+                      <TableCell className="text-xs">{transaction.notes || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-gray-50 font-semibold">
+                    <TableCell>Subtotal</TableCell>
+                    <TableCell className="text-right">{zone.revenue.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{zone.cash.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{zone.card.toFixed(2)}</TableCell>
+                    <TableCell colSpan={4}></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
