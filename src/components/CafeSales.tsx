@@ -84,7 +84,7 @@ export function CafeSales() {
       return;
     }
 
-    const loadingToast = toast.loading("Recording sale...");
+    const loadingToast = toast.loading("Recording cafe sale...");
 
     try {
       console.log("Starting cafe sale submission...");
@@ -126,7 +126,7 @@ export function CafeSales() {
 
       console.log("Sale recorded successfully");
       toast.dismiss(loadingToast);
-      toast.success("Sale recorded successfully!");
+      toast.success("☕ Cafe sale recorded successfully!");
       
       setFormData({
         item_description: "",
@@ -165,13 +165,19 @@ export function CafeSales() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Coffee className="h-6 w-6 text-primary" />
-        <div>
-          <h2 className="text-2xl font-bold">Cafe Sales</h2>
-          <p className="text-muted-foreground">Record daily cafe transactions</p>
-        </div>
-      </div>
+      <Card className="bg-[hsl(var(--cafe-light))] border-[hsl(var(--cafe))]">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[hsl(var(--cafe))]">
+              <Coffee className="h-6 w-6 text-[hsl(var(--cafe-foreground))]" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">☕ Cafe Sales</h2>
+              <p className="text-muted-foreground">Record daily cafe transactions - Coffee, Food & Beverages</p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Daily Summary */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -210,9 +216,12 @@ export function CafeSales() {
       </div>
 
       {/* Add Sale Form */}
-      <Card>
+      <Card className="border-[hsl(var(--cafe))]/30 bg-[hsl(var(--cafe-light))]/30">
         <CardHeader>
-          <CardTitle>Record New Sale</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Coffee className="h-5 w-5 text-[hsl(var(--cafe))]" />
+            Record New Cafe Sale
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -234,7 +243,7 @@ export function CafeSales() {
                   id="item_description"
                   value={formData.item_description}
                   onChange={(e) => setFormData({ ...formData, item_description: e.target.value })}
-                  placeholder="e.g., Coffee, Sandwich"
+                  placeholder="e.g., Coffee, Sandwich, Juice, Snacks"
                   required
                 />
               </div>
@@ -293,9 +302,9 @@ export function CafeSales() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Record Sale
+            <Button type="submit" className="w-full bg-[hsl(var(--cafe))] hover:bg-[hsl(var(--cafe))]/90 text-[hsl(var(--cafe-foreground))]">
+              <Coffee className="h-4 w-4 mr-2" />
+              Record Cafe Sale
             </Button>
           </form>
         </CardContent>

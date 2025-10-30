@@ -151,13 +151,17 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="cafe">Cafe</TabsTrigger>
-          <TabsTrigger value="football">Football</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="corrections">Corrections</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 h-auto">
+          <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
+          <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
+            ☕ Cafe
+          </TabsTrigger>
+          <TabsTrigger value="football" className="py-3 data-[state=active]:bg-[hsl(var(--football))] data-[state=active]:text-[hsl(var(--football-foreground))]">
+            ⚽ Football
+          </TabsTrigger>
+          <TabsTrigger value="users" className="py-3">Users</TabsTrigger>
+          <TabsTrigger value="corrections" className="py-3">Corrections</TabsTrigger>
+          <TabsTrigger value="settings" className="py-3">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

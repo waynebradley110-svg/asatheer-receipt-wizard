@@ -111,7 +111,7 @@ export function FootballSales() {
         throw error;
       }
 
-      toast.success("Football sale recorded successfully!");
+      toast.success("⚽ Football court sale recorded successfully!");
       setFormData({
         description: "",
         cash_amount: "",
@@ -147,13 +147,19 @@ export function FootballSales() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Trophy className="h-6 w-6 text-primary" />
-        <div>
-          <h2 className="text-2xl font-bold">Football Court Sales</h2>
-          <p className="text-muted-foreground">Record football court rentals and sales</p>
-        </div>
-      </div>
+      <Card className="bg-[hsl(var(--football-light))] border-[hsl(var(--football))]">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[hsl(var(--football))]">
+              <Trophy className="h-6 w-6 text-[hsl(var(--football-foreground))]" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">⚽ Football Court Sales</h2>
+              <p className="text-muted-foreground">Record football court rentals and tournament entries</p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Daily Summary */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -192,9 +198,12 @@ export function FootballSales() {
       </div>
 
       {/* Add Sale Form */}
-      <Card>
+      <Card className="border-[hsl(var(--football))]/30 bg-[hsl(var(--football-light))]/30">
         <CardHeader>
-          <CardTitle>Record New Sale</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-[hsl(var(--football))]" />
+            Record New Football Court Sale
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -216,7 +225,7 @@ export function FootballSales() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="e.g., Court rental, Tournament"
+                  placeholder="e.g., Court Rental - 2 hours, Tournament Entry"
                   required
                 />
               </div>
@@ -275,9 +284,9 @@ export function FootballSales() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Record Sale
+            <Button type="submit" className="w-full bg-[hsl(var(--football))] hover:bg-[hsl(var(--football))]/90 text-[hsl(var(--football-foreground))]">
+              <Trophy className="h-4 w-4 mr-2" />
+              Record Football Court Sale
             </Button>
           </form>
         </CardContent>
