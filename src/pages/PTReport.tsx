@@ -19,6 +19,8 @@ interface PTSession {
   created_at: string;
   start_date: string;
   expiry_date: string;
+  member_notes?: string | null;
+  service_notes?: string | null;
 }
 
 interface CoachSummary {
@@ -67,7 +69,7 @@ const PTReport = () => {
       .from("payment_receipts")
       .select(`
         *,
-        members!inner(full_name, phone_number)
+        members!inner(full_name, phone_number, notes)
       `)
       .eq("zone", "pt")
       .gte("created_at", startDate.toISOString())
@@ -91,24 +93,26 @@ const PTReport = () => {
     for (const payment of ptPayments) {
       const { data: service } = await supabase
         .from("member_services")
-        .select("coach_name, subscription_plan, start_date, expiry_date")
+        .select("coach_name, subscription_plan, start_date, expiry_date, notes")
         .eq("member_id", payment.member_id)
         .eq("zone", "pt")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      sessionsWithCoach.push({
-        id: payment.id,
-        member_name: payment.members?.full_name || "Unknown",
-        phone_number: payment.members?.phone_number || "",
-        subscription_plan: service?.subscription_plan || payment.subscription_plan || "N/A",
-        amount: Number(payment.amount),
-        payment_method: payment.payment_method,
-        created_at: payment.created_at,
-        start_date: service?.start_date || "",
-        expiry_date: service?.expiry_date || "",
-      });
+        sessionsWithCoach.push({
+          id: payment.id,
+          member_name: payment.members?.full_name || "Unknown",
+          phone_number: payment.members?.phone_number || "",
+          subscription_plan: service?.subscription_plan || payment.subscription_plan || "N/A",
+          amount: Number(payment.amount),
+          payment_method: payment.payment_method,
+          created_at: payment.created_at,
+          start_date: service?.start_date || "",
+          expiry_date: service?.expiry_date || "",
+          member_notes: payment.members?.notes,
+          service_notes: service?.notes,
+        });
     }
 
     // Group sessions by normalized coach name
@@ -273,6 +277,7 @@ const PTReport = () => {
                             <th className="text-left p-2">Plan</th>
                             <th className="text-right p-2">Amount</th>
                             <th className="text-left p-2">Date</th>
+                            <th className="text-left p-2">Notes</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -285,6 +290,11 @@ const PTReport = () => {
                               </td>
                               <td className="p-2">
                                 {format(new Date(session.created_at), "MMM dd, yyyy")}
+                              </td>
+                              <td className="p-2 text-xs">
+                                {[session.member_notes, session.service_notes]
+                                  .filter(Boolean)
+                                  .join(' | ') || '-'}
                               </td>
                             </tr>
                           ))}

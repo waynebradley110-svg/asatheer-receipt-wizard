@@ -9,6 +9,8 @@ interface PTSession {
   amount: number;
   payment_method: string;
   created_at: string;
+  member_notes?: string | null;
+  service_notes?: string | null;
 }
 
 interface CoachSummary {
@@ -90,6 +92,7 @@ export const PrintablePTReport = ({
                     <th>Plan</th>
                     <th className="amount-col">Amount</th>
                     <th>Date</th>
+                    <th>Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -99,6 +102,11 @@ export const PrintablePTReport = ({
                       <td>{session.subscription_plan.replace(/_/g, ' ')}</td>
                       <td className="amount-col">{session.amount.toFixed(2)}</td>
                       <td>{format(new Date(session.created_at), "MMM dd, yyyy")}</td>
+                      <td className="notes-col">
+                        {[session.member_notes, session.service_notes]
+                          .filter(Boolean)
+                          .join(' | ') || '-'}
+                      </td>
                     </tr>
                   ))}
                   <tr className="subtotal-row">
