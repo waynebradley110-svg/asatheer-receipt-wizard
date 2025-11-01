@@ -87,7 +87,9 @@ export function CafeSales() {
     const loadingToast = toast.loading("Recording cafe sale...");
 
     try {
-      console.log("Starting cafe sale submission...");
+      console.log("[CAFE SALES] Starting submission at", new Date().toISOString());
+      console.log("[CAFE SALES] Component: CafeSales.tsx");
+      console.log("[CAFE SALES] Target table: cafe_sales");
       
       // Check authentication first
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -95,11 +97,11 @@ export function CafeSales() {
       if (authError || !user) {
         toast.dismiss(loadingToast);
         toast.error("Authentication required. Please log in.");
-        console.error("Auth error:", authError);
+        console.error("[CAFE SALES] Auth error:", authError);
         return;
       }
 
-      console.log("User authenticated:", user.email);
+      console.log("[CAFE SALES] User authenticated:", user.email);
 
       const saleData = {
         sale_date: formData.sale_date,
@@ -113,18 +115,24 @@ export function CafeSales() {
         payment_method: cashAmount > 0 && cardAmount > 0 ? "mixed" : (cashAmount > 0 ? "cash" : "card")
       };
 
-      console.log("Inserting sale data:", saleData);
+      // Defensive validation: warn about suspicious descriptions
+      const description = formData.item_description.toLowerCase();
+      if (description.includes('football') || description.includes('court') || description.includes('tournament')) {
+        console.warn("[CAFE SALES] ⚠️ SUSPICIOUS: Description looks like football sale:", formData.item_description);
+      }
+
+      console.log("[CAFE SALES] Inserting into cafe_sales table:", saleData);
 
       const { error } = await supabase.from("cafe_sales").insert(saleData as any);
 
       if (error) {
-        console.error("Database error:", error);
+        console.error("[CAFE SALES] ❌ Database error:", error);
         toast.dismiss(loadingToast);
         toast.error(`Database error: ${error.message}`);
         return;
       }
 
-      console.log("Sale recorded successfully");
+      console.log("[CAFE SALES] ✅ Sale recorded successfully to cafe_sales table");
       toast.dismiss(loadingToast);
       toast.success("☕ Cafe sale recorded successfully!");
       
