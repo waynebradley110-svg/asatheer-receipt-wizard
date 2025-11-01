@@ -84,33 +84,18 @@ export function FootballSales() {
     }
 
     try {
-      console.log("[FOOTBALL SALES] Starting submission at", new Date().toISOString());
-      console.log("[FOOTBALL SALES] Component: FootballSales.tsx");
-      console.log("[FOOTBALL SALES] Target table: football_sales");
-      
       // Check authentication first
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
         toast.error("Authentication required. Please log in.");
-        console.error("[FOOTBALL SALES] Auth error:", authError);
-        return;
-      }
-
-      console.log("[FOOTBALL SALES] User authenticated:", user.email);
-
-      // Defensive validation: reject cafe-related descriptions
-      const description = formData.description.toLowerCase();
-      if (description.includes('cafe') || description.includes('coffee') || description.includes('sandwich') || 
-          description.includes('juice') || description.includes('snack') || description.includes('food')) {
-        console.error("[FOOTBALL SALES] ❌ REJECTED: Description looks like cafe sale:", formData.description);
-        toast.error("This looks like a cafe sale. Please use the Cafe Sales tab instead.");
+        console.error("Auth error:", authError);
         return;
       }
 
       const totalAmount = cashAmount + cardAmount;
 
-      const saleData = {
+      const { error } = await supabase.from("football_sales").insert({
         description: formData.description.trim(),
         cash_amount: cashAmount,
         card_amount: cardAmount,
@@ -119,18 +104,13 @@ export function FootballSales() {
         notes: formData.notes?.trim() || null,
         sale_date: formData.sale_date,
         created_by: user.email || "system",
-      };
-
-      console.log("[FOOTBALL SALES] Inserting into football_sales table:", saleData);
-
-      const { error } = await supabase.from("football_sales").insert(saleData as any);
+      } as any);
 
       if (error) {
-        console.error("[FOOTBALL SALES] ❌ Database error:", error);
+        console.error("Database error:", error);
         throw error;
       }
 
-      console.log("[FOOTBALL SALES] ✅ Sale recorded successfully to football_sales table");
       toast.success("⚽ Football court sale recorded successfully!");
       setFormData({
         description: "",

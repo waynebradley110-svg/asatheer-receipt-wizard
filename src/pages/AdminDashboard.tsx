@@ -15,7 +15,6 @@ import { FootballSales } from "@/components/FootballSales";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
@@ -151,7 +150,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6 h-auto">
           <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
           <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
@@ -165,47 +164,35 @@ const AdminDashboard = () => {
           <TabsTrigger value="settings" className="py-3">Settings</TabsTrigger>
         </TabsList>
 
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ExpiryReminders />
-            </div>
-            <ZoneAnalysis />
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ExpiryReminders />
           </div>
-        )}
+          <ZoneAnalysis />
+        </TabsContent>
 
-        {activeTab === "cafe" && (
-          <div className="space-y-6">
-            <CafeSales />
-          </div>
-        )}
+        <TabsContent value="cafe">
+          <CafeSales />
+        </TabsContent>
 
-        {activeTab === "football" && (
-          <div className="space-y-6">
-            <FootballSales />
-          </div>
-        )}
+        <TabsContent value="football">
+          <FootballSales />
+        </TabsContent>
 
-        {activeTab === "users" && (
-          <div className="space-y-6">
-            <UserManagement />
-          </div>
-        )}
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
 
-        {activeTab === "corrections" && (
-          <div className="space-y-6">
-            <FinancialCorrections />
-          </div>
-        )}
+        <TabsContent value="corrections">
+          <FinancialCorrections />
+        </TabsContent>
 
-        {activeTab === "settings" && (
-          <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <SystemSettings />
-              <ExcelBackup />
-            </div>
+        <TabsContent value="settings" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SystemSettings />
+            <ExcelBackup />
           </div>
-        )}
+        </TabsContent>
       </Tabs>
     </div>
   );

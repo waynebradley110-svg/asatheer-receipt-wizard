@@ -15,8 +15,6 @@ interface Transaction {
   cash_amount?: number;
   card_amount?: number;
   notes?: string | null;
-  member_notes?: string | null;
-  service_notes?: string | null;
 }
 
 interface ZoneSummary {
@@ -170,13 +168,7 @@ export const PrintableSalesReport = ({
                       <TableCell className="capitalize">{transaction.payment_method}</TableCell>
                       <TableCell>{transaction.member_name || '-'}</TableCell>
                       <TableCell>{transaction.cashier_name || '-'}</TableCell>
-                      <TableCell className="text-xs">
-                        {[
-                          transaction.member_notes,
-                          transaction.service_notes,
-                          transaction.notes
-                        ].filter(Boolean).join(' | ') || '-'}
-                      </TableCell>
+                      <TableCell className="text-xs">{transaction.notes || '-'}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-gray-50 font-semibold">

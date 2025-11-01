@@ -8,7 +8,6 @@ import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
 
 const ReceptionistDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
@@ -89,57 +88,51 @@ const ReceptionistDashboard = () => {
         <p className="text-muted-foreground">Member management and attendance tracking</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="cafe">Cafe Sales</TabsTrigger>
           <TabsTrigger value="football">Football Court</TabsTrigger>
         </TabsList>
 
-        {activeTab === "overview" && (
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {statCards.map((stat) => (
-                <Card key={stat.title}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {statCards.map((stat) => (
+              <Card key={stat.title}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Use the sidebar to access member registration, attendance tracking, and member management features.
-                  </p>
+                  <div className="text-2xl font-bold">{stat.value}</div>
                 </CardContent>
               </Card>
-
-              <ExpiryReminders />
-            </div>
+            ))}
           </div>
-        )}
 
-        {activeTab === "cafe" && (
-          <div className="space-y-4">
-            <CafeSales />
-          </div>
-        )}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Use the sidebar to access member registration, attendance tracking, and member management features.
+                </p>
+              </CardContent>
+            </Card>
 
-        {activeTab === "football" && (
-          <div className="space-y-4">
-            <FootballSales />
+            <ExpiryReminders />
           </div>
-        )}
+        </TabsContent>
+
+        <TabsContent value="cafe">
+          <CafeSales />
+        </TabsContent>
+
+        <TabsContent value="football">
+          <FootballSales />
+        </TabsContent>
       </Tabs>
     </div>
   );
