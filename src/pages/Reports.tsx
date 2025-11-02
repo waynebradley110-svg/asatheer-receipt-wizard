@@ -66,7 +66,7 @@ const Reports = () => {
     // Fetch membership payments
     const { data: payments } = await supabase
       .from("payment_receipts")
-      .select("*, members(full_name)")
+      .select("*, members(full_name, notes), member_services(notes)")
       .gte("created_at", startDate.toISOString())
       .lte("created_at", endDate.toISOString());
 
@@ -148,6 +148,8 @@ const Reports = () => {
       zoneGroups[zoneLower].transactions.push({
         ...payment,
         member_name: payment.members?.full_name,
+        member_notes: payment.members?.notes,
+        service_notes: Array.isArray(payment.member_services) ? payment.member_services[0]?.notes : null,
       });
     });
 
