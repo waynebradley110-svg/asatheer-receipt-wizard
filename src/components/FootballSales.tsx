@@ -105,7 +105,6 @@ export function FootballSales() {
         description: formData.description.trim(),
         cash_amount: cashAmount,
         card_amount: cardAmount,
-        total_amount: totalAmount,
         cashier_name: formData.cashier_name?.trim() || null,
         notes: formData.notes?.trim() || null,
         sale_date: formData.sale_date,
