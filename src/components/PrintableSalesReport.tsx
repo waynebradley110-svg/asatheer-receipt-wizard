@@ -126,7 +126,19 @@ export const PrintableSalesReport = ({
       <div className="space-y-6">
         <h3 className="font-bold text-lg mb-4">Detailed Transactions by Zone</h3>
         {zoneSummaries.map((zone, index) => {
-          if (zone.transactions.length === 0) return null;
+          // Show empty state for zones with no transactions
+          if (zone.transactions.length === 0) {
+            return (
+              <div key={zone.zone} className="break-inside-avoid print-zone-section">
+                <h4 className="font-semibold text-base mb-2 bg-gray-100 p-2 rounded">
+                  {zone.zone} - 0.00 AED
+                </h4>
+                <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded border border-gray-200">
+                  No {zone.zone === "Football Court" ? "rentals" : "sales"} recorded for this period
+                </div>
+              </div>
+            );
+          }
           
           return (
             <div key={zone.zone} className="break-inside-avoid print-zone-section">

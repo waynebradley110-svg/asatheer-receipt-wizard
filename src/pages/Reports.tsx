@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Printer } from "lucide-react";
+import { DollarSign, Printer, CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PrintableSalesReport } from "@/components/PrintableSalesReport";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ZoneSummary {
   zone: string;
@@ -20,6 +22,7 @@ interface ZoneSummary {
 }
 
 const Reports = () => {
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     totalCash: 0,
     totalCard: 0,
@@ -29,6 +32,8 @@ const Reports = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [zoneSummaries, setZoneSummaries] = useState<ZoneSummary[]>([]);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [hasData, setHasData] = useState(true);
+  const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
 
   // Zone display name mapping
   const getZoneDisplayName = (zone: string): string => {
@@ -63,10 +68,15 @@ const Reports = () => {
       endDate = endOfMonth(selectedDate);
     }
 
-    // Fetch membership payments
+    setDateRange({ start: startDate, end: endDate });
+
+    // Fetch membership payments with notes
     const { data: payments } = await supabase
       .from("payment_receipts")
-      .select("*, members(full_name, notes), member_services(notes)")
+      .select(`
+        *,
+        members(full_name, notes)
+      `)
       .gte("created_at", startDate.toISOString())
       .lte("created_at", endDate.toISOString());
 
@@ -124,8 +134,8 @@ const Reports = () => {
     });
 
     // Add actual payment data to zones
-    payments?.forEach((payment) => {
-      const zone = payment.zone || 'unknown';
+    for (const payment of payments || []) {
+      const zone = payment.zone || 'gym';
       const zoneLower = zone.toLowerCase();
       
       if (!zoneGroups[zoneLower]) {
@@ -140,6 +150,17 @@ const Reports = () => {
         };
       }
       
+      // Fetch service notes for this payment
+      const { data: service } = await supabase
+        .from("member_services")
+        .select("notes")
+        .eq("member_id", payment.member_id)
+        .eq("zone", zone)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const serviceNotes = service?.notes;
+      
       zoneGroups[zoneLower].revenue += Number(payment.amount);
       zoneGroups[zoneLower].salesCount += 1;
       if (payment.payment_method === 'cash') zoneGroups[zoneLower].cash += Number(payment.amount);
@@ -149,9 +170,9 @@ const Reports = () => {
         ...payment,
         member_name: payment.members?.full_name,
         member_notes: payment.members?.notes,
-        service_notes: Array.isArray(payment.member_services) ? payment.member_services[0]?.notes : null,
+        service_notes: serviceNotes,
       });
-    });
+    }
 
     // Add cafe sales as a separate zone
     zoneGroups['cafe'] = {
@@ -211,6 +232,20 @@ const Reports = () => {
       .filter(zone => zone !== undefined);
 
     setZoneSummaries(sortedZoneSummaries);
+    
+    // Check if there's any data
+    const totalRevenue = totalCash + totalCard + totalOnline;
+    const hasAnyData = totalRevenue > 0 || sortedZoneSummaries.some(z => z.salesCount > 0);
+    setHasData(hasAnyData);
+    
+    // Show warning if no data found
+    if (!hasAnyData) {
+      toast({
+        title: "No data found",
+        description: `No sales records found for ${format(startDate, "MMMM dd, yyyy")}. All data is from October 2025 onwards.`,
+        variant: "default",
+      });
+    }
   };
 
   const handlePrint = () => {
@@ -244,6 +279,7 @@ const Reports = () => {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn("justify-start text-left font-normal")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
                 {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
@@ -252,6 +288,7 @@ const Reports = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -261,6 +298,23 @@ const Reports = () => {
             Print Report
           </Button>
         </div>
+
+        {/* Date Range Indicator */}
+        <Alert>
+          <CalendarIcon className="h-4 w-4" />
+          <AlertDescription>
+            Viewing {reportType === "daily" ? "Daily" : "Monthly"} Report for:{" "}
+            <strong>{format(dateRange.start, "MMM dd, yyyy")}</strong>
+            {reportType === "monthly" && (
+              <> to <strong>{format(dateRange.end, "MMM dd, yyyy")}</strong></>
+            )}
+            {!hasData && (
+              <span className="block mt-1 text-amber-600 dark:text-amber-500">
+                ⚠️ No sales records found for this period. Data is available from October 22, 2025 onwards.
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
