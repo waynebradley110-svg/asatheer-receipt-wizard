@@ -99,15 +99,6 @@ export function FootballSales() {
 
       console.log("[FOOTBALL SALES] User authenticated:", user.email);
 
-      // Defensive validation: reject cafe-related descriptions
-      const description = formData.description.toLowerCase();
-      if (description.includes('cafe') || description.includes('coffee') || description.includes('sandwich') || 
-          description.includes('juice') || description.includes('snack') || description.includes('food')) {
-        console.error("[FOOTBALL SALES] ❌ REJECTED: Description looks like cafe sale:", formData.description);
-        toast.error("This looks like a cafe sale. Please use the Cafe Sales tab instead.");
-        return;
-      }
-
       const totalAmount = cashAmount + cardAmount;
 
       const saleData = {
