@@ -44,13 +44,14 @@ const Reports = () => {
       'ladies_gym': 'Ladies Gym',
       'pt': 'Personal Training',
       'cafe': 'Cafe',
-      'football': 'Football Court'
+      'football': 'Football Court',
+      'massage': 'Massage Services'
     };
     return zoneNames[zone.toLowerCase()] || zone;
   };
 
   // Zone ordering for consistent display
-  const zoneOrder = ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt', 'cafe', 'football'];
+  const zoneOrder = ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt', 'cafe', 'football', 'massage'];
 
   useEffect(() => {
     fetchReports();
@@ -94,6 +95,13 @@ const Reports = () => {
       .gte("sale_date", format(startDate, "yyyy-MM-dd"))
       .lte("sale_date", format(endDate, "yyyy-MM-dd"));
 
+    // Fetch massage sales
+    const { data: massageSales } = await supabase
+      .from("massage_sales")
+      .select("*")
+      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
+      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+
     // Calculate totals from membership payments
     let totalCash = payments?.filter(p => p.payment_method === 'cash')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
@@ -112,8 +120,12 @@ const Reports = () => {
     const footballCash = footballSales?.reduce((sum, s) => sum + Number(s.cash_amount || 0), 0) || 0;
     const footballCard = footballSales?.reduce((sum, s) => sum + Number(s.card_amount || 0), 0) || 0;
 
-    totalCash += cafeCash + footballCash;
-    totalCard += cafeCard + footballCard;
+    // Add massage sales to totals
+    const massageCash = massageSales?.reduce((sum, s) => sum + Number(s.cash_amount || 0), 0) || 0;
+    const massageCard = massageSales?.reduce((sum, s) => sum + Number(s.card_amount || 0), 0) || 0;
+
+    totalCash += cafeCash + footballCash + massageCash;
+    totalCard += cafeCard + footballCard + massageCard;
 
     setStats({ totalCash, totalCard, totalOnline });
 
@@ -217,6 +229,32 @@ const Reports = () => {
           : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
         zone: 'football',
         subscription_plan: sale.description,
+        created_at: sale.sale_date,
+        cashier_name: sale.cashier_name,
+        member_name: undefined,
+        cash_amount: Number(sale.cash_amount || 0),
+        card_amount: Number(sale.card_amount || 0),
+        notes: sale.notes,
+      })),
+    };
+
+    // Add massage sales as a separate zone
+    zoneGroups['massage'] = {
+      zone: 'Massage Services',
+      revenue: massageCash + massageCard,
+      cash: massageCash,
+      card: massageCard,
+      online: 0,
+      salesCount: massageSales?.length || 0,
+      transactions: (massageSales || []).map(sale => ({
+        id: sale.id,
+        member_id: sale.id,
+        amount: sale.amount,
+        payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+          ? 'mixed' 
+          : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
+        zone: 'massage',
+        subscription_plan: sale.customer_name,
         created_at: sale.sale_date,
         cashier_name: sale.cashier_name,
         member_name: undefined,

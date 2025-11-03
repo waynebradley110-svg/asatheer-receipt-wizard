@@ -223,6 +223,45 @@ export type Database = {
         }
         Relationships: []
       }
+      massage_sales: {
+        Row: {
+          amount: number
+          card_amount: number
+          cash_amount: number
+          cashier_name: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_name: string
+          id: string
+          notes: string | null
+          sale_date: string
+        }
+        Insert: {
+          amount: number
+          card_amount?: number
+          cash_amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name: string
+          id?: string
+          notes?: string | null
+          sale_date?: string
+        }
+        Update: {
+          amount?: number
+          card_amount?: number
+          cash_amount?: number
+          cashier_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name?: string
+          id?: string
+          notes?: string | null
+          sale_date?: string
+        }
+        Relationships: []
+      }
       member_services: {
         Row: {
           coach_name: string | null

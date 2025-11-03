@@ -12,6 +12,7 @@ import { ZoneAnalysis } from "@/components/ZoneAnalysis";
 import { ExcelBackup } from "@/components/ExcelBackup";
 import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
+import { MassageSales } from "@/components/MassageSales";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
@@ -152,13 +153,16 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 h-auto">
+        <TabsList className="grid w-full grid-cols-7 h-auto">
           <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
           <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
             ☕ Cafe
           </TabsTrigger>
           <TabsTrigger value="football" className="py-3 data-[state=active]:bg-[hsl(var(--football))] data-[state=active]:text-[hsl(var(--football-foreground))]">
             ⚽ Football
+          </TabsTrigger>
+          <TabsTrigger value="massage" className="py-3 data-[state=active]:bg-[hsl(var(--massage))] data-[state=active]:text-[hsl(var(--massage-foreground))]">
+            💆 Massage
           </TabsTrigger>
           <TabsTrigger value="users" className="py-3">Users</TabsTrigger>
           <TabsTrigger value="corrections" className="py-3">Corrections</TabsTrigger>
@@ -183,6 +187,12 @@ const AdminDashboard = () => {
         {activeTab === "football" && (
           <div className="space-y-6">
             <FootballSales />
+          </div>
+        )}
+
+        {activeTab === "massage" && (
+          <div className="space-y-6">
+            <MassageSales />
           </div>
         )}
 

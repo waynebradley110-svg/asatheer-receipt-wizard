@@ -40,6 +40,10 @@ All colors MUST be HSL.
     --football-foreground: 0 0% 100%;
     --football-light: 142 76% 97%;
 
+    --massage: 280 65% 60%;
+    --massage-foreground: 0 0% 100%;
+    --massage-light: 280 40% 95%;
+
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 217 91% 55%;
@@ -88,6 +92,10 @@ All colors MUST be HSL.
     --football: 142 76% 36%;
     --football-foreground: 0 0% 100%;
     --football-light: 142 55% 25%;
+
+    --massage: 280 65% 60%;
+    --massage-foreground: 0 0% 100%;
+    --massage-light: 280 30% 20%;
 
     --border: 217 33% 20%;
     --input: 217 33% 20%;

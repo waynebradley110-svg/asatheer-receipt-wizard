@@ -6,6 +6,7 @@ import { ExpiryReminders } from "@/components/ExpiryReminders";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
+import { MassageSales } from "@/components/MassageSales";
 
 const ReceptionistDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -94,6 +95,7 @@ const ReceptionistDashboard = () => {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="cafe">Cafe Sales</TabsTrigger>
           <TabsTrigger value="football">Football Court</TabsTrigger>
+          <TabsTrigger value="massage">Massage</TabsTrigger>
         </TabsList>
 
         {activeTab === "overview" && (
@@ -138,6 +140,12 @@ const ReceptionistDashboard = () => {
         {activeTab === "football" && (
           <div className="space-y-4">
             <FootballSales />
+          </div>
+        )}
+
+        {activeTab === "massage" && (
+          <div className="space-y-4">
+            <MassageSales />
           </div>
         )}
       </Tabs>
