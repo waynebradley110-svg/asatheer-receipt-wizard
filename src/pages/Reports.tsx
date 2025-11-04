@@ -132,8 +132,9 @@ const Reports = () => {
     // Group membership payments by zone with display names
     const zoneGroups: Record<string, ZoneSummary> = {};
     
-    // Initialize all membership zones with zero values
-    ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt'].forEach(zone => {
+    // Initialize ALL zones with zero values (membership + non-membership)
+    const allZones = ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt', 'cafe', 'football', 'massage'];
+    allZones.forEach(zone => {
       zoneGroups[zone] = {
         zone: getZoneDisplayName(zone),
         revenue: 0,
@@ -186,83 +187,71 @@ const Reports = () => {
       });
     }
 
-    // Add cafe sales as a separate zone
-    zoneGroups['cafe'] = {
-      zone: 'Cafe',
-      revenue: cafeCash + cafeCard,
-      cash: cafeCash,
-      card: cafeCard,
-      online: 0,
-      salesCount: cafeSales?.length || 0,
-      transactions: (cafeSales || []).map(sale => ({
-        id: sale.id,
-        member_id: sale.id,
-        amount: sale.amount,
-        payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
-          ? 'mixed' 
-          : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
-        zone: 'cafe',
-        subscription_plan: sale.item_description,
-        created_at: sale.sale_date,
-        cashier_name: sale.cashier_name,
-        member_name: undefined,
-        cash_amount: Number(sale.cash_amount || 0),
-        card_amount: Number(sale.card_amount || 0),
-        notes: sale.notes,
-      })),
-    };
+    // Update cafe zone data with actual sales
+    zoneGroups['cafe'].revenue = cafeCash + cafeCard;
+    zoneGroups['cafe'].cash = cafeCash;
+    zoneGroups['cafe'].card = cafeCard;
+    zoneGroups['cafe'].salesCount = cafeSales?.length || 0;
+    zoneGroups['cafe'].transactions = (cafeSales || []).map(sale => ({
+      id: sale.id,
+      member_id: sale.id,
+      amount: sale.amount,
+      payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+        ? 'mixed' 
+        : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
+      zone: 'cafe',
+      subscription_plan: sale.item_description,
+      created_at: sale.sale_date,
+      cashier_name: sale.cashier_name,
+      member_name: undefined,
+      cash_amount: Number(sale.cash_amount || 0),
+      card_amount: Number(sale.card_amount || 0),
+      notes: sale.notes,
+    }));
 
-    // Add football sales as a separate zone
-    zoneGroups['football'] = {
-      zone: 'Football Court',
-      revenue: footballCash + footballCard,
-      cash: footballCash,
-      card: footballCard,
-      online: 0,
-      salesCount: footballSales?.length || 0,
-      transactions: (footballSales || []).map(sale => ({
-        id: sale.id,
-        member_id: sale.id,
-        amount: sale.total_amount,
-        payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
-          ? 'mixed' 
-          : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
-        zone: 'football',
-        subscription_plan: sale.description,
-        created_at: sale.sale_date,
-        cashier_name: sale.cashier_name,
-        member_name: undefined,
-        cash_amount: Number(sale.cash_amount || 0),
-        card_amount: Number(sale.card_amount || 0),
-        notes: sale.notes,
-      })),
-    };
+    // Update football zone data with actual sales
+    zoneGroups['football'].revenue = footballCash + footballCard;
+    zoneGroups['football'].cash = footballCash;
+    zoneGroups['football'].card = footballCard;
+    zoneGroups['football'].salesCount = footballSales?.length || 0;
+    zoneGroups['football'].transactions = (footballSales || []).map(sale => ({
+      id: sale.id,
+      member_id: sale.id,
+      amount: sale.total_amount,
+      payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+        ? 'mixed' 
+        : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
+      zone: 'football',
+      subscription_plan: sale.description,
+      created_at: sale.sale_date,
+      cashier_name: sale.cashier_name,
+      member_name: undefined,
+      cash_amount: Number(sale.cash_amount || 0),
+      card_amount: Number(sale.card_amount || 0),
+      notes: sale.notes,
+    }));
 
-    // Add massage sales as a separate zone
-    zoneGroups['massage'] = {
-      zone: 'Massage Services',
-      revenue: massageCash + massageCard,
-      cash: massageCash,
-      card: massageCard,
-      online: 0,
-      salesCount: massageSales?.length || 0,
-      transactions: (massageSales || []).map(sale => ({
-        id: sale.id,
-        member_id: sale.id,
-        amount: sale.amount,
-        payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
-          ? 'mixed' 
-          : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
-        zone: 'massage',
-        subscription_plan: sale.customer_name,
-        created_at: sale.sale_date,
-        cashier_name: sale.cashier_name,
-        member_name: undefined,
-        cash_amount: Number(sale.cash_amount || 0),
-        card_amount: Number(sale.card_amount || 0),
-        notes: sale.notes,
-      })),
-    };
+    // Update massage zone data with actual sales
+    zoneGroups['massage'].revenue = massageCash + massageCard;
+    zoneGroups['massage'].cash = massageCash;
+    zoneGroups['massage'].card = massageCard;
+    zoneGroups['massage'].salesCount = massageSales?.length || 0;
+    zoneGroups['massage'].transactions = (massageSales || []).map(sale => ({
+      id: sale.id,
+      member_id: sale.id,
+      amount: sale.amount,
+      payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
+        ? 'mixed' 
+        : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
+      zone: 'massage',
+      subscription_plan: sale.customer_name,
+      created_at: sale.sale_date,
+      cashier_name: sale.cashier_name,
+      member_name: undefined,
+      cash_amount: Number(sale.cash_amount || 0),
+      card_amount: Number(sale.card_amount || 0),
+      notes: sale.notes,
+    }));
 
     // Sort zones by predefined order
     const sortedZoneSummaries = zoneOrder
