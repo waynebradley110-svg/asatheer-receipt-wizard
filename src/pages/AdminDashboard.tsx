@@ -13,6 +13,7 @@ import { ExcelBackup } from "@/components/ExcelBackup";
 import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
 import { MassageSales } from "@/components/MassageSales";
+import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
@@ -153,8 +154,9 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 h-auto">
+        <TabsList className="grid w-full grid-cols-8 h-auto">
           <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
+          <TabsTrigger value="analytics" className="py-3">📊 Analytics</TabsTrigger>
           <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
             ☕ Cafe
           </TabsTrigger>
@@ -175,6 +177,12 @@ const AdminDashboard = () => {
               <ExpiryReminders />
             </div>
             <ZoneAnalysis />
+          </div>
+        )}
+
+        {activeTab === "analytics" && (
+          <div className="space-y-6">
+            <AdvancedAnalytics />
           </div>
         )}
 
