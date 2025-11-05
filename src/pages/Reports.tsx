@@ -71,36 +71,52 @@ const Reports = () => {
 
     setDateRange({ start: startDate, end: endDate });
 
-    // Fetch membership payments with notes
-    const { data: payments } = await supabase
+    // Format dates for PostgreSQL DATE comparison (more accurate than timestamp)
+    const startDateStr = format(startDate, "yyyy-MM-dd");
+    const endDateStr = format(endDate, "yyyy-MM-dd");
+
+    // Fetch membership payments - using PostgreSQL DATE casting for accurate daily filtering
+    let paymentsQuery = supabase
       .from("payment_receipts")
       .select(`
         *,
         members(full_name, notes)
-      `)
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString());
+      `);
 
-    // Fetch cafe sales
+    if (reportType === "daily") {
+      // For daily reports, use exact date match (more accurate)
+      paymentsQuery = paymentsQuery
+        .gte("created_at", `${startDateStr}T00:00:00`)
+        .lt("created_at", `${startDateStr}T23:59:59.999`);
+    } else {
+      // For monthly reports, use date range
+      paymentsQuery = paymentsQuery
+        .gte("created_at", `${startDateStr}T00:00:00`)
+        .lte("created_at", `${endDateStr}T23:59:59.999`);
+    }
+
+    const { data: payments } = await paymentsQuery;
+
+    // Fetch cafe sales using date comparison
     const { data: cafeSales } = await supabase
       .from("cafe_sales")
       .select("*")
-      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
-      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+      .gte("sale_date", startDateStr)
+      .lte("sale_date", endDateStr);
 
-    // Fetch football sales
+    // Fetch football sales using date comparison
     const { data: footballSales } = await supabase
       .from("football_sales")
       .select("*")
-      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
-      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+      .gte("sale_date", startDateStr)
+      .lte("sale_date", endDateStr);
 
-    // Fetch massage sales
+    // Fetch massage sales using date comparison
     const { data: massageSales } = await supabase
       .from("massage_sales")
       .select("*")
-      .gte("sale_date", format(startDate, "yyyy-MM-dd"))
-      .lte("sale_date", format(endDate, "yyyy-MM-dd"));
+      .gte("sale_date", startDateStr)
+      .lte("sale_date", endDateStr);
 
     // Calculate totals from membership payments
     let totalCash = payments?.filter(p => p.payment_method === 'cash')
@@ -163,27 +179,16 @@ const Reports = () => {
         };
       }
       
-      // Fetch service notes for this payment
-      const { data: service } = await supabase
-        .from("member_services")
-        .select("notes")
-        .eq("member_id", payment.member_id)
-        .eq("zone", zone)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const serviceNotes = service?.notes;
-      
       zoneGroups[zoneLower].revenue += Number(payment.amount);
       zoneGroups[zoneLower].salesCount += 1;
       if (payment.payment_method === 'cash') zoneGroups[zoneLower].cash += Number(payment.amount);
       if (payment.payment_method === 'card') zoneGroups[zoneLower].card += Number(payment.amount);
       if (payment.payment_method === 'online') zoneGroups[zoneLower].online += Number(payment.amount);
+      
       zoneGroups[zoneLower].transactions.push({
         ...payment,
         member_name: payment.members?.full_name,
         member_notes: payment.members?.notes,
-        service_notes: serviceNotes,
       });
     }
 
