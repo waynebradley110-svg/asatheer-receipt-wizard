@@ -13,6 +13,7 @@ import Members from "./pages/Members";
 import Attendance from "./pages/Attendance";
 import Reports from "./pages/Reports";
 import PTReport from "./pages/PTReport";
+import CoachManagement from "./pages/CoachManagement";
 import Expenses from "./pages/Expenses";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/pt-report" element={<PTReport />} />
+            <Route path="/coaches" element={<CoachManagement />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/notifications" element={<Notifications />} />
           </Route>

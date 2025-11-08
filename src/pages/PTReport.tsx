@@ -44,14 +44,6 @@ const PTReport = () => {
     fetchPTReports();
   }, [selectedDate, reportType]);
 
-  const normalizeCoachName = (name: string): string => {
-    if (!name) return "Unassigned";
-    const cleaned = name.toLowerCase()
-      .replace(/^coach\s+/i, '')
-      .trim();
-    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  };
-
   const fetchPTReports = async () => {
     let startDate: Date;
     let endDate: Date;
@@ -64,17 +56,38 @@ const PTReport = () => {
       endDate = endOfMonth(selectedDate);
     }
 
-    // Fetch PT payments with member and coach details
-    const { data: ptPayments, error } = await supabase
+    // Format dates for accurate PostgreSQL comparison
+    const startDateStr = format(startDate, "yyyy-MM-dd");
+    const endDateStr = format(endDate, "yyyy-MM-dd");
+
+    // Build query with timezone-aware date filtering
+    let paymentsQuery = supabase
       .from("payment_receipts")
       .select(`
         *,
-        members!inner(full_name, phone_number, notes)
+        members!inner(full_name, phone_number, notes),
+        member_services!inner(
+          coach_name,
+          subscription_plan,
+          start_date,
+          expiry_date,
+          notes
+        )
       `)
       .eq("zone", "pt")
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
-      .order("created_at", { ascending: false });
+      .eq("member_services.zone", "pt");
+
+    if (reportType === "daily") {
+      paymentsQuery = paymentsQuery
+        .gte("created_at", `${startDateStr}T00:00:00`)
+        .lt("created_at", `${startDateStr}T23:59:59.999`);
+    } else {
+      paymentsQuery = paymentsQuery
+        .gte("created_at", `${startDateStr}T00:00:00`)
+        .lte("created_at", `${endDateStr}T23:59:59.999`);
+    }
+
+    const { data: ptPayments, error } = await paymentsQuery.order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching PT payments:", error);
@@ -87,61 +100,51 @@ const PTReport = () => {
       return;
     }
 
-    // For each payment, fetch the corresponding member_service to get coach name
-    const sessionsWithCoach: PTSession[] = [];
-    
-    for (const payment of ptPayments) {
-      const { data: service } = await supabase
-        .from("member_services")
-        .select("coach_name, subscription_plan, start_date, expiry_date, notes")
-        .eq("member_id", payment.member_id)
-        .eq("zone", "pt")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    // Map payments directly to sessions (no additional fetches needed)
+    const sessionsWithCoach: PTSession[] = ptPayments.map(payment => {
+      const service = Array.isArray(payment.member_services) 
+        ? payment.member_services[0] 
+        : payment.member_services;
+      
+      return {
+        id: payment.id,
+        member_name: payment.members?.full_name || "Unknown",
+        phone_number: payment.members?.phone_number || "",
+        subscription_plan: service?.subscription_plan || "N/A",
+        amount: Number(payment.amount),
+        payment_method: payment.payment_method,
+        created_at: payment.created_at,
+        start_date: service?.start_date || "",
+        expiry_date: service?.expiry_date || "",
+        member_notes: payment.members?.notes,
+        service_notes: service?.notes,
+      };
+    });
 
-        sessionsWithCoach.push({
-          id: payment.id,
-          member_name: payment.members?.full_name || "Unknown",
-          phone_number: payment.members?.phone_number || "",
-          subscription_plan: service?.subscription_plan || payment.subscription_plan || "N/A",
-          amount: Number(payment.amount),
-          payment_method: payment.payment_method,
-          created_at: payment.created_at,
-          start_date: service?.start_date || "",
-          expiry_date: service?.expiry_date || "",
-          member_notes: payment.members?.notes,
-          service_notes: service?.notes,
-        });
-    }
-
-    // Group sessions by normalized coach name
+    // Group sessions by coach name
     const coachGroups: Record<string, CoachSummary> = {};
 
     for (const session of sessionsWithCoach) {
-      // Find the coach name from member_services
-      const { data: service } = await supabase
-        .from("member_services")
-        .select("coach_name")
-        .eq("member_id", session.id)
-        .eq("zone", "pt")
-        .maybeSingle();
+      // Get coach name directly from the already-fetched data
+      const payment = ptPayments.find(p => p.id === session.id);
+      const service = Array.isArray(payment?.member_services) 
+        ? payment?.member_services[0] 
+        : payment?.member_services;
+      
+      const coachName = service?.coach_name || "Unassigned";
 
-      const rawCoachName = service?.coach_name || "Unassigned";
-      const normalizedCoach = normalizeCoachName(rawCoachName);
-
-      if (!coachGroups[normalizedCoach]) {
-        coachGroups[normalizedCoach] = {
-          coachName: normalizedCoach,
+      if (!coachGroups[coachName]) {
+        coachGroups[coachName] = {
+          coachName,
           totalAmount: 0,
           sessionCount: 0,
           sessions: [],
         };
       }
 
-      coachGroups[normalizedCoach].totalAmount += session.amount;
-      coachGroups[normalizedCoach].sessionCount += 1;
-      coachGroups[normalizedCoach].sessions.push(session);
+      coachGroups[coachName].totalAmount += session.amount;
+      coachGroups[coachName].sessionCount += 1;
+      coachGroups[coachName].sessions.push(session);
     }
 
     // Convert to array and sort by total amount (descending)
