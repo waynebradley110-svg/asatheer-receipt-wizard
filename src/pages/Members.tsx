@@ -16,39 +16,6 @@ import { DigitalMemberCard } from "@/components/DigitalMemberCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 
-// Coach Select Component
-const CoachSelect = ({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) => {
-  const [coaches, setCoaches] = useState<Array<{ id: string; name: string }>>([]);
-
-  useEffect(() => {
-    const fetchCoaches = async () => {
-      const { data } = await supabase
-        .from("coaches")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("name");
-      
-      if (data) setCoaches(data);
-    };
-    fetchCoaches();
-  }, []);
-
-  return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select a coach" />
-      </SelectTrigger>
-      <SelectContent>
-        {coaches.map((coach) => (
-          <SelectItem key={coach.id} value={coach.name}>
-            {coach.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-};
-
 interface PaymentEntry {
   payment_method: string;
   amount: string;
@@ -617,9 +584,11 @@ const Members = () => {
               {formData.zone === 'pt' && (
                 <div className="space-y-2">
                   <Label htmlFor="coach_name">Coach Name</Label>
-                  <CoachSelect
+                  <Input
+                    id="coach_name"
                     value={formData.coach_name}
-                    onValueChange={(value) => setFormData({ ...formData, coach_name: value })}
+                    onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                    placeholder="Enter coach's name"
                   />
                 </div>
               )}
@@ -1082,9 +1051,11 @@ const Members = () => {
             {formData.zone === 'pt' && (
               <div className="space-y-2">
                 <Label htmlFor="renew_coach_name">Coach Name</Label>
-                <CoachSelect
+                <Input
+                  id="renew_coach_name"
                   value={formData.coach_name}
-                  onValueChange={(value) => setFormData({ ...formData, coach_name: value })}
+                  onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                  placeholder="Enter coach's name"
                 />
               </div>
             )}
