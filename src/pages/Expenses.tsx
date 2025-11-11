@@ -9,14 +9,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Download, DollarSign } from "lucide-react";
+import { Plus, Download, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import * as XLSX from 'xlsx';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
   const [stats, setStats] = useState({
     totalBusiness: 0,
     totalOwner: 0,
@@ -64,26 +68,76 @@ const Expenses = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("expenses")
-        .insert([{
-          category: formData.category as 'business' | 'owner',
-          description: formData.description,
-          amount: parseFloat(formData.amount),
-          expense_date: formData.expense_date,
-          notes: formData.notes || null,
-        }]);
+      if (editingExpense) {
+        // Update existing expense
+        const { error } = await supabase
+          .from("expenses")
+          .update({
+            category: formData.category as 'business' | 'owner',
+            description: formData.description,
+            amount: parseFloat(formData.amount),
+            expense_date: formData.expense_date,
+            notes: formData.notes || null,
+          })
+          .eq("id", editingExpense.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Expense updated successfully!");
+      } else {
+        // Insert new expense
+        const { error } = await supabase
+          .from("expenses")
+          .insert([{
+            category: formData.category as 'business' | 'owner',
+            description: formData.description,
+            amount: parseFloat(formData.amount),
+            expense_date: formData.expense_date,
+            notes: formData.notes || null,
+          }]);
 
-      toast.success("Expense added successfully!");
+        if (error) throw error;
+        toast.success("Expense added successfully!");
+      }
+
       setDialogOpen(false);
       resetForm();
       fetchExpenses();
     } catch (error: any) {
-      toast.error(error.message || "Error adding expense");
+      toast.error(error.message || (editingExpense ? "Error updating expense" : "Error adding expense"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (expense: any) => {
+    setFormData({
+      category: expense.category,
+      description: expense.description,
+      amount: expense.amount.toString(),
+      expense_date: expense.expense_date,
+      notes: expense.notes || "",
+    });
+    setEditingExpense(expense);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!expenseToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", expenseToDelete.id);
+
+      if (error) throw error;
+
+      toast.success("Expense deleted successfully!");
+      setDeleteDialogOpen(false);
+      setExpenseToDelete(null);
+      fetchExpenses();
+    } catch (error: any) {
+      toast.error(error.message || "Error deleting expense");
     }
   };
 
@@ -95,6 +149,7 @@ const Expenses = () => {
       expense_date: new Date().toISOString().split('T')[0],
       notes: "",
     });
+    setEditingExpense(null);
   };
 
   const exportToExcel = () => {
@@ -172,7 +227,10 @@ const Expenses = () => {
             <Download className="h-4 w-4 mr-2" />
             Export to Excel
           </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -181,7 +239,7 @@ const Expenses = () => {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Add New Expense</DialogTitle>
+                <DialogTitle>{editingExpense ? "Edit Expense" : "Add New Expense"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -248,7 +306,7 @@ const Expenses = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Adding..." : "Add Expense"}
+                  {loading ? (editingExpense ? "Updating..." : "Adding...") : (editingExpense ? "Update Expense" : "Add Expense")}
                 </Button>
               </form>
             </DialogContent>
@@ -301,6 +359,7 @@ const Expenses = () => {
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Notes</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -319,6 +378,28 @@ const Expenses = () => {
                     <TableCell className="text-sm text-muted-foreground">
                       {expense.notes || '-'}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(expense)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setExpenseToDelete(expense);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -326,6 +407,27 @@ const Expenses = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this expense: "{expenseToDelete?.description}"?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
