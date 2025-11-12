@@ -15,6 +15,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { DigitalMemberCard } from "@/components/DigitalMemberCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
 
 interface PaymentEntry {
   payment_method: string;
@@ -37,6 +38,7 @@ const Members = () => {
     zone: "",
     notes: "",
     coach_name: "",
+    payment_date: format(new Date(), "yyyy-MM-dd"),
   });
   const [renewDialogOpen, setRenewDialogOpen] = useState(false);
   const [renewingMember, setRenewingMember] = useState<any>(null);
@@ -155,7 +157,7 @@ const Members = () => {
         memberDbId = newMember.id;
       }
 
-      const startDate = new Date();
+      const startDate = new Date(formData.payment_date);
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
 
@@ -182,6 +184,7 @@ const Members = () => {
         subscription_plan: formData.subscription_plan as any,
         zone: formData.zone as any,
         transaction_id: transactionId,
+        created_at: new Date(formData.payment_date).toISOString(),
       }));
 
       const { error: paymentError } = await supabase
@@ -235,6 +238,7 @@ const Members = () => {
       zone: "",
       notes: "",
       coach_name: "",
+      payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setPaymentEntries([{ payment_method: "", amount: "" }]);
   };
@@ -344,6 +348,7 @@ const Members = () => {
       zone: "",
       notes: member.notes || "",
       coach_name: "",
+      payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setEditDialogOpen(true);
   };
@@ -386,6 +391,7 @@ const Members = () => {
       phone_number: member.phone_number,
       subscription_plan: "",
       zone: "",
+      payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setRenewDialogOpen(true);
   };
@@ -403,7 +409,7 @@ const Members = () => {
       }
 
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-      const startDate = new Date();
+      const startDate = new Date(formData.payment_date);
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
 
@@ -430,6 +436,7 @@ const Members = () => {
         subscription_plan: formData.subscription_plan as any,
         zone: formData.zone as any,
         transaction_id: transactionId,
+        created_at: new Date(formData.payment_date).toISOString(),
       }));
 
       const { error: paymentError } = await supabase
@@ -534,6 +541,21 @@ const Members = () => {
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment_date">Payment Date *</Label>
+                <Input
+                  id="payment_date"
+                  type="date"
+                  value={formData.payment_date}
+                  onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                  max={format(new Date(), "yyyy-MM-dd")}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Select the actual date the payment was made
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1059,6 +1081,21 @@ const Members = () => {
                 />
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="renew_payment_date">Payment Date *</Label>
+              <Input
+                id="renew_payment_date"
+                type="date"
+                value={formData.payment_date}
+                onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                max={format(new Date(), "yyyy-MM-dd")}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Select the actual date the payment was made
+              </p>
+            </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
