@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, TrendingUp, TrendingDown, Receipt } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const AccountsDashboard = () => {
   const [stats, setStats] = useState({
@@ -58,75 +59,177 @@ const AccountsDashboard = () => {
       title: "Total Revenue",
       value: `AED ${stats.totalRevenue.toFixed(2)}`,
       icon: DollarSign,
-      color: "text-green-600",
+      colorScheme: "energy",
+      description: "All-time earnings",
     },
     {
       title: "Today's Revenue",
       value: `AED ${stats.todayRevenue.toFixed(2)}`,
       icon: TrendingUp,
-      color: "text-blue-600",
+      colorScheme: "performance",
+      description: "Today's earnings",
     },
     {
       title: "Total Expenses",
       value: `AED ${stats.totalExpenses.toFixed(2)}`,
       icon: TrendingDown,
-      color: "text-red-600",
+      colorScheme: "negative",
+      description: "All-time costs",
     },
     {
       title: "Net Income",
       value: `AED ${stats.netIncome.toFixed(2)}`,
       icon: Receipt,
-      color: "text-purple-600",
+      colorScheme: stats.netIncome >= 0 ? "energy" : "negative",
+      description: "Revenue - Expenses",
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Accounts Dashboard</h1>
-        <p className="text-muted-foreground">Financial overview and reporting</p>
+    <div className="space-y-6 dashboard-section">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-8 border border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/20">
+              <DollarSign className="h-8 w-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Financial Hub
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Revenue tracking and financial reporting
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Net Income</p>
+            <p className={cn(
+              "text-3xl font-bold",
+              stats.netIncome >= 0 ? "text-accent" : "text-destructive"
+            )}>
+              AED {stats.netIncome.toFixed(2)}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.title}>
+          <Card 
+            key={stat.title}
+            className={cn(
+              "stat-card-hover relative overflow-hidden",
+              "border-l-4",
+              stat.colorScheme === "energy" && "border-l-accent glow-green",
+              stat.colorScheme === "performance" && "border-l-primary glow-blue",
+              stat.colorScheme === "negative" && "border-l-destructive"
+            )}
+          >
+            <div 
+              className={cn(
+                "absolute top-0 right-0 w-32 h-32 opacity-5 blur-2xl rounded-full",
+                stat.colorScheme === "energy" && "bg-accent",
+                stat.colorScheme === "performance" && "bg-primary",
+                stat.colorScheme === "negative" && "bg-destructive"
+              )}
+            />
+            
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <div 
+                className={cn(
+                  "p-2 rounded-lg",
+                  stat.colorScheme === "energy" && "bg-accent/10 text-accent",
+                  stat.colorScheme === "performance" && "bg-primary/10 text-primary",
+                  stat.colorScheme === "negative" && "bg-destructive/10 text-destructive"
+                )}
+              >
+                <stat.icon className="h-5 w-5" />
+              </div>
             </CardHeader>
+            
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="stat-number text-3xl font-bold mb-1">
+                {stat.value}
+              </div>
+              {stat.description && (
+                <p className="text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Cash Payments</CardTitle>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="stat-card-hover border-l-4 border-l-accent glow-green relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 blur-2xl rounded-full" />
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base text-muted-foreground font-medium">
+                Cash Payments
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Physical currency transactions
+              </p>
+            </div>
+            <div className="p-3 rounded-full bg-accent/10">
+              <DollarSign className="h-6 w-6 text-accent" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">
+            <div className="stat-number text-4xl font-bold text-accent mb-2">
               AED {stats.totalCash.toFixed(2)}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {((stats.totalCash / stats.totalRevenue) * 100 || 0).toFixed(1)}% of total revenue
-            </p>
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <p className="text-sm text-muted-foreground">
+                {((stats.totalCash / stats.totalRevenue) * 100 || 0).toFixed(1)}% of revenue
+              </p>
+              <div className="h-2 w-24 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-accent rounded-full transition-all duration-500"
+                  style={{ width: `${((stats.totalCash / stats.totalRevenue) * 100 || 0)}%` }}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Card Payments</CardTitle>
+        <Card className="stat-card-hover border-l-4 border-l-primary glow-blue relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-2xl rounded-full" />
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base text-muted-foreground font-medium">
+                Card Payments
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Digital payment transactions
+              </p>
+            </div>
+            <div className="p-3 rounded-full bg-primary/10">
+              <CreditCard className="h-6 w-6 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="stat-number text-4xl font-bold text-primary mb-2">
               AED {stats.totalCard.toFixed(2)}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {((stats.totalCard / stats.totalRevenue) * 100 || 0).toFixed(1)}% of total revenue
-            </p>
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <p className="text-sm text-muted-foreground">
+                {((stats.totalCard / stats.totalRevenue) * 100 || 0).toFixed(1)}% of revenue
+              </p>
+              <div className="h-2 w-24 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-500"
+                  style={{ width: `${((stats.totalCard / stats.totalRevenue) * 100 || 0)}%` }}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
