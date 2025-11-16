@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppButton } from "./WhatsAppButton";
-import { Calendar, AlertCircle } from "lucide-react";
+import { Calendar, AlertCircle, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ExpiringMember {
   id: string;
@@ -114,12 +115,17 @@ export const ExpiryReminders = () => {
   }
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-[hsl(var(--power))]/30 stat-card-hover">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-orange-500" />
-          Membership Expiry Reminders
-          <Badge variant="secondary">{expiringMembers.length}</Badge>
+          <div className="p-2 rounded-lg bg-[hsl(var(--power))]/10">
+            <AlertCircle className="h-5 w-5 text-[hsl(var(--power))]" />
+          </div>
+          <span>Membership Expiry Reminders</span>
+          <Badge variant="secondary" className="bg-[hsl(var(--power))]/10 text-[hsl(var(--power))] border-[hsl(var(--power))]/20">
+            <Clock className="h-3 w-3 mr-1" />
+            {expiringMembers.length}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -127,12 +133,20 @@ export const ExpiryReminders = () => {
           {expiringMembers.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+              className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/10 transition-colors stat-card-hover"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{member.full_name}</p>
-                  <Badge variant={getUrgencyColor(member.days_until_expiry)}>
+                  <Badge variant={getUrgencyColor(member.days_until_expiry)}
+                    className={cn(
+                      "flex items-center gap-1",
+                      member.days_until_expiry <= 7 && "bg-destructive/90 text-white",
+                      member.days_until_expiry > 7 && member.days_until_expiry <= 14 && "bg-[hsl(var(--power))]/90 text-white",
+                      member.days_until_expiry > 14 && "bg-accent/90 text-white"
+                    )}
+                  >
+                    <Clock className="h-3 w-3" />
                     {member.days_until_expiry} day{member.days_until_expiry > 1 ? 's' : ''}
                   </Badge>
                 </div>

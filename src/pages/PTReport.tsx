@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Printer, Users, TrendingUp } from "lucide-react";
+import { DollarSign, Printer, Users, TrendingUp, CalendarIcon, Activity, UserCheck } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PrintablePTReport } from "@/components/PrintablePTReport";
+import { Badge } from "@/components/ui/badge";
 
 interface PTSession {
   id: string;
@@ -164,10 +165,21 @@ const PTReport = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="no-print">
-        <h1 className="text-3xl font-bold">PT Coach Commission Report</h1>
-        <p className="text-muted-foreground">Track individual PT sessions and coach commissions</p>
+    <div className="space-y-6 dashboard-section">
+      <div className="no-print relative overflow-hidden rounded-xl bg-gradient-to-r from-accent/10 via-primary/5 to-transparent p-8 border border-border/50">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/20">
+            <UserCheck className="h-8 w-8 text-accent" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              PT Coach Commission Report
+            </h1>
+            <p className="text-muted-foreground text-lg mt-1">
+              Track individual PT sessions and coach commissions
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="no-print space-y-4">
@@ -211,37 +223,43 @@ const PTReport = () => {
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
+          <Card className="border-l-4 border-l-primary/30 stat-card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total PT Revenue</CardTitle>
-              <DollarSign className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-3xl font-bold text-primary stat-number">
                 AED {stats.totalRevenue.toFixed(2)}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-accent/30 stat-card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Number of Coaches</CardTitle>
-              <Users className="h-5 w-5 text-accent" />
+              <div className="p-2 rounded-lg bg-accent/10">
+                <Users className="h-5 w-5 text-accent" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-accent">
+              <div className="text-3xl font-bold text-accent stat-number">
                 {stats.totalCoaches}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-[hsl(var(--wellness))]/30 stat-card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-2 rounded-lg bg-[hsl(var(--wellness))]/10">
+                <Activity className="h-5 w-5 text-[hsl(var(--wellness))]" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-3xl font-bold text-[hsl(var(--wellness))] stat-number">
                 {stats.totalSessions}
               </div>
             </CardContent>

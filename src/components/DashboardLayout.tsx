@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function DashboardLayout() {
   const navigate = useNavigate();
@@ -41,8 +42,9 @@ export function DashboardLayout() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 border-b flex items-center px-4 sticky top-0 bg-background z-10">
+          <header className="h-14 border-b flex items-center justify-between px-4 sticky top-0 bg-background z-10">
             <SidebarTrigger />
+            <ThemeToggle />
           </header>
           <main className="flex-1 p-6 overflow-auto">
             <Outlet />
