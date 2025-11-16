@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Clock, CalendarCheck } from "lucide-react";
+import { Users, UserCheck, Clock, CalendarCheck, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ExpiryReminders } from "@/components/ExpiryReminders";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CafeSales } from "@/components/CafeSales";
@@ -61,33 +63,60 @@ const ReceptionistDashboard = () => {
       title: "Total Members",
       value: stats.totalMembers,
       icon: Users,
-      color: "text-blue-600",
+      colorScheme: "performance",
+      description: "All registered members",
     },
     {
       title: "Active Members",
       value: stats.activeMembers,
       icon: UserCheck,
-      color: "text-green-600",
+      colorScheme: "energy",
+      description: "Currently active",
+      trend: stats.totalMembers > 0 
+        ? `${((stats.activeMembers / stats.totalMembers) * 100).toFixed(0)}% active`
+        : null,
     },
     {
       title: "Today's Attendance",
       value: stats.todayAttendance,
       icon: Clock,
-      color: "text-purple-600",
+      colorScheme: "wellness",
+      description: "Check-ins today",
     },
     {
       title: "Expiring This Week",
       value: stats.expiringThisWeek,
       icon: CalendarCheck,
-      color: "text-orange-600",
+      colorScheme: "power",
+      description: "Needs renewal",
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Receptionist Dashboard</h1>
-        <p className="text-muted-foreground">Member management and attendance tracking</p>
+    <div className="space-y-6 dashboard-section">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-accent/10 via-primary/5 to-transparent p-8 border border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/20">
+              <Users className="h-8 w-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Reception Hub
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Member services and attendance tracking
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button size="lg" className="bg-accent hover:bg-accent/90">
+              <UserCheck className="mr-2 h-5 w-5" />
+              Quick Check-in
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -99,16 +128,62 @@ const ReceptionistDashboard = () => {
         </TabsList>
 
         {activeTab === "overview" && (
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {statCards.map((stat) => (
-                <Card key={stat.title}>
+                <Card 
+                  key={stat.title}
+                  className={cn(
+                    "stat-card-hover relative overflow-hidden",
+                    "border-l-4",
+                    stat.colorScheme === "energy" && "border-l-accent glow-green",
+                    stat.colorScheme === "performance" && "border-l-primary glow-blue",
+                    stat.colorScheme === "wellness" && "border-l-[hsl(var(--wellness))]",
+                    stat.colorScheme === "power" && "border-l-[hsl(var(--power))] glow-orange"
+                  )}
+                >
+                  <div 
+                    className={cn(
+                      "absolute top-0 right-0 w-32 h-32 opacity-5 blur-2xl rounded-full",
+                      stat.colorScheme === "energy" && "bg-accent",
+                      stat.colorScheme === "performance" && "bg-primary",
+                      stat.colorScheme === "wellness" && "bg-[hsl(var(--wellness))]",
+                      stat.colorScheme === "power" && "bg-[hsl(var(--power))]"
+                    )}
+                  />
+                  
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </CardTitle>
+                    <div 
+                      className={cn(
+                        "p-2 rounded-lg",
+                        stat.colorScheme === "energy" && "bg-accent/10 text-accent",
+                        stat.colorScheme === "performance" && "bg-primary/10 text-primary",
+                        stat.colorScheme === "wellness" && "bg-[hsl(var(--wellness))]/10 text-[hsl(var(--wellness))]",
+                        stat.colorScheme === "power" && "bg-[hsl(var(--power))]/10 text-[hsl(var(--power))]"
+                      )}
+                    >
+                      <stat.icon className="h-5 w-5" />
+                    </div>
                   </CardHeader>
+                  
                   <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="stat-number text-3xl font-bold mb-1">
+                      {stat.value}
+                    </div>
+                    {stat.description && (
+                      <p className="text-xs text-muted-foreground">
+                        {stat.description}
+                      </p>
+                    )}
+                    {stat.trend && (
+                      <p className="text-xs font-medium text-accent mt-1 flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" />
+                        {stat.trend}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               ))}

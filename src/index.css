@@ -50,6 +50,44 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    /* Gym Hub Theme Colors */
+    --gym-energy: 142 76% 45%;
+    --gym-energy-light: 142 76% 97%;
+    --gym-energy-foreground: 0 0% 100%;
+
+    --wellness: 280 65% 55%;
+    --wellness-light: 280 40% 95%;
+    --wellness-foreground: 0 0% 100%;
+
+    --power: 25 95% 53%;
+    --power-light: 25 95% 97%;
+    --power-foreground: 0 0% 100%;
+
+    --performance: 217 91% 55%;
+    --performance-light: 217 91% 97%;
+    --performance-foreground: 0 0% 100%;
+
+    --alert-positive: 142 76% 45%;
+    --alert-warning: 25 95% 53%;
+    --alert-negative: 0 84% 60%;
+    --alert-info: 217 91% 55%;
+
+    /* Gradient Backgrounds */
+    --gradient-energy: linear-gradient(135deg, hsl(var(--gym-energy)) 0%, hsl(var(--gym-energy) / 0.8) 100%);
+    --gradient-wellness: linear-gradient(135deg, hsl(var(--wellness)) 0%, hsl(var(--wellness) / 0.8) 100%);
+    --gradient-power: linear-gradient(135deg, hsl(var(--power)) 0%, hsl(var(--power) / 0.8) 100%);
+    --gradient-performance: linear-gradient(135deg, hsl(var(--performance)) 0%, hsl(var(--performance) / 0.8) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%);
+
+    /* Depth Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-card: 0 2px 8px -2px rgb(0 0 0 / 0.1), 0 4px 12px -4px rgb(0 0 0 / 0.05);
+    --shadow-hover: 0 8px 16px -4px rgb(0 0 0 / 0.15), 0 4px 8px -2px rgb(0 0 0 / 0.08);
+    --shadow-glow-green: 0 0 20px -4px hsl(var(--gym-energy) / 0.3);
+    --shadow-glow-blue: 0 0 20px -4px hsl(var(--performance) / 0.3);
+    --shadow-glow-orange: 0 0 20px -4px hsl(var(--power) / 0.3);
+
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 217 91% 55%;
@@ -196,4 +234,66 @@ All colors MUST be HSL.
   .print-only {
     display: none;
   }
+}
+
+/* Gym Hub Animations */
+@keyframes stat-count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utility Classes */
+.stat-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.glow-green:hover {
+  box-shadow: var(--shadow-glow-green);
+}
+
+.glow-blue:hover {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.glow-orange:hover {
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.stat-number {
+  animation: stat-count-up 0.5s ease-out;
+}
+
+.dashboard-section {
+  animation: slide-in-up 0.6s ease-out;
 }
