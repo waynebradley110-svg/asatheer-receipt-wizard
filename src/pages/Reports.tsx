@@ -162,6 +162,14 @@ const Reports = () => {
 
     setStats({ totalCash, totalCard, totalOnline });
 
+    // Helper function to normalize zone names (map legacy 'football' to 'football_student')
+    const normalizeZone = (zone: string): string => {
+      const lowerZone = zone.toLowerCase();
+      // Map 'football' to 'football_student' to avoid duplicates
+      if (lowerZone === 'football') return 'football_student';
+      return lowerZone;
+    };
+
     // Group membership payments by zone with display names
     const zoneGroups: Record<string, ZoneSummary> = {};
     
@@ -182,7 +190,7 @@ const Reports = () => {
     // Add actual payment data to zones
     for (const payment of payments || []) {
       const zone = payment.zone || 'gym';
-      const zoneLower = zone.toLowerCase();
+      const zoneLower = normalizeZone(zone);
       
       if (!zoneGroups[zoneLower]) {
         zoneGroups[zoneLower] = {
