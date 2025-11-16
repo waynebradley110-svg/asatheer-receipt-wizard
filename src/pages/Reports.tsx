@@ -41,18 +41,19 @@ const Reports = () => {
     const zoneNames: Record<string, string> = {
       'gym': 'Gym',
       'crossfit': 'CrossFit',
+      'football': 'Football Academy',
       'football_student': 'Football Academy',
+      'football_court': 'Football Court',
       'ladies_gym': 'Ladies Gym',
       'pt': 'Personal Training',
       'cafe': 'Cafe',
-      'football': 'Football Court',
       'massage': 'Massage Services'
     };
     return zoneNames[zone.toLowerCase()] || zone;
   };
 
   // Zone ordering for consistent display
-  const zoneOrder = ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt', 'cafe', 'football', 'massage'];
+  const zoneOrder = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage'];
 
   useEffect(() => {
     fetchReports();
@@ -150,7 +151,7 @@ const Reports = () => {
     const zoneGroups: Record<string, ZoneSummary> = {};
     
     // Initialize ALL zones with zero values (membership + non-membership)
-    const allZones = ['gym', 'crossfit', 'football_student', 'ladies_gym', 'pt', 'cafe', 'football', 'massage'];
+    const allZones = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage'];
     allZones.forEach(zone => {
       zoneGroups[zone] = {
         zone: getZoneDisplayName(zone),
@@ -215,19 +216,19 @@ const Reports = () => {
       notes: sale.notes,
     }));
 
-    // Update football zone data with actual sales
-    zoneGroups['football'].revenue = footballCash + footballCard;
-    zoneGroups['football'].cash = footballCash;
-    zoneGroups['football'].card = footballCard;
-    zoneGroups['football'].salesCount = footballSales?.length || 0;
-    zoneGroups['football'].transactions = (footballSales || []).map(sale => ({
+    // Update football_court zone data with actual sales (ADD to existing payment_receipts data)
+    zoneGroups['football_court'].revenue += footballCash + footballCard;
+    zoneGroups['football_court'].cash += footballCash;
+    zoneGroups['football_court'].card += footballCard;
+    zoneGroups['football_court'].salesCount += footballSales?.length || 0;
+    zoneGroups['football_court'].transactions.push(...(footballSales || []).map(sale => ({
       id: sale.id,
       member_id: sale.id,
       amount: sale.total_amount,
       payment_method: Number(sale.cash_amount) > 0 && Number(sale.card_amount) > 0 
         ? 'mixed' 
         : Number(sale.cash_amount) > 0 ? 'cash' : 'card',
-      zone: 'football',
+      zone: 'football_court',
       subscription_plan: sale.description,
       created_at: sale.sale_date,
       cashier_name: sale.cashier_name,
@@ -235,7 +236,7 @@ const Reports = () => {
       cash_amount: Number(sale.cash_amount || 0),
       card_amount: Number(sale.card_amount || 0),
       notes: sale.notes,
-    }));
+    })));
 
     // Update massage zone data with actual sales
     zoneGroups['massage'].revenue = massageCash + massageCard;
