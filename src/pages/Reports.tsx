@@ -47,13 +47,14 @@ const Reports = () => {
       'ladies_gym': 'Ladies Gym',
       'pt': 'Personal Training',
       'cafe': 'Cafe',
-      'massage': 'Massage Services'
+      'massage': 'Massage Services',
+      'events': 'Custom Events'
     };
     return zoneNames[zone.toLowerCase()] || zone;
   };
 
   // Zone ordering for consistent display
-  const zoneOrder = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage'];
+  const zoneOrder = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
 
   useEffect(() => {
     fetchReports();
@@ -120,6 +121,13 @@ const Reports = () => {
       .gte("sale_date", startDateStr)
       .lte("sale_date", endDateStr);
 
+    // Fetch event registrations using event_date comparison
+    const { data: eventRegistrations } = await supabase
+      .from("event_registrations")
+      .select("*")
+      .gte("event_date", startDateStr)
+      .lte("event_date", endDateStr);
+
     // Calculate totals from membership payments
     let totalCash = payments?.filter(p => p.payment_method === 'cash')
       .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
@@ -142,8 +150,16 @@ const Reports = () => {
     const massageCash = massageSales?.reduce((sum, s) => sum + Number(s.cash_amount || 0), 0) || 0;
     const massageCard = massageSales?.reduce((sum, s) => sum + Number(s.card_amount || 0), 0) || 0;
 
-    totalCash += cafeCash + footballCash + massageCash;
-    totalCard += cafeCard + footballCard + massageCard;
+    // Add event registration sales to totals
+    const eventCash = eventRegistrations?.filter(e => e.payment_method === 'cash')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
+    const eventCard = eventRegistrations?.filter(e => e.payment_method === 'card')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
+    const eventOnline = eventRegistrations?.filter(e => e.payment_method === 'online')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
+
+    totalCash += cafeCash + footballCash + massageCash + eventCash;
+    totalCard += cafeCard + footballCard + massageCard + eventCard;
 
     setStats({ totalCash, totalCard, totalOnline });
 
@@ -151,7 +167,7 @@ const Reports = () => {
     const zoneGroups: Record<string, ZoneSummary> = {};
     
     // Initialize ALL zones with zero values (membership + non-membership)
-    const allZones = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage'];
+    const allZones = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
     allZones.forEach(zone => {
       zoneGroups[zone] = {
         zone: getZoneDisplayName(zone),
@@ -258,6 +274,27 @@ const Reports = () => {
       cash_amount: Number(sale.cash_amount || 0),
       card_amount: Number(sale.card_amount || 0),
       notes: sale.notes,
+    }));
+
+    // Update events zone data with actual event registrations
+    zoneGroups['events'].revenue = eventCash + eventCard + eventOnline;
+    zoneGroups['events'].cash = eventCash;
+    zoneGroups['events'].card = eventCard;
+    zoneGroups['events'].online = eventOnline;
+    zoneGroups['events'].salesCount = eventRegistrations?.length || 0;
+    zoneGroups['events'].transactions = (eventRegistrations || []).map(event => ({
+      id: event.id,
+      member_id: event.member_id,
+      amount: event.amount,
+      payment_method: event.payment_method,
+      zone: 'events',
+      subscription_plan: event.event_name,
+      created_at: event.event_date,
+      cashier_name: event.created_by,
+      member_name: event.participant_name,
+      cash_amount: event.payment_method === 'cash' ? Number(event.amount || 0) : 0,
+      card_amount: event.payment_method === 'card' ? Number(event.amount || 0) : 0,
+      notes: event.notes,
     }));
 
     // Sort zones by predefined order
