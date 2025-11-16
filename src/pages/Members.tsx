@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter } from "lucide-react";
+import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter, UserCheck, UserX, TrendingUp, Dumbbell, Heart, Trophy, Activity } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { DigitalMemberCard } from "@/components/DigitalMemberCard";
@@ -325,6 +326,64 @@ const Members = () => {
     }
   };
 
+  const statCardsData = [
+    {
+      title: "Total Members",
+      value: stats.total,
+      active: stats.active,
+      expired: stats.expired,
+      icon: Users,
+      colorScheme: "performance" as const,
+      description: "All registered members",
+      trend: stats.total > 0 ? `${((stats.active / stats.total) * 100).toFixed(0)}% active` : null,
+    },
+    {
+      title: "Gym",
+      value: stats.byZone.gym.total,
+      active: stats.byZone.gym.active,
+      expired: stats.byZone.gym.expired,
+      icon: Dumbbell,
+      colorScheme: "energy" as const,
+      description: "Main gym zone",
+    },
+    {
+      title: "Ladies Gym",
+      value: stats.byZone.ladies_gym.total,
+      active: stats.byZone.ladies_gym.active,
+      expired: stats.byZone.ladies_gym.expired,
+      icon: Heart,
+      colorScheme: "wellness" as const,
+      description: "Ladies only zone",
+    },
+    {
+      title: "CrossFit",
+      value: stats.byZone.crossfit.total,
+      active: stats.byZone.crossfit.active,
+      expired: stats.byZone.crossfit.expired,
+      icon: Activity,
+      colorScheme: "power" as const,
+      description: "High intensity training",
+    },
+    {
+      title: "Football Academy",
+      value: stats.byZone.football_student.total,
+      active: stats.byZone.football_student.active,
+      expired: stats.byZone.football_student.expired,
+      icon: Trophy,
+      colorScheme: "performance" as const,
+      description: "Student football zone",
+    },
+    {
+      title: "Personal Training",
+      value: stats.byZone.pt.total,
+      active: stats.byZone.pt.active,
+      expired: stats.byZone.pt.expired,
+      icon: UserCheck,
+      colorScheme: "energy" as const,
+      description: "One-on-one coaching",
+    },
+  ];
+
   const getWelcomeMessage = (member: any) => {
     const activeService = member.member_services?.find((s: any) => 
       new Date(s.expiry_date) >= new Date() && s.is_active
@@ -476,320 +535,375 @@ const Members = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Members</h1>
-          <p className="text-muted-foreground">Manage academy members</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Register New Member</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name *</Label>
-                  <Input
-                    id="full_name"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender *</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => setFormData({ ...formData, gender: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+    <div className="space-y-6 dashboard-section">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-8 border border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/20">
+              <Users className="h-8 w-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Manage Academy Members
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Complete member management and registration system
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden md:block">
+              <p className="text-sm text-muted-foreground">Total Active</p>
+              <p className="text-2xl font-bold text-accent">
+                {stats.active}
+              </p>
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="bg-accent hover:bg-accent/90">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Register Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Register New Member</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Keep all existing form content unchanged */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name">Full Name *</Label>
+                      <Input
+                        id="full_name"
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender *</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone_number">Phone Number *</Label>
-                  <Input
-                    id="phone_number"
-                    value={formData.phone_number}
-                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
-                  <Input
-                    id="date_of_birth"
-                    type="date"
-                    value={formData.date_of_birth}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone_number">Phone Number *</Label>
+                      <Input
+                        id="phone_number"
+                        value={formData.phone_number}
+                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="date_of_birth">Date of Birth</Label>
+                      <Input
+                        id="date_of_birth"
+                        type="date"
+                        value={formData.date_of_birth}
+                        onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="payment_date">Payment Date *</Label>
-                <Input
-                  id="payment_date"
-                  type="date"
-                  value={formData.payment_date}
-                  onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                  max={format(new Date(), "yyyy-MM-dd")}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Select the actual date the payment was made
-                </p>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_date">Payment Date *</Label>
+                    <Input
+                      id="payment_date"
+                      type="date"
+                      value={formData.payment_date}
+                      onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zone">Zone *</Label>
-                  <Select
-                    value={formData.zone}
-                    onValueChange={(value) => setFormData({ ...formData, zone: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select zone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gym">Gym</SelectItem>
-                      <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
-                      <SelectItem value="pt">PT (Personal Training)</SelectItem>
-                      <SelectItem value="crossfit">CrossFit</SelectItem>
-                      <SelectItem value="football_court">Football Court</SelectItem>
-                      <SelectItem value="football_student">Football Student Zone</SelectItem>
-                      <SelectItem value="swimming">Swimming</SelectItem>
-                      <SelectItem value="paddle_court">Paddle Court</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subscription_plan">Subscription Plan *</Label>
-                  <Select
-                    value={formData.subscription_plan}
-                    onValueChange={(value) => setFormData({ ...formData, subscription_plan: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1_day">1 Day</SelectItem>
-                      <SelectItem value="1_month">1 Month</SelectItem>
-                      <SelectItem value="2_months">2 Months</SelectItem>
-                      <SelectItem value="3_months">3 Months</SelectItem>
-                      <SelectItem value="6_months">6 Months</SelectItem>
-                      <SelectItem value="1_year">1 Year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="zone">Zone *</Label>
+                      <Select
+                        value={formData.zone}
+                        onValueChange={(value) => setFormData({ ...formData, zone: value })}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select zone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gym">Gym</SelectItem>
+                          <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
+                          <SelectItem value="pt">PT (Personal Training)</SelectItem>
+                          <SelectItem value="crossfit">CrossFit</SelectItem>
+                          <SelectItem value="football_court">Football Court</SelectItem>
+                          <SelectItem value="basketball">Basketball</SelectItem>
+                          <SelectItem value="swimming">Swimming</SelectItem>
+                          <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription_plan">Subscription Plan *</Label>
+                      <Select
+                        value={formData.subscription_plan}
+                        onValueChange={(value) => setFormData({ ...formData, subscription_plan: value })}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1_day">1 Day</SelectItem>
+                          <SelectItem value="1_month">1 Month</SelectItem>
+                          <SelectItem value="2_months">2 Months</SelectItem>
+                          <SelectItem value="3_months">3 Months</SelectItem>
+                          <SelectItem value="6_months">6 Months</SelectItem>
+                          <SelectItem value="1_year">1 Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              {formData.zone === 'pt' && (
-                <div className="space-y-2">
-                  <Label htmlFor="coach_name">Coach Name</Label>
-                  <Input
-                    id="coach_name"
-                    value={formData.coach_name}
-                    onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
-                    placeholder="Enter coach's name"
-                  />
-                </div>
-              )}
+                  {formData.zone === 'pt' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="coach_name">Coach Name</Label>
+                      <Input
+                        id="coach_name"
+                        value={formData.coach_name}
+                        onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                        placeholder="Enter coach's name"
+                      />
+                    </div>
+                  )}
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label>Payment Details *</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addPaymentEntry}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Payment
-                  </Button>
-                </div>
-
-                {paymentEntries.map((entry, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Payment {index + 1}</span>
-                      {paymentEntries.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removePaymentEntry(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                      <Label>Payment Details *</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addPaymentEntry}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Payment
+                      </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label>Payment Method</Label>
-                        <Select
-                          value={entry.payment_method}
-                          onValueChange={(value) => updatePaymentEntry(index, "payment_method", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="online">Online</SelectItem>
-                          </SelectContent>
-                        </Select>
+
+                    {paymentEntries.map((entry, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Payment {index + 1}</span>
+                          {paymentEntries.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removePaymentEntry(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Payment Method</Label>
+                            <Select
+                              value={entry.payment_method}
+                              onValueChange={(value) => updatePaymentEntry(index, "payment_method", value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select method" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cash">Cash</SelectItem>
+                                <SelectItem value="card">Card</SelectItem>
+                                <SelectItem value="online">Online</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Amount (AED)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={entry.amount}
+                              onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Amount (AED)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={entry.amount}
-                          onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
-                          placeholder="0.00"
-                        />
+                    ))}
+
+                    <div className="bg-muted p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total Payment:</span>
+                        <span className="text-lg font-bold">{getTotalPayment().toFixed(2)} AED</span>
                       </div>
                     </div>
                   </div>
-                ))}
 
-                <div className="bg-muted p-3 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total Payment:</span>
-                    <span className="text-lg font-bold">{getTotalPayment().toFixed(2)} AED</span>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      rows={3}
+                    />
                   </div>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Registering..." : "Register Member"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Registering..." : "Register Member"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </div>
 
       {/* Statistics Section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Total Members
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Gym</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.byZone.gym.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.byZone.gym.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.byZone.gym.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Ladies Gym</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.byZone.ladies_gym.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.byZone.ladies_gym.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.byZone.ladies_gym.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">CrossFit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.byZone.crossfit.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.byZone.crossfit.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.byZone.crossfit.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Football Academy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.byZone.football_student.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.byZone.football_student.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.byZone.football_student.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Personal Training</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.byZone.pt.total}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              <span className="text-green-600 font-medium">Active: {stats.byZone.pt.active}</span>
-              <span className="text-red-600 font-medium">Expired: {stats.byZone.pt.expired}</span>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold">Membership Overview</h2>
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {statCardsData.map((stat) => (
+            <Card 
+              key={stat.title}
+              className={cn(
+                "stat-card-hover relative overflow-hidden",
+                "border-l-4",
+                stat.colorScheme === "energy" && "border-l-accent glow-green",
+                stat.colorScheme === "performance" && "border-l-primary glow-blue",
+                stat.colorScheme === "wellness" && "border-l-[hsl(var(--wellness))]",
+                stat.colorScheme === "power" && "border-l-[hsl(var(--power))] glow-orange"
+              )}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className={cn(
+                  "absolute top-0 right-0 w-32 h-32 opacity-5 blur-2xl rounded-full",
+                  stat.colorScheme === "energy" && "bg-accent",
+                  stat.colorScheme === "performance" && "bg-primary",
+                  stat.colorScheme === "wellness" && "bg-[hsl(var(--wellness))]",
+                  stat.colorScheme === "power" && "bg-[hsl(var(--power))]"
+                )}
+              />
+              
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <div 
+                  className={cn(
+                    "p-2 rounded-lg",
+                    stat.colorScheme === "energy" && "bg-accent/10 text-accent",
+                    stat.colorScheme === "performance" && "bg-primary/10 text-primary",
+                    stat.colorScheme === "wellness" && "bg-[hsl(var(--wellness))]/10 text-[hsl(var(--wellness))]",
+                    stat.colorScheme === "power" && "bg-[hsl(var(--power))]/10 text-[hsl(var(--power))]"
+                  )}
+                >
+                  <stat.icon className="h-5 w-5" />
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="stat-number text-3xl font-bold mb-2">
+                  {stat.value}
+                </div>
+                
+                {/* Active/Expired breakdown */}
+                <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-accent" />
+                    <span className="text-accent font-medium">Active: {stat.active}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-destructive" />
+                    <span className="text-destructive font-medium">Expired: {stat.expired}</span>
+                  </div>
+                </div>
+                
+                {stat.description && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {stat.description}
+                  </p>
+                )}
+                
+                {stat.trend && (
+                  <p className="text-xs font-medium text-accent mt-2 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    {stat.trend}
+                  </p>
+                )}
+                
+                {/* Progress bar for active percentage */}
+                {stat.value > 0 && (
+                  <div className="mt-3">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all duration-500",
+                          stat.colorScheme === "energy" && "bg-accent",
+                          stat.colorScheme === "performance" && "bg-primary",
+                          stat.colorScheme === "wellness" && "bg-[hsl(var(--wellness))]",
+                          stat.colorScheme === "power" && "bg-[hsl(var(--power))]"
+                        )}
+                        style={{ width: `${(stat.active / stat.value) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
+      {/* Add subtle separator */}
+      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
       {/* Filters Section */}
-      <Card>
+      <Card className="border-l-4 border-l-primary/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Filter className="h-5 w-5 text-primary" />
+            </div>
+            <span>Search & Filters</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
+            {/* Search Input */}
+            <div className="space-y-2 flex-1 min-w-[250px]">
+              <Label>Search Members</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or phone..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            {/* Zone Filter */}
             <div className="space-y-2 flex-1 min-w-[200px]">
               <Label>Zone</Label>
               <Select value={filterZone} onValueChange={setFilterZone}>
@@ -802,54 +916,68 @@ const Members = () => {
                   <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
                   <SelectItem value="pt">Personal Training</SelectItem>
                   <SelectItem value="crossfit">CrossFit</SelectItem>
-                  <SelectItem value="football_court">Football Court</SelectItem>
-                  <SelectItem value="football_student">Football Student Zone</SelectItem>
-                  <SelectItem value="swimming">Swimming</SelectItem>
-                  <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                  <SelectItem value="football_student">Football Academy</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Status Filter */}
             <div className="space-y-2 flex-1 min-w-[200px]">
               <Label>Status</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
+                  <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active Only</SelectItem>
-                  <SelectItem value="expired">Expired Only</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {(filterZone !== "all" || filterStatus !== "all") && (
-              <div className="flex items-end">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setFilterZone("all");
-                    setFilterStatus("all");
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            )}
           </div>
+          
+          {/* Active Filters Summary */}
+          {(filterZone !== "all" || filterStatus !== "all" || search) && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium">Active Filters:</span>
+              <div className="flex gap-2">
+                {filterZone !== "all" && (
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                    Zone: {filterZone.replace('_', ' ')}
+                  </Badge>
+                )}
+                {filterStatus !== "all" && (
+                  <Badge variant="secondary" className={cn(
+                    filterStatus === "active" ? "bg-accent/10 text-accent border-accent/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                  )}>
+                    Status: {filterStatus}
+                  </Badge>
+                )}
+                {search && (
+                  <Badge variant="secondary" className="bg-muted">
+                    Search: "{search}"
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Card>
+      {/* Members Table */}
+      <Card className="border-l-4 border-l-accent/30">
         <CardHeader>
-          <CardTitle>Members List</CardTitle>
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, ID, or phone..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm"
-            />
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <Users className="h-5 w-5 text-accent" />
+              </div>
+              <span>Members List</span>
+              <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
+                {filteredMembers.length} {filteredMembers.length === 1 ? 'member' : 'members'}
+              </Badge>
+            </CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -871,7 +999,20 @@ const Members = () => {
                   <TableCell>{member.full_name}</TableCell>
                   <TableCell>{member.phone_number}</TableCell>
                   <TableCell>
-                    <Badge variant={getMemberStatus(member) === "active" ? "default" : "destructive"}>
+                    <Badge 
+                      variant={getMemberStatus(member) === "active" ? "default" : "destructive"}
+                      className={cn(
+                        "flex items-center gap-1 w-fit",
+                        getMemberStatus(member) === "active" 
+                          ? "bg-accent/90 hover:bg-accent text-white border-accent" 
+                          : "bg-destructive/90 hover:bg-destructive"
+                      )}
+                    >
+                      {getMemberStatus(member) === "active" ? (
+                        <UserCheck className="h-3 w-3" />
+                      ) : (
+                        <UserX className="h-3 w-3" />
+                      )}
                       {getMemberStatus(member)}
                     </Badge>
                   </TableCell>
