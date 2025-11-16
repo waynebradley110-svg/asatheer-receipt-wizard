@@ -22,6 +22,7 @@ interface PTSession {
   expiry_date: string;
   member_notes?: string | null;
   service_notes?: string | null;
+  coach_name?: string;
 }
 
 interface CoachSummary {
@@ -113,6 +114,7 @@ const PTReport = () => {
           expiry_date: service?.expiry_date || "",
           member_notes: payment.members?.notes,
           service_notes: service?.notes,
+          coach_name: service?.coach_name,
         });
     }
 
@@ -120,15 +122,7 @@ const PTReport = () => {
     const coachGroups: Record<string, CoachSummary> = {};
 
     for (const session of sessionsWithCoach) {
-      // Find the coach name from member_services
-      const { data: service } = await supabase
-        .from("member_services")
-        .select("coach_name")
-        .eq("member_id", session.id)
-        .eq("zone", "pt")
-        .maybeSingle();
-
-      const rawCoachName = service?.coach_name || "Unassigned";
+      const rawCoachName = session.coach_name || "Unassigned";
       const normalizedCoach = normalizeCoachName(rawCoachName);
 
       if (!coachGroups[normalizedCoach]) {
@@ -266,6 +260,97 @@ const PTReport = () => {
           </Card>
         </div>
 
+
+      {/* Individual Coach Performance Cards */}
+      {coachSummaries.filter(coach => coach.coachName !== "Unassigned").length > 0 && (
+        <div className="no-print">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-5 w-5 text-accent" />
+            <h2 className="text-xl font-semibold">Coach Performance Overview</h2>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-3">
+            {coachSummaries
+              .filter(coach => coach.coachName !== "Unassigned")
+              .map((coach, index) => {
+                const coachColors = [
+                  { color: "accent", icon: "bg-accent/10", border: "border-l-accent", glow: "glow-green" },
+                  { color: "primary", icon: "bg-primary/10", border: "border-l-primary", glow: "glow-blue" },
+                  { color: "[hsl(var(--wellness))]", icon: "bg-[hsl(var(--wellness))]/10", border: "border-l-[hsl(var(--wellness))]", glow: "" },
+                ];
+                const style = coachColors[index % 3];
+                
+                return (
+                  <Card 
+                    key={coach.coachName}
+                    className={cn(
+                      "stat-card-hover relative overflow-hidden border-l-4",
+                      style.border,
+                      style.glow
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-0 right-0 w-32 h-32 opacity-5 blur-2xl rounded-full",
+                      `bg-${style.color}`
+                    )} />
+                    
+                    <CardHeader className="flex flex-row items-center justify-between pb-3">
+                      <div>
+                        <CardTitle className="text-lg font-semibold">
+                          🏋️ Coach {coach.coachName}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Personal Trainer
+                        </p>
+                      </div>
+                      <div className={cn("p-3 rounded-full", style.icon)}>
+                        <UserCheck className={cn("h-6 w-6", `text-${style.color}`)} />
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="mb-4">
+                        <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
+                        <div className={cn(
+                          "stat-number text-3xl font-bold",
+                          `text-${style.color}`
+                        )}>
+                          AED {coach.totalAmount.toFixed(2)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50">
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">Sessions</span>
+                        </div>
+                        <span className="text-lg font-bold">{coach.sessionCount}</span>
+                      </div>
+                      
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Avg per session:</span>
+                        <span className="font-semibold">
+                          AED {(coach.totalAmount / coach.sessionCount).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                        <Users className="h-3 w-3" />
+                        <span>{coach.sessions.length} {coach.sessions.length === 1 ? 'client' : 'clients'}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Separator */}
+      {coachSummaries.filter(coach => coach.coachName !== "Unassigned").length > 0 && (
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      )}
+
         {/* Coach Breakdown Table */}
         {coachSummaries.length > 0 ? (
           <Card>
@@ -276,15 +361,42 @@ const PTReport = () => {
               <div className="space-y-6">
                 {coachSummaries.map((coach) => (
                   <div key={coach.coachName} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold">Coach: {coach.coachName}</h3>
+                    <div className={cn(
+                      "flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-lg border-l-4 -m-4 mb-4",
+                      coach.coachName === "Unassigned" 
+                        ? "bg-muted/30 border-l-muted-foreground/30" 
+                        : "bg-accent/5 border-l-accent"
+                    )}>
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "flex items-center justify-center w-12 h-12 rounded-full",
+                          coach.coachName === "Unassigned" 
+                            ? "bg-muted" 
+                            : "bg-accent/10 border-2 border-accent/20"
+                        )}>
+                          <UserCheck className={cn(
+                            "h-6 w-6",
+                            coach.coachName === "Unassigned" ? "text-muted-foreground" : "text-accent"
+                          )} />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-semibold">
+                            {coach.coachName === "Unassigned" ? "⚠️ Unassigned Sessions" : `🏋️ Coach ${coach.coachName}`}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {coach.sessionCount} {coach.sessionCount === 1 ? 'session' : 'sessions'} • {coach.sessions.length} {coach.sessions.length === 1 ? 'client' : 'clients'}
+                          </p>
+                        </div>
+                      </div>
+                      
                       <div className="text-right">
-                        <div className="text-sm text-muted-foreground">
-                          {coach.sessionCount} sessions
-                        </div>
-                        <div className="text-xl font-bold text-primary">
+                        <p className="text-sm text-muted-foreground">Total Earnings</p>
+                        <p className={cn(
+                          "text-3xl font-bold",
+                          coach.coachName === "Unassigned" ? "text-muted-foreground" : "text-accent"
+                        )}>
                           AED {coach.totalAmount.toFixed(2)}
-                        </div>
+                        </p>
                       </div>
                     </div>
                     <div className="overflow-x-auto">
