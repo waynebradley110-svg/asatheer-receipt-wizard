@@ -41,7 +41,6 @@ const Reports = () => {
     const zoneNames: Record<string, string> = {
       'gym': 'Gym',
       'crossfit': 'CrossFit',
-      'football': 'Football Academy',
       'football_student': 'Football Academy',
       'football_court': 'Football Court',
       'ladies_gym': 'Ladies Gym',
@@ -54,7 +53,7 @@ const Reports = () => {
   };
 
   // Zone ordering for consistent display
-  const zoneOrder = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
+  const zoneOrder = ['gym', 'crossfit', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
 
   useEffect(() => {
     fetchReports();
@@ -167,7 +166,7 @@ const Reports = () => {
     const zoneGroups: Record<string, ZoneSummary> = {};
     
     // Initialize ALL zones with zero values (membership + non-membership)
-    const allZones = ['gym', 'crossfit', 'football', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
+    const allZones = ['gym', 'crossfit', 'football_student', 'football_court', 'ladies_gym', 'pt', 'cafe', 'massage', 'events'];
     allZones.forEach(zone => {
       zoneGroups[zone] = {
         zone: getZoneDisplayName(zone),
