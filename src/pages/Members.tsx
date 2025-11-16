@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter, UserCheck, UserX, TrendingUp, Dumbbell, Heart, Trophy, Activity } from "lucide-react";
+import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter, UserCheck, UserX, TrendingUp, Dumbbell, Heart, Trophy, Activity, Calendar, User, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -54,6 +54,22 @@ const Members = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const { isAdmin } = useAuth();
+  const [registrationType, setRegistrationType] = useState<'membership' | 'event'>('membership');
+  const [eventFormData, setEventFormData] = useState({
+    event_type: '',
+    event_name: '',
+    event_date: '',
+    event_time: '',
+    venue: '',
+    max_capacity: '',
+    age_group: '',
+    participant_name: '',
+    participant_phone: '',
+    participant_email: '',
+    amount: '',
+    payment_method: '',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchMembers();
@@ -242,6 +258,79 @@ const Members = () => {
       payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setPaymentEntries([{ payment_method: "", amount: "" }]);
+  };
+
+  const resetEventForm = () => {
+    setEventFormData({
+      event_type: '',
+      event_name: '',
+      event_date: '',
+      event_time: '',
+      venue: '',
+      max_capacity: '',
+      age_group: '',
+      participant_name: '',
+      participant_phone: '',
+      participant_email: '',
+      amount: '',
+      payment_method: '',
+      notes: ''
+    });
+  };
+
+  const handleEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Insert event registration
+      const { data: registration, error: regError } = await supabase
+        .from("event_registrations")
+        .insert({
+          event_type: eventFormData.event_type,
+          event_name: eventFormData.event_name,
+          event_date: eventFormData.event_date || null,
+          event_time: eventFormData.event_time || null,
+          venue: eventFormData.venue || null,
+          max_capacity: eventFormData.max_capacity ? parseInt(eventFormData.max_capacity) : null,
+          age_group: eventFormData.age_group || null,
+          participant_name: eventFormData.participant_name,
+          participant_phone: eventFormData.participant_phone,
+          participant_email: eventFormData.participant_email || null,
+          amount: parseFloat(eventFormData.amount),
+          payment_method: eventFormData.payment_method,
+          payment_status: 'paid',
+          notes: eventFormData.notes || null,
+          created_by: user.email || "Unknown"
+        } as any)
+        .select()
+        .single();
+
+      if (regError) throw regError;
+
+      // Log in financial audit trail
+      await supabase.from("financial_audit_trail").insert({
+        record_id: registration.id,
+        action_type: "event_registration",
+        table_name: "event_registrations",
+        action_by: user.email || "Unknown",
+        description: `Event registration: ${eventFormData.event_name} - ${eventFormData.participant_name} - AED ${eventFormData.amount}`
+      });
+
+      toast.success(`${eventFormData.event_name} registration successful!`);
+      setDialogOpen(false);
+      resetEventForm();
+      setRegistrationType('membership');
+      
+    } catch (error: any) {
+      console.error("Event registration error:", error);
+      toast.error(error.message || "Failed to register for event");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addPaymentEntry = () => {
@@ -569,10 +658,240 @@ const Members = () => {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Register New Member</DialogTitle>
+                  <DialogTitle>New Registration</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Keep all existing form content unchanged */}
+                
+                {/* Registration Type Toggle */}
+                <div className="flex gap-2 p-4 bg-muted/30 rounded-lg">
+                  <Button
+                    type="button"
+                    variant={registrationType === 'membership' ? 'default' : 'outline'}
+                    onClick={() => setRegistrationType('membership')}
+                    className="flex-1"
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Regular Membership
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={registrationType === 'event' ? 'default' : 'outline'}
+                    onClick={() => setRegistrationType('event')}
+                    className="flex-1"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Custom Event / Other
+                  </Button>
+                </div>
+
+                {registrationType === 'event' ? (
+                  // EVENT REGISTRATION FORM
+                  <form onSubmit={handleEventSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="event_type">Event Type *</Label>
+                      <Select
+                        value={eventFormData.event_type}
+                        onValueChange={(value) => setEventFormData({ ...eventFormData, event_type: value })}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select event type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="workshop">🧘 Workshop / Class</SelectItem>
+                          <SelectItem value="camp">⛺ Camp (Multi-day)</SelectItem>
+                          <SelectItem value="tournament">🏆 Tournament</SelectItem>
+                          <SelectItem value="seminar">📚 Seminar / Lecture</SelectItem>
+                          <SelectItem value="day_pass">🎫 Day Pass / Guest</SelectItem>
+                          <SelectItem value="private_session">👤 Private Session</SelectItem>
+                          <SelectItem value="custom">✨ Custom Event</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="event_name">Event Name *</Label>
+                      <Input
+                        id="event_name"
+                        placeholder="e.g., Summer Football Camp, Yoga Workshop"
+                        value={eventFormData.event_name}
+                        onChange={(e) => setEventFormData({ ...eventFormData, event_name: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="event_date">Event Date *</Label>
+                        <Input
+                          id="event_date"
+                          type="date"
+                          value={eventFormData.event_date}
+                          onChange={(e) => setEventFormData({ ...eventFormData, event_date: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="event_time">Event Time</Label>
+                        <Input
+                          id="event_time"
+                          type="time"
+                          value={eventFormData.event_time}
+                          onChange={(e) => setEventFormData({ ...eventFormData, event_time: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="venue">Venue / Location</Label>
+                        <Select
+                          value={eventFormData.venue}
+                          onValueChange={(value) => setEventFormData({ ...eventFormData, venue: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select venue" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="main_hall">Main Gym Hall</SelectItem>
+                            <SelectItem value="ladies_gym">Ladies Gym Area</SelectItem>
+                            <SelectItem value="football_court">Football Court</SelectItem>
+                            <SelectItem value="swimming_pool">Swimming Pool</SelectItem>
+                            <SelectItem value="basketball_court">Basketball Court</SelectItem>
+                            <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                            <SelectItem value="crossfit_area">CrossFit Area</SelectItem>
+                            <SelectItem value="outdoor">Outdoor Area</SelectItem>
+                            <SelectItem value="conference_room">Conference Room</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="age_group">Age Group</Label>
+                        <Select
+                          value={eventFormData.age_group}
+                          onValueChange={(value) => setEventFormData({ ...eventFormData, age_group: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select age group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="kids">Kids (5-12)</SelectItem>
+                            <SelectItem value="youth">Youth (13-17)</SelectItem>
+                            <SelectItem value="adults">Adults (18-59)</SelectItem>
+                            <SelectItem value="seniors">Seniors (60+)</SelectItem>
+                            <SelectItem value="all_ages">All Ages</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="max_capacity">Max Capacity (Optional)</Label>
+                      <Input
+                        id="max_capacity"
+                        type="number"
+                        min="1"
+                        placeholder="e.g., 20"
+                        value={eventFormData.max_capacity}
+                        onChange={(e) => setEventFormData({ ...eventFormData, max_capacity: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Participant Information
+                      </h4>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="participant_name">Full Name *</Label>
+                        <Input
+                          id="participant_name"
+                          value={eventFormData.participant_name}
+                          onChange={(e) => setEventFormData({ ...eventFormData, participant_name: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="participant_phone">Phone Number *</Label>
+                          <Input
+                            id="participant_phone"
+                            value={eventFormData.participant_phone}
+                            onChange={(e) => setEventFormData({ ...eventFormData, participant_phone: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="participant_email">Email (Optional)</Label>
+                          <Input
+                            id="participant_email"
+                            type="email"
+                            value={eventFormData.participant_email}
+                            onChange={(e) => setEventFormData({ ...eventFormData, participant_email: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Payment Details
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="event_amount">Amount (AED) *</Label>
+                          <Input
+                            id="event_amount"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={eventFormData.amount}
+                            onChange={(e) => setEventFormData({ ...eventFormData, amount: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="event_payment_method">Payment Method *</Label>
+                          <Select
+                            value={eventFormData.payment_method}
+                            onValueChange={(value) => setEventFormData({ ...eventFormData, payment_method: value })}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="online">Online Transfer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="event_notes">Additional Notes</Label>
+                      <Textarea
+                        id="event_notes"
+                        placeholder="Special requirements, medical info, etc."
+                        value={eventFormData.notes}
+                        onChange={(e) => setEventFormData({ ...eventFormData, notes: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Registering..." : "Complete Event Registration"}
+                    </Button>
+                  </form>
+                ) : (
+                  // REGULAR MEMBERSHIP FORM
+                  <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="full_name">Full Name *</Label>
@@ -763,10 +1082,11 @@ const Members = () => {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Registering..." : "Register Member"}
-                  </Button>
-                </form>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Registering..." : "Register Member"}
+                    </Button>
+                  </form>
+                )}
               </DialogContent>
             </Dialog>
           </div>

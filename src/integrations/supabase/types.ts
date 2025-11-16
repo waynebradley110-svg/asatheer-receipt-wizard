@@ -139,6 +139,83 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          age_group: string | null
+          amount: number
+          created_at: string | null
+          created_by: string | null
+          current_registrations: number | null
+          event_date: string | null
+          event_name: string
+          event_time: string | null
+          event_type: string
+          id: string
+          max_capacity: number | null
+          member_id: string | null
+          notes: string | null
+          participant_email: string | null
+          participant_name: string
+          participant_phone: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status: string | null
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          age_group?: string | null
+          amount: number
+          created_at?: string | null
+          created_by?: string | null
+          current_registrations?: number | null
+          event_date?: string | null
+          event_name: string
+          event_time?: string | null
+          event_type: string
+          id?: string
+          max_capacity?: number | null
+          member_id?: string | null
+          notes?: string | null
+          participant_email?: string | null
+          participant_name: string
+          participant_phone: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status?: string | null
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          age_group?: string | null
+          amount?: number
+          created_at?: string | null
+          created_by?: string | null
+          current_registrations?: number | null
+          event_date?: string | null
+          event_name?: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          max_capacity?: number | null
+          member_id?: string | null
+          notes?: string | null
+          participant_email?: string | null
+          participant_name?: string
+          participant_phone?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_status?: string | null
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
