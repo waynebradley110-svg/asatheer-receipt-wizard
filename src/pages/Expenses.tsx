@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Download, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { Plus, Download, DollarSign, Pencil, Trash2, Receipt, TrendingDown, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import * as XLSX from 'xlsx';
+import { cn } from "@/lib/utils";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -216,27 +217,37 @@ const Expenses = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Expenses Management</h1>
-          <p className="text-muted-foreground">Track business and owner expenses</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportToExcel}>
-            <Download className="h-4 w-4 mr-2" />
-            Export to Excel
-          </Button>
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Expense
-              </Button>
-            </DialogTrigger>
+    <div className="space-y-6 dashboard-section">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-destructive/10 via-[hsl(var(--power))]/5 to-transparent p-8 border border-border/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 border-2 border-destructive/20">
+              <Receipt className="h-8 w-8 text-destructive" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Expenses Management
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Track business and owner expenses
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={exportToExcel}>
+              <Download className="h-4 w-4 mr-2" />
+              Export to Excel
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button className="bg-accent hover:bg-accent/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Expense
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>{editingExpense ? "Edit Expense" : "Add New Expense"}</DialogTitle>
@@ -313,36 +324,46 @@ const Expenses = () => {
           </Dialog>
         </div>
       </div>
+    </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="border-l-4 border-l-destructive/30 stat-card-hover">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Business Expenses</CardTitle>
-            <DollarSign className="h-5 w-5 text-destructive" />
+            <div className="p-2 rounded-lg bg-destructive/10">
+              <TrendingDown className="h-5 w-5 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">
+            <div className="text-3xl font-bold text-destructive stat-number">
               AED {stats.totalBusiness.toFixed(2)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-[hsl(var(--power))]/30 stat-card-hover">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Owner Expenses</CardTitle>
-            <DollarSign className="h-5 w-5 text-accent" />
+            <div className="p-2 rounded-lg bg-[hsl(var(--power))]/10">
+              <Wallet className="h-5 w-5 text-[hsl(var(--power))]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">
+            <div className="text-3xl font-bold text-[hsl(var(--power))] stat-number">
               AED {stats.totalOwner.toFixed(2)}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-l-4 border-l-primary/30">
         <CardHeader>
-          <CardTitle>Expenses List</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Receipt className="h-5 w-5 text-primary" />
+            </div>
+            Expenses List
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {expenses.length === 0 ? (
@@ -367,7 +388,13 @@ const Expenses = () => {
                   <TableRow key={expense.id}>
                     <TableCell>{new Date(expense.expense_date).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Badge variant={expense.category === 'business' ? 'default' : 'secondary'}>
+                      <Badge variant={expense.category === 'business' ? 'destructive' : 'secondary'}
+                        className={cn(
+                          expense.category === 'business' 
+                            ? "bg-destructive/90 text-white" 
+                            : "bg-[hsl(var(--power))]/90 text-white"
+                        )}
+                      >
                         {expense.category === 'business' ? 'Business' : 'Owner'}
                       </Badge>
                     </TableCell>

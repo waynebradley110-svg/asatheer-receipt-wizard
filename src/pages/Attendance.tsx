@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, CameraOff, CheckCircle2, XCircle, Clock, Keyboard } from "lucide-react";
+import { Camera, CameraOff, CheckCircle2, XCircle, Clock, Keyboard, Users, Activity, UserCheck, Dumbbell } from "lucide-react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface MemberInfo {
   id: string;
@@ -203,17 +204,42 @@ const Attendance = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Attendance Scanner</h1>
-        <p className="text-muted-foreground">Scan member barcodes or enter manually</p>
+    <div className="space-y-6 dashboard-section">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-accent/10 via-primary/5 to-transparent p-8 border border-border/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/20">
+              <Activity className="h-8 w-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Attendance Scanner
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Scan member barcodes or enter manually for check-in
+              </p>
+            </div>
+          </div>
+          <div className="text-right hidden md:block">
+            <p className="text-sm text-muted-foreground">Today's Check-ins</p>
+            <p className="text-3xl font-bold text-accent">
+              {recentAttendance.length}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Scanner Section */}
-        <Card>
+        <Card className="border-l-4 border-l-accent/30 stat-card-hover">
           <CardHeader>
-            <CardTitle>Barcode Scanner</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <Camera className="h-5 w-5 text-accent" />
+              </div>
+              Barcode Scanner
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
@@ -284,16 +310,21 @@ const Attendance = () => {
         </Card>
 
         {/* Scanned Member Info */}
-        <Card>
+        <Card className="border-l-4 border-l-primary/30 stat-card-hover">
           <CardHeader>
-            <CardTitle>Member Information</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <UserCheck className="h-5 w-5 text-primary" />
+              </div>
+              Member Information
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {scannedMember ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-center mb-6">
                   {scannedMember.status === 'active' ? (
-                    <CheckCircle2 className="h-20 w-20 text-green-600" />
+                    <CheckCircle2 className="h-20 w-20 text-accent" />
                   ) : (
                     <XCircle className="h-20 w-20 text-destructive" />
                   )}
@@ -302,7 +333,18 @@ const Attendance = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={scannedMember.status === 'active' ? 'default' : 'destructive'}>
+                    <Badge variant={scannedMember.status === 'active' ? "default" : "destructive"}
+                      className={cn(
+                        scannedMember.status === 'active' 
+                          ? "bg-accent/90 hover:bg-accent text-white flex items-center gap-1" 
+                          : "bg-destructive/90 hover:bg-destructive flex items-center gap-1"
+                      )}
+                    >
+                      {scannedMember.status === 'active' ? (
+                        <CheckCircle2 className="h-3 w-3" />
+                      ) : (
+                        <XCircle className="h-3 w-3" />
+                      )}
                       {scannedMember.status.toUpperCase()}
                     </Badge>
                   </div>
@@ -324,7 +366,10 @@ const Attendance = () => {
 
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span className="text-sm text-muted-foreground">Zone</span>
-                    <span className="font-semibold capitalize">{scannedMember.zone.replace('_', ' ')}</span>
+                    <Badge variant="outline" className="font-semibold bg-primary/10 text-primary border-primary/20 flex items-center gap-1">
+                      <Dumbbell className="h-3 w-3" />
+                      {scannedMember.zone.replace('_', ' ').toUpperCase()}
+                    </Badge>
                   </div>
 
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
@@ -353,9 +398,17 @@ const Attendance = () => {
       </div>
 
       {/* Recent Check-ins */}
-      <Card>
+      <Card className="border-l-4 border-l-primary/30">
         <CardHeader>
-          <CardTitle>Today's Check-ins</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <span>Today's Check-ins</span>
+            <Badge variant="secondary" className="ml-2 bg-accent/10 text-accent">
+              {recentAttendance.length}
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {recentAttendance.length === 0 ? (
