@@ -54,6 +54,8 @@ const Members = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const { isAdmin } = useAuth();
+  const [addServiceDialogOpen, setAddServiceDialogOpen] = useState(false);
+  const [addingServiceMember, setAddingServiceMember] = useState<any>(null);
   const [registrationType, setRegistrationType] = useState<'membership' | 'event'>('membership');
   const [eventFormData, setEventFormData] = useState({
     event_type: '',
@@ -620,6 +622,82 @@ const Members = () => {
     } catch (error) {
       console.error('Error deleting member:', error);
       toast.error("Failed to delete member");
+    }
+  };
+
+  const handleAddService = (member: any) => {
+    setAddingServiceMember(member);
+    setFormData({
+      ...formData,
+      zone: "",
+      subscription_plan: "",
+      coach_name: "",
+      payment_date: format(new Date(), "yyyy-MM-dd"),
+      notes: ""
+    });
+    setPaymentEntries([{ payment_method: "", amount: "" }]);
+    setAddServiceDialogOpen(true);
+  };
+
+  const handleAddServiceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addingServiceMember) return;
+    
+    setLoading(true);
+    try {
+      const validPayments = paymentEntries.filter(p => p.payment_method && p.amount);
+      if (validPayments.length === 0) {
+        toast.error("Please add at least one payment");
+        setLoading(false);
+        return;
+      }
+
+      const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      const startDate = new Date(formData.payment_date);
+      const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
+      const transactionId = crypto.randomUUID();
+
+      // Insert new service
+      const { error: serviceError } = await supabase
+        .from("member_services")
+        .insert([{
+          member_id: addingServiceMember.id,
+          subscription_plan: formData.subscription_plan as any,
+          zone: formData.zone as any,
+          start_date: startDate.toISOString().split('T')[0],
+          expiry_date: expiryDate.toISOString().split('T')[0],
+          coach_name: formData.zone === 'pt' ? formData.coach_name || null : null,
+          notes: formData.zone === 'pt' ? `Coach: ${formData.coach_name}` : null,
+        }]);
+
+      if (serviceError) throw serviceError;
+
+      // Insert payment receipts
+      const paymentRecords = validPayments.map(payment => ({
+        member_id: addingServiceMember.id,
+        amount: parseFloat(payment.amount),
+        payment_method: payment.payment_method as any,
+        subscription_plan: formData.subscription_plan as any,
+        zone: formData.zone as any,
+        transaction_id: transactionId,
+        created_at: new Date(formData.payment_date).toISOString(),
+      }));
+
+      const { error: paymentError } = await supabase
+        .from("payment_receipts")
+        .insert(paymentRecords);
+
+      if (paymentError) throw paymentError;
+
+      toast.success(`New service added for ${addingServiceMember.full_name}! Total: ${totalPaid} AED`);
+      setAddServiceDialogOpen(false);
+      setAddingServiceMember(null);
+      resetForm();
+      fetchMembers();
+    } catch (error: any) {
+      toast.error(error.message || "Error adding service");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1358,6 +1436,15 @@ const Members = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleAddService(member)}
+                        className="text-accent hover:text-accent"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Service
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => {
                           setViewingMember(member);
                           setViewCardDialogOpen(true);
@@ -1624,6 +1711,157 @@ const Members = () => {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Renewing..." : "Renew Membership"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Service Dialog */}
+      <Dialog open={addServiceDialogOpen} onOpenChange={setAddServiceDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Service - {addingServiceMember?.full_name}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddServiceSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="add_zone">Zone *</Label>
+                <Select
+                  value={formData.zone}
+                  onValueChange={(value) => setFormData({ ...formData, zone: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select zone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gym">Gym</SelectItem>
+                    <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
+                    <SelectItem value="pt">PT (Personal Training)</SelectItem>
+                    <SelectItem value="crossfit">CrossFit</SelectItem>
+                    <SelectItem value="football_student">Football Academy</SelectItem>
+                    <SelectItem value="football_court">Football Court</SelectItem>
+                    <SelectItem value="basketball">Basketball</SelectItem>
+                    <SelectItem value="swimming">Swimming</SelectItem>
+                    <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="add_subscription_plan">Subscription Plan *</Label>
+                <Select
+                  value={formData.subscription_plan}
+                  onValueChange={(value) => setFormData({ ...formData, subscription_plan: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1_day">1 Day</SelectItem>
+                    <SelectItem value="1_month">1 Month</SelectItem>
+                    <SelectItem value="2_months">2 Months</SelectItem>
+                    <SelectItem value="3_months">3 Months</SelectItem>
+                    <SelectItem value="6_months">6 Months</SelectItem>
+                    <SelectItem value="1_year">1 Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {formData.zone === 'pt' && (
+              <div className="space-y-2">
+                <Label htmlFor="add_coach_name">Coach Name</Label>
+                <Input
+                  id="add_coach_name"
+                  value={formData.coach_name}
+                  onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })}
+                  placeholder="Enter coach name (optional)"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="add_payment_date">Payment Date *</Label>
+              <Input
+                id="add_payment_date"
+                type="date"
+                value={formData.payment_date}
+                onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label>Payment Details *</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addPaymentEntry}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Payment Method
+                </Button>
+              </div>
+
+              {paymentEntries.map((entry, index) => (
+                <div key={index} className="relative p-4 border rounded-lg space-y-3">
+                  {paymentEntries.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePaymentEntry(index)}
+                      className="absolute top-2 right-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Payment Method</Label>
+                      <Select
+                        value={entry.payment_method}
+                        onValueChange={(value) => updatePaymentEntry(index, "payment_method", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">💵 Cash</SelectItem>
+                          <SelectItem value="card">💳 Card</SelectItem>
+                          <SelectItem value="online">🌐 Online Transfer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Amount (AED)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={entry.amount}
+                        onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="bg-muted p-3 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total Payment:</span>
+                  <span className="text-lg font-bold">{getTotalPayment().toFixed(2)} AED</span>
+                </div>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Adding Service..." : "Add Service"}
             </Button>
           </form>
         </DialogContent>
