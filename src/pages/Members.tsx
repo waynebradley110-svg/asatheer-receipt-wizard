@@ -1591,9 +1591,9 @@ const Members = () => {
                     <SelectItem value="crossfit">CrossFit</SelectItem>
                     <SelectItem value="football_student">Football Academy</SelectItem>
                     <SelectItem value="football_court">Football Court</SelectItem>
-                    <SelectItem value="basketball">Basketball</SelectItem>
                     <SelectItem value="swimming">Swimming</SelectItem>
                     <SelectItem value="paddle_court">Paddle Court</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1741,7 +1741,6 @@ const Members = () => {
                     <SelectItem value="crossfit">CrossFit</SelectItem>
                     <SelectItem value="football_student">Football Academy</SelectItem>
                     <SelectItem value="football_court">Football Court</SelectItem>
-                    <SelectItem value="basketball">Basketball</SelectItem>
                     <SelectItem value="swimming">Swimming</SelectItem>
                     <SelectItem value="paddle_court">Paddle Court</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
