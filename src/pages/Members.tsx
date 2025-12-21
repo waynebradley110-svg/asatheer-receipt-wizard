@@ -383,6 +383,37 @@ const Members = () => {
     return activeService ? "active" : "expired";
   };
 
+  // Helper function to convert zone codes to readable labels
+  const getZoneLabel = (zone: string): string => {
+    const labels: Record<string, string> = {
+      gym: "Gym",
+      ladies_gym: "Ladies Gym",
+      pt: "Personal Training",
+      crossfit: "CrossFit",
+      football_student: "Football Academy",
+      football_court: "Football Court",
+      football: "Football",
+      swimming: "Swimming",
+      paddle_court: "Paddle Court",
+      other: "Other"
+    };
+    return labels[zone] || zone;
+  };
+
+  // Helper function to get service status and color
+  const getServiceStatus = (expiryDate: string) => {
+    const expiry = new Date(expiryDate);
+    const today = new Date();
+    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+      return { status: "expired", color: "bg-destructive/90 text-destructive-foreground" };
+    } else if (daysUntilExpiry <= 7) {
+      return { status: "expiring", color: "bg-orange-500/90 text-white" };
+    }
+    return { status: "active", color: "bg-accent/90 text-white" };
+  };
+
   // Calculate statistics
   const stats = {
     total: members.length,
@@ -650,6 +681,19 @@ const Members = () => {
         toast.error("Please add at least one payment");
         setLoading(false);
         return;
+      }
+
+      // Check for duplicate active service in the same zone
+      const existingActiveService = addingServiceMember.member_services?.find(
+        (s: any) => s.zone === formData.zone && s.is_active && new Date(s.expiry_date) >= new Date()
+      );
+
+      if (existingActiveService) {
+        const expiryFormatted = format(new Date(existingActiveService.expiry_date), 'dd/MM/yyyy');
+        toast.warning(
+          `Member already has an active ${getZoneLabel(formData.zone)} subscription expiring on ${expiryFormatted}. Adding new service anyway.`,
+          { duration: 5000 }
+        );
       }
 
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
@@ -1386,6 +1430,7 @@ const Members = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Services</TableHead>
                 <TableHead>Barcode</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -1413,6 +1458,29 @@ const Members = () => {
                       )}
                       {getMemberStatus(member)}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {member.member_services?.length > 0 ? (
+                        member.member_services
+                          .filter((s: any) => s.is_active)
+                          .sort((a: any, b: any) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime())
+                          .map((service: any) => {
+                            const { color } = getServiceStatus(service.expiry_date);
+                            return (
+                              <Badge
+                                key={service.id}
+                                className={cn("text-xs whitespace-nowrap", color)}
+                                title={`${getZoneLabel(service.zone)}${service.coach_name ? ` - Coach: ${service.coach_name}` : ''}`}
+                              >
+                                {getZoneLabel(service.zone)}: {format(new Date(service.expiry_date), 'dd/MM/yy')}
+                              </Badge>
+                            );
+                          })
+                      ) : (
+                        <span className="text-muted-foreground text-xs">No services</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
                   <TableCell>
@@ -1722,6 +1790,50 @@ const Members = () => {
           <DialogHeader>
             <DialogTitle>Add Service - {addingServiceMember?.full_name}</DialogTitle>
           </DialogHeader>
+          
+          {/* Existing Services Display */}
+          {addingServiceMember?.member_services && addingServiceMember.member_services.length > 0 && (
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2 border">
+              <Label className="text-sm font-semibold">Current Services</Label>
+              <div className="flex flex-wrap gap-2">
+                {addingServiceMember.member_services
+                  .filter((s: any) => s.is_active)
+                  .map((service: any) => {
+                    const { status, color } = getServiceStatus(service.expiry_date);
+                    return (
+                      <div
+                        key={service.id}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-md text-sm",
+                          status === "expired" 
+                            ? "bg-destructive/10 border border-destructive/30" 
+                            : status === "expiring"
+                            ? "bg-orange-500/10 border border-orange-500/30"
+                            : "bg-accent/10 border border-accent/30"
+                        )}
+                      >
+                        <Badge className={cn("text-xs", color)}>
+                          {status === "active" ? "Active" : status === "expiring" ? "Expiring Soon" : "Expired"}
+                        </Badge>
+                        <span className="font-medium">{getZoneLabel(service.zone)}</span>
+                        <span className="text-muted-foreground">
+                          Expires: {format(new Date(service.expiry_date), 'dd/MM/yyyy')}
+                        </span>
+                        {service.coach_name && (
+                          <span className="text-muted-foreground text-xs">(Coach: {service.coach_name})</span>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+              {addingServiceMember.member_services.filter((s: any) => !s.is_active || new Date(s.expiry_date) < new Date()).length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  + {addingServiceMember.member_services.filter((s: any) => !s.is_active || new Date(s.expiry_date) < new Date()).length} expired service(s)
+                </p>
+              )}
+            </div>
+          )}
+          
           <form onSubmit={handleAddServiceSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
