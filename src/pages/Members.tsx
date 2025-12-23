@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, MessageCircle, Edit, Users, Filter, UserCheck, UserX, TrendingUp, Dumbbell, Heart, Trophy, Activity, Calendar, User, DollarSign } from "lucide-react";
+import { Plus, Users, TrendingUp, Dumbbell, Heart, Trophy, Activity, Calendar, User, DollarSign, UserCheck, UserX, Search, Filter, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -17,6 +16,9 @@ import { DigitalMemberCard } from "@/components/DigitalMemberCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import { MemberCard } from "@/components/members/MemberCard";
+import { MemberDetailsSheet } from "@/components/members/MemberDetailsSheet";
+import { MemberFilters } from "@/components/members/MemberFilters";
 
 interface PaymentEntry {
   payment_method: string;
@@ -52,8 +54,11 @@ const Members = () => {
   const [viewingMember, setViewingMember] = useState<any>(null);
   const [filterZone, setFilterZone] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const { isAdmin } = useAuth();
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
   const [addServiceDialogOpen, setAddServiceDialogOpen] = useState(false);
   const [addingServiceMember, setAddingServiceMember] = useState<any>(null);
   const [registrationType, setRegistrationType] = useState<'membership' | 'event'>('membership');
@@ -357,23 +362,67 @@ const Members = () => {
       .reduce((sum, p) => sum + parseFloat(p.amount || "0"), 0);
   };
 
-  const filteredMembers = members.filter(m => {
-    const matchesSearch = m.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      m.member_id.toLowerCase().includes(search.toLowerCase()) ||
-      m.phone_number.includes(search);
-    
-    const activeService = m.member_services?.find((s: any) => 
-      new Date(s.expiry_date) >= new Date() && s.is_active
-    );
-    
-    const matchesZone = filterZone === "all" || 
-      m.member_services?.some((s: any) => s.zone === filterZone && s.is_active);
-    
-    const status = activeService ? "active" : "expired";
-    const matchesStatus = filterStatus === "all" || status === filterStatus;
-    
-    return matchesSearch && matchesZone && matchesStatus;
-  });
+  // Helper to check if member is expiring soon
+  const isMemberExpiringSoon = (member: any) => {
+    const today = new Date();
+    return member.member_services?.some((s: any) => {
+      if (!s.is_active) return false;
+      const expiry = new Date(s.expiry_date);
+      const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
+    });
+  };
+
+  // Helper to get earliest expiry date for sorting
+  const getEarliestExpiry = (member: any) => {
+    const activeServices = member.member_services?.filter((s: any) => s.is_active) || [];
+    if (activeServices.length === 0) return new Date(0);
+    return new Date(Math.min(...activeServices.map((s: any) => new Date(s.expiry_date).getTime())));
+  };
+
+  const filteredMembers = useMemo(() => {
+    let result = members.filter(m => {
+      const matchesSearch = m.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        m.member_id.toLowerCase().includes(search.toLowerCase()) ||
+        m.phone_number.includes(search);
+      
+      const activeService = m.member_services?.find((s: any) => 
+        new Date(s.expiry_date) >= new Date() && s.is_active
+      );
+      
+      const matchesZone = filterZone === "all" || 
+        m.member_services?.some((s: any) => s.zone === filterZone && s.is_active);
+      
+      // Handle "expiring" filter option
+      let matchesStatus = true;
+      if (filterStatus === "active") {
+        matchesStatus = activeService !== undefined;
+      } else if (filterStatus === "expired") {
+        matchesStatus = activeService === undefined;
+      } else if (filterStatus === "expiring") {
+        matchesStatus = isMemberExpiringSoon(m);
+      }
+      
+      return matchesSearch && matchesZone && matchesStatus;
+    });
+
+    // Apply sorting
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.full_name.localeCompare(b.full_name);
+        case "expiry":
+          return getEarliestExpiry(a).getTime() - getEarliestExpiry(b).getTime();
+        case "expiry_desc":
+          return getEarliestExpiry(b).getTime() - getEarliestExpiry(a).getTime();
+        case "newest":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return result;
+  }, [members, search, filterZone, filterStatus, sortBy]);
 
   // Helper function to determine member status
   const getMemberStatus = (member: any) => {
@@ -1319,247 +1368,66 @@ const Members = () => {
       {/* Add subtle separator */}
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-      {/* Filters Section */}
-      <Card className="border-l-4 border-l-primary/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Filter className="h-5 w-5 text-primary" />
-            </div>
-            <span>Search & Filters</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {/* Search Input */}
-            <div className="space-y-2 flex-1 min-w-[250px]">
-              <Label>Search Members</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or phone..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            {/* Zone Filter */}
-            <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Zone</Label>
-              <Select value={filterZone} onValueChange={setFilterZone}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Zones" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Zones</SelectItem>
-                  <SelectItem value="gym">Gym</SelectItem>
-                  <SelectItem value="ladies_gym">Ladies Gym</SelectItem>
-                  <SelectItem value="pt">Personal Training</SelectItem>
-                  <SelectItem value="crossfit">CrossFit</SelectItem>
-                  <SelectItem value="football_student">Football Academy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Status Filter */}
-            <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Status</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          {/* Active Filters Summary */}
-          {(filterZone !== "all" || filterStatus !== "all" || search) && (
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium">Active Filters:</span>
-              <div className="flex gap-2">
-                {filterZone !== "all" && (
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                    Zone: {filterZone.replace('_', ' ')}
-                  </Badge>
-                )}
-                {filterStatus !== "all" && (
-                  <Badge variant="secondary" className={cn(
-                    filterStatus === "active" ? "bg-accent/10 text-accent border-accent/20" : "bg-destructive/10 text-destructive border-destructive/20"
-                  )}>
-                    Status: {filterStatus}
-                  </Badge>
-                )}
-                {search && (
-                  <Badge variant="secondary" className="bg-muted">
-                    Search: "{search}"
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Filters Section - Using new MemberFilters component */}
+      <MemberFilters
+        search={search}
+        onSearchChange={setSearch}
+        filterZone={filterZone}
+        onFilterZoneChange={setFilterZone}
+        filterStatus={filterStatus}
+        onFilterStatusChange={setFilterStatus}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        stats={{
+          total: filteredMembers.length,
+          active: filteredMembers.filter(m => getMemberStatus(m) === "active").length,
+          expired: filteredMembers.filter(m => getMemberStatus(m) === "expired").length,
+          expiringSoon: filteredMembers.filter(m => isMemberExpiringSoon(m)).length
+        }}
+      />
 
-      {/* Members Table */}
-      <Card className="border-l-4 border-l-accent/30">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-accent/10">
-                <Users className="h-5 w-5 text-accent" />
-              </div>
-              <span>Members List</span>
-              <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
-                {filteredMembers.length} {filteredMembers.length === 1 ? 'member' : 'members'}
-              </Badge>
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Services</TableHead>
-                <TableHead>Barcode</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.member_id}</TableCell>
-                  <TableCell>{member.full_name}</TableCell>
-                  <TableCell>{member.phone_number}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={getMemberStatus(member) === "active" ? "default" : "destructive"}
-                      className={cn(
-                        "flex items-center gap-1 w-fit",
-                        getMemberStatus(member) === "active" 
-                          ? "bg-accent/90 hover:bg-accent text-white border-accent" 
-                          : "bg-destructive/90 hover:bg-destructive"
-                      )}
-                    >
-                      {getMemberStatus(member) === "active" ? (
-                        <UserCheck className="h-3 w-3" />
-                      ) : (
-                        <UserX className="h-3 w-3" />
-                      )}
-                      {getMemberStatus(member)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {member.member_services?.length > 0 ? (
-                        member.member_services
-                          .filter((s: any) => s.is_active)
-                          .sort((a: any, b: any) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime())
-                          .map((service: any) => {
-                            const { color } = getServiceStatus(service.expiry_date);
-                            return (
-                              <Badge
-                                key={service.id}
-                                className={cn("text-xs whitespace-nowrap", color)}
-                                title={`${getZoneLabel(service.zone)}${service.coach_name ? ` - Coach: ${service.coach_name}` : ''}`}
-                              >
-                                {getZoneLabel(service.zone)}: {format(new Date(service.expiry_date), 'dd/MM/yy')}
-                              </Badge>
-                            );
-                          })
-                      ) : (
-                        <span className="text-muted-foreground text-xs">No services</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{member.barcode}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2 justify-end">
-                      {getMemberStatus(member) === "expired" && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleRenewMembership(member)}
-                        >
-                          Renew
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditMember(member)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddService(member)}
-                        className="text-accent hover:text-accent"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Service
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setViewingMember(member);
-                          setViewCardDialogOpen(true);
-                        }}
-                      >
-                        View Card
-                      </Button>
-                      <WhatsAppButton
-                        phoneNumber={member.phone_number}
-                        message={getWelcomeMessage(member)}
-                        variant="outline"
-                        size="sm"
-                      />
-                      {isAdmin && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Member</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {member.full_name}? This action cannot be undone and will remove all associated data.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteMember(member.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Members Card Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredMembers.map((member) => (
+          <MemberCard
+            key={member.id}
+            member={member}
+            onRenew={handleRenewMembership}
+            onViewDetails={(m) => {
+              setSelectedMember(m);
+              setDetailsSheetOpen(true);
+            }}
+          />
+        ))}
+      </div>
+
+      {filteredMembers.length === 0 && (
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">No members found</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Try adjusting your search or filters
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Member Details Side Sheet */}
+      <MemberDetailsSheet
+        member={selectedMember}
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        onRenew={handleRenewMembership}
+        onAddService={handleAddService}
+        onViewCard={(m) => {
+          setViewingMember(m);
+          setViewCardDialogOpen(true);
+        }}
+        onEdit={handleEditMember}
+        onDelete={handleDeleteMember}
+        isAdmin={isAdmin}
+      />
 
       {/* Edit Member Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
