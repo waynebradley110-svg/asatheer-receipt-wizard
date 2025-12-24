@@ -1384,6 +1384,8 @@ const Members = () => {
           expired: filteredMembers.filter(m => getMemberStatus(m) === "expired").length,
           expiringSoon: filteredMembers.filter(m => isMemberExpiringSoon(m)).length
         }}
+        members={members}
+        filteredMembers={filteredMembers}
       />
 
       {/* Members Card Grid */}
