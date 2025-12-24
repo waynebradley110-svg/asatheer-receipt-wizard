@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ExpiryReminders } from "@/components/ExpiryReminders";
+import { MembershipFreezeCard } from "@/components/MembershipFreezeCard";
 import { UserManagement } from "@/components/UserManagement";
 import { SystemSettings } from "@/components/SystemSettings";
 import { FinancialCorrections } from "@/components/FinancialCorrections";
@@ -294,6 +295,7 @@ const AdminDashboard = () => {
           <div className="space-y-6">
             <div className="grid gap-4 lg:grid-cols-2">
               <ExpiryReminders />
+              <MembershipFreezeCard />
             </div>
             <ZoneAnalysis />
           </div>
