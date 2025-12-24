@@ -368,6 +368,7 @@ export type Database = {
           coach_name: string | null
           created_at: string | null
           expiry_date: string
+          freeze_status: string | null
           id: string
           is_active: boolean | null
           member_id: string
@@ -380,6 +381,7 @@ export type Database = {
           coach_name?: string | null
           created_at?: string | null
           expiry_date: string
+          freeze_status?: string | null
           id?: string
           is_active?: boolean | null
           member_id: string
@@ -392,6 +394,7 @@ export type Database = {
           coach_name?: string | null
           created_at?: string | null
           expiry_date?: string
+          freeze_status?: string | null
           id?: string
           is_active?: boolean | null
           member_id?: string
@@ -448,6 +451,69 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      membership_freezes: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          created_by: string | null
+          freeze_end: string | null
+          freeze_start: string
+          id: string
+          member_id: string
+          notes: string | null
+          reason: string | null
+          resumed_at: string | null
+          resumed_by: string | null
+          service_id: string
+          status: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          created_by?: string | null
+          freeze_end?: string | null
+          freeze_start: string
+          id?: string
+          member_id: string
+          notes?: string | null
+          reason?: string | null
+          resumed_at?: string | null
+          resumed_by?: string | null
+          service_id: string
+          status?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          freeze_end?: string | null
+          freeze_start?: string
+          id?: string
+          member_id?: string
+          notes?: string | null
+          reason?: string | null
+          resumed_at?: string | null
+          resumed_by?: string | null
+          service_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_freezes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_freezes_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "member_services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
