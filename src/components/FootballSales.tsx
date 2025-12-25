@@ -47,6 +47,7 @@ export function FootballSales() {
     to: endOfMonth(new Date()),
   });
   const [showPrintView, setShowPrintView] = useState(false);
+  const [showExportView, setShowExportView] = useState(false);
 
   useEffect(() => {
     fetchSales();
@@ -94,9 +95,16 @@ export function FootballSales() {
   }, [filteredSales]);
 
   const handleExportPDF = async () => {
-    const element = document.getElementById('football-print-report');
+    // Show the export element first
+    setShowExportView(true);
+    
+    // Wait for render
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const element = document.getElementById('football-export-report');
     if (!element) {
       toast.error("Report not ready");
+      setShowExportView(false);
       return;
     }
 
@@ -106,6 +114,7 @@ export function FootballSales() {
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
+        logging: false,
       });
 
       const link = document.createElement('a');
@@ -118,6 +127,8 @@ export function FootballSales() {
       console.error("Export error:", error);
       toast.dismiss();
       toast.error("Failed to export report");
+    } finally {
+      setShowExportView(false);
     }
   };
 
@@ -490,9 +501,9 @@ export function FootballSales() {
         </CardContent>
       </Card>
 
-      {/* Hidden Print View */}
+      {/* Print View - shown during print */}
       {showPrintView && (
-        <div id="football-print-report" className="fixed inset-0 bg-white z-50 overflow-auto">
+        <div className="fixed inset-0 bg-white z-50 overflow-auto print:relative print:inset-auto">
           <PrintableFootballReport
             startDate={dateRange.from}
             endDate={dateRange.to}
@@ -504,17 +515,23 @@ export function FootballSales() {
         </div>
       )}
 
-      {/* Hidden element for PDF export */}
-      <div id="football-print-report" className="hidden">
-        <PrintableFootballReport
-          startDate={dateRange.from}
-          endDate={dateRange.to}
-          sales={filteredSales}
-          totalCash={filteredTotals.cash}
-          totalCard={filteredTotals.card}
-          totalRevenue={filteredTotals.total}
-        />
-      </div>
+      {/* Export View - positioned off-screen but visible for html2canvas */}
+      {showExportView && (
+        <div 
+          id="football-export-report" 
+          className="fixed bg-white"
+          style={{ left: '-9999px', top: 0, width: '1200px' }}
+        >
+          <PrintableFootballReport
+            startDate={dateRange.from}
+            endDate={dateRange.to}
+            sales={filteredSales}
+            totalCash={filteredTotals.cash}
+            totalCard={filteredTotals.card}
+            totalRevenue={filteredTotals.total}
+          />
+        </div>
+      )}
     </div>
   );
 }
