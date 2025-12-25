@@ -1,1 +1,4 @@
 project_id = "ckcuebcrsuhthoslgcrn"
+
+[functions.auto-resume-memberships]
+verify_jwt = false
