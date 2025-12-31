@@ -189,36 +189,81 @@ All colors MUST be HSL.
 }
 
 @media print {
+  /* Hide everything in the app */
+  body > #root > * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* But show the print container */
+  body > #root .print-container {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    z-index: 99999 !important;
+  }
+  
   .no-print {
     display: none !important;
+    visibility: hidden !important;
   }
   
   .print-only {
     display: block !important;
+    visibility: visible !important;
   }
   
-  .print-container {
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 20px !important;
+  .print-report {
+    display: block !important;
+    visibility: visible !important;
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    padding: 10mm !important;
+  }
+  
+  .print-report * {
+    visibility: visible !important;
+    color: black !important;
   }
   
   body {
     background: white !important;
     color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   table {
     page-break-inside: auto;
+    display: table !important;
+    visibility: visible !important;
+  }
+  
+  thead {
+    display: table-header-group !important;
+  }
+  
+  tbody {
+    display: table-row-group !important;
   }
   
   tr {
+    display: table-row !important;
     page-break-inside: avoid;
     page-break-after: auto;
   }
   
-  thead {
-    display: table-header-group;
+  th, td {
+    display: table-cell !important;
   }
   
   .break-inside-avoid {
