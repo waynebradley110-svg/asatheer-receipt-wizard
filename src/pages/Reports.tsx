@@ -159,8 +159,10 @@ const Reports = () => {
 
     totalCash += cafeCash + footballCash + massageCash + eventCash;
     totalCard += cafeCard + footballCard + massageCard + eventCard;
+    // FIX: Add eventOnline to totalOnline for correct totals
+    const finalOnline = totalOnline + eventOnline;
 
-    setStats({ totalCash, totalCard, totalOnline });
+    setStats({ totalCash, totalCard, totalOnline: finalOnline });
 
     // Helper function to normalize zone names (map legacy 'football' to 'football_student')
     const normalizeZone = (zone: string): string => {
@@ -327,8 +329,19 @@ const Reports = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    setShowPrintPreview(true);
+    // Wait for render, then print
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
+
+  // Close preview after printing
+  useEffect(() => {
+    const handleAfterPrint = () => setShowPrintPreview(false);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   return (
     <div className="space-y-6 dashboard-section">
@@ -455,19 +468,27 @@ const Reports = () => {
         </Card>
       </div>
 
-      {/* Printable Report */}
-      <div className="print-only">
-        <PrintableSalesReport
-          startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
-          endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
-          zoneSummaries={zoneSummaries}
-          totalRevenue={stats.totalCash + stats.totalCard + stats.totalOnline}
-          totalCash={stats.totalCash}
-          totalCard={stats.totalCard}
-          totalOnline={stats.totalOnline}
-          reportType={reportType}
-        />
-      </div>
+      {/* Print Preview Overlay */}
+      {showPrintPreview && (
+        <div className="fixed inset-0 z-50 bg-white overflow-auto print-container">
+          <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <span className="font-semibold">Print Preview</span>
+            <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
+              Close Preview
+            </Button>
+          </div>
+          <PrintableSalesReport
+            startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
+            endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
+            zoneSummaries={zoneSummaries}
+            totalRevenue={stats.totalCash + stats.totalCard + stats.totalOnline}
+            totalCash={stats.totalCash}
+            totalCard={stats.totalCard}
+            totalOnline={stats.totalOnline}
+            reportType={reportType}
+          />
+        </div>
+      )}
     </div>
   );
 };
