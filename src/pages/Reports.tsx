@@ -120,12 +120,12 @@ const Reports = () => {
       .gte("sale_date", startDateStr)
       .lte("sale_date", endDateStr);
 
-    // Fetch event registrations using event_date comparison
+    // Fetch event registrations using created_at (entry date) for accurate reporting
     const { data: eventRegistrations } = await supabase
       .from("event_registrations")
       .select("*")
-      .gte("event_date", startDateStr)
-      .lte("event_date", endDateStr);
+      .gte("created_at", `${startDateStr}T00:00:00`)
+      .lte("created_at", `${endDateStr}T23:59:59.999`);
 
     // Calculate totals from membership payments
     let totalCash = payments?.filter(p => p.payment_method === 'cash')
@@ -298,7 +298,7 @@ const Reports = () => {
       payment_method: event.payment_method,
       zone: 'events',
       subscription_plan: event.event_name,
-      created_at: event.event_date,
+      created_at: event.created_at,
       cashier_name: event.created_by,
       member_name: event.participant_name,
       cash_amount: event.payment_method === 'cash' ? Number(event.amount || 0) : 0,
