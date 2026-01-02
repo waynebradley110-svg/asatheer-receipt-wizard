@@ -58,7 +58,7 @@ export const PrintableSalesReport = ({
   };
 
   return (
-    <div className="print-report print-container bg-white text-black p-8">
+    <div className="print-report bg-white text-black p-8">
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold mb-2">ASATHEER SPORT ACADEMY</h1>
