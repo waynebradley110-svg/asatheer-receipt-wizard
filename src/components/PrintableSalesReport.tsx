@@ -38,6 +38,12 @@ interface PrintableSalesReportProps {
   totalCard: number;
   totalOnline: number;
   reportType: "daily" | "monthly";
+  headerNotes?: string;
+  footerNotes?: string;
+  adjustment?: {
+    amount: number;
+    reason: string;
+  };
 }
 
 export const PrintableSalesReport = ({
@@ -49,6 +55,9 @@ export const PrintableSalesReport = ({
   totalCard,
   totalOnline,
   reportType,
+  headerNotes,
+  footerNotes,
+  adjustment,
 }: PrintableSalesReportProps) => {
   const getReportTitle = () => {
     if (reportType === "daily") {
@@ -56,6 +65,9 @@ export const PrintableSalesReport = ({
     }
     return `Monthly Sales Report - ${format(startDate, "MMMM yyyy")}`;
   };
+
+  // Calculate adjusted total if adjustment exists
+  const adjustedTotal = adjustment ? totalRevenue + adjustment.amount : totalRevenue;
 
   return (
     <div className="print-report bg-white text-black p-8">
@@ -71,6 +83,14 @@ export const PrintableSalesReport = ({
         </p>
       </div>
 
+      {/* Admin Header Notes */}
+      {headerNotes && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 p-4 rounded">
+          <h3 className="font-semibold text-sm text-blue-800 mb-1">Notes:</h3>
+          <p className="text-sm text-blue-900 whitespace-pre-wrap">{headerNotes}</p>
+        </div>
+      )}
+
       {/* Summary Section */}
       <div className="mb-6 bg-gray-50 p-4 rounded">
         <h3 className="font-bold text-lg mb-3">Summary</h3>
@@ -79,6 +99,17 @@ export const PrintableSalesReport = ({
           <p><span className="font-semibold">Cash:</span> {totalCash.toFixed(2)} AED</p>
           <p><span className="font-semibold">Card:</span> {totalCard.toFixed(2)} AED</p>
           <p><span className="font-semibold">Online:</span> {totalOnline.toFixed(2)} AED</p>
+          {adjustment && (
+            <>
+              <p className="text-orange-700">
+                <span className="font-semibold">Adjustment:</span> {adjustment.amount >= 0 ? '+' : ''}{adjustment.amount.toFixed(2)} AED
+                {adjustment.reason && ` (${adjustment.reason})`}
+              </p>
+              <p className="font-bold border-t pt-1 mt-1">
+                <span className="font-semibold">Adjusted Total:</span> {adjustedTotal.toFixed(2)} AED
+              </p>
+            </>
+          )}
           <p><span className="font-semibold">Generated:</span> {format(new Date(), "MMM dd, yyyy HH:mm")}</p>
         </div>
       </div>
@@ -204,6 +235,14 @@ export const PrintableSalesReport = ({
           );
         })}
       </div>
+
+      {/* Admin Footer Notes */}
+      {footerNotes && (
+        <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded">
+          <h3 className="font-semibold text-sm text-gray-700 mb-1">Additional Notes:</h3>
+          <p className="text-sm text-gray-800 whitespace-pre-wrap">{footerNotes}</p>
+        </div>
+      )}
     </div>
   );
 };

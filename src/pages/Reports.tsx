@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Printer, CalendarIcon, TrendingUp, BarChart3, CreditCard, Banknote } from "lucide-react";
+import { DollarSign, Printer, CalendarIcon, TrendingUp, BarChart3, CreditCard, Banknote, Edit } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
@@ -11,6 +15,7 @@ import { PrintableSalesReport } from "@/components/PrintableSalesReport";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ZoneSummary {
   zone: string;
@@ -24,6 +29,7 @@ interface ZoneSummary {
 
 const Reports = () => {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const [stats, setStats] = useState({
     totalCash: 0,
     totalCard: 0,
@@ -35,6 +41,12 @@ const Reports = () => {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [hasData, setHasData] = useState(true);
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
+  
+  // Admin-only editable fields
+  const [headerNotes, setHeaderNotes] = useState("");
+  const [footerNotes, setFooterNotes] = useState("");
+  const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
+  const [adjustmentReason, setAdjustmentReason] = useState("");
 
   // Zone display name mapping
   const getZoneDisplayName = (zone: string): string => {
@@ -474,15 +486,77 @@ const Reports = () => {
         </Card>
       </div>
 
-      {/* Print Preview Overlay */}
-      {showPrintPreview && (
-        <div className="fixed inset-0 z-50 bg-white overflow-auto print-root">
-          <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+      {/* Print Preview Portal - renders outside #root for reliable printing */}
+      {showPrintPreview && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-portal">
+          <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center gap-4 flex-wrap">
             <span className="font-semibold">Print Preview</span>
+            
+            {/* Admin-only editing controls */}
+            {isAdmin && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  <Edit className="h-3 w-3 mr-1" />
+                  Admin Edit Mode
+                </Badge>
+              </div>
+            )}
+            
             <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
               Close Preview
             </Button>
           </div>
+          
+          {/* Admin Edit Panel */}
+          {isAdmin && (
+            <div className="no-print bg-muted/50 border-b p-4 space-y-4">
+              <h3 className="font-semibold text-sm">Report Adjustments (Admin Only)</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="headerNotes">Header Notes</Label>
+                  <Textarea 
+                    id="headerNotes"
+                    placeholder="Add notes to appear at the top of the report..."
+                    value={headerNotes}
+                    onChange={(e) => setHeaderNotes(e.target.value)}
+                    className="h-20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="footerNotes">Footer Notes</Label>
+                  <Textarea 
+                    id="footerNotes"
+                    placeholder="Add notes to appear at the bottom of the report..."
+                    value={footerNotes}
+                    onChange={(e) => setFooterNotes(e.target.value)}
+                    className="h-20"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="adjustmentAmount">Adjustment Amount (AED)</Label>
+                  <Input 
+                    id="adjustmentAmount"
+                    type="number"
+                    placeholder="0.00"
+                    value={adjustmentAmount || ""}
+                    onChange={(e) => setAdjustmentAmount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="adjustmentReason">Adjustment Reason</Label>
+                  <Input 
+                    id="adjustmentReason"
+                    placeholder="e.g., Refund, Correction, etc."
+                    value={adjustmentReason}
+                    onChange={(e) => setAdjustmentReason(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
           <PrintableSalesReport
             startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
             endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
@@ -492,8 +566,12 @@ const Reports = () => {
             totalCard={stats.totalCard}
             totalOnline={stats.totalOnline}
             reportType={reportType}
+            headerNotes={headerNotes}
+            footerNotes={footerNotes}
+            adjustment={adjustmentAmount !== 0 ? { amount: adjustmentAmount, reason: adjustmentReason } : undefined}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
