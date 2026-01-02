@@ -330,11 +330,17 @@ const Reports = () => {
 
   const handlePrint = () => {
     setShowPrintPreview(true);
-    // Wait for render, then print
-    setTimeout(() => {
-      window.print();
-    }, 100);
   };
+
+  // Trigger print when preview is shown (with sufficient delay for rendering)
+  useEffect(() => {
+    if (showPrintPreview) {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [showPrintPreview]);
 
   // Close preview after printing
   useEffect(() => {
@@ -470,7 +476,7 @@ const Reports = () => {
 
       {/* Print Preview Overlay */}
       {showPrintPreview && (
-        <div className="fixed inset-0 z-50 bg-white overflow-auto print-container">
+        <div className="fixed inset-0 z-50 bg-white overflow-auto print-root">
           <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center">
             <span className="font-semibold">Print Preview</span>
             <Button variant="outline" onClick={() => setShowPrintPreview(false)}>

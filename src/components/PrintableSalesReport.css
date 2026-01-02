@@ -10,18 +10,7 @@
     -webkit-print-color-adjust: exact !important;
   }
 
-  /* Force print container visibility */
-  .print-container {
-    display: block !important;
-    visibility: visible !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background: white !important;
-    overflow: visible !important;
-    z-index: 99999 !important;
-  }
+  /* Report styling (no positioning - handled by parent) */
 
   /* Report container */
   .print-report {
