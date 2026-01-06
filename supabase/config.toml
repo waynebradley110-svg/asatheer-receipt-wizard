@@ -2,3 +2,9 @@ project_id = "ckcuebcrsuhthoslgcrn"
 
 [functions.auto-resume-memberships]
 verify_jwt = false
+
+[functions.schedule-notifications]
+verify_jwt = false
+
+[functions.send-notifications]
+verify_jwt = false
