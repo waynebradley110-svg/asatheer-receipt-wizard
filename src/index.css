@@ -189,35 +189,47 @@ All colors MUST be HSL.
 }
 
 @media print {
-  /* Hide everything except the print portal */
-  body > *:not(.print-portal) {
-    display: none !important;
-  }
-  
+  /* CRITICAL: Hide the React app root completely */
   #root {
     display: none !important;
+    visibility: hidden !important;
   }
   
-  /* Show only the print portal */
-  .print-portal {
+  /* Hide all body children except print-root */
+  body > *:not(.print-root) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Force show the print root container */
+  .print-root {
     display: block !important;
+    visibility: visible !important;
     position: static !important;
     width: 100% !important;
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
     background: white !important;
+    color: black !important;
     z-index: 999999 !important;
+    inset: unset !important;
   }
   
-  .print-portal * {
+  .print-root * {
     visibility: visible !important;
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
+  /* Hide UI elements within print root */
   .no-print {
     display: none !important;
+    visibility: hidden !important;
   }
   
+  /* Print report styling */
   .print-report {
     display: block !important;
     background: white !important;
@@ -239,6 +251,7 @@ All colors MUST be HSL.
     print-color-adjust: exact !important;
   }
   
+  /* Table printing */
   table {
     page-break-inside: auto;
     display: table !important;

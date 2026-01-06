@@ -44,6 +44,7 @@ const Reports = () => {
   const [hasData, setHasData] = useState(true);
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"print" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   
   // Admin-only editable fields
@@ -345,33 +346,51 @@ const Reports = () => {
   };
 
   const handlePrint = () => {
+    setPendingAction("print");
     setShowPrintPreview(true);
   };
 
-  // Trigger print when preview is shown - use requestAnimationFrame for reliable rendering
-  useEffect(() => {
-    if (showPrintPreview) {
-      // Wait for multiple animation frames to ensure content is fully rendered
-      const waitForRender = () => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            // Additional small delay for fonts/images
-            setTimeout(() => {
-              window.print();
-            }, 100);
-          });
-        });
-      };
-      waitForRender();
-    }
-  }, [showPrintPreview]);
+  const handleDownloadPdf = () => {
+    setPendingAction("pdf");
+    setShowPrintPreview(true);
+  };
 
-  // Close preview after printing
+  // Execute pending action after preview is rendered
   useEffect(() => {
-    const handleAfterPrint = () => setShowPrintPreview(false);
+    if (showPrintPreview && pendingAction) {
+      const executeAction = async () => {
+        // Wait for DOM to fully render
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        // Wait for fonts
+        if (document.fonts?.ready) {
+          await document.fonts.ready;
+        }
+        // Small additional delay for images/layout
+        await new Promise(resolve => setTimeout(resolve, 150));
+        
+        if (pendingAction === "print") {
+          window.print();
+        } else if (pendingAction === "pdf") {
+          downloadPdf();
+        }
+        setPendingAction(null);
+      };
+      executeAction();
+    }
+  }, [showPrintPreview, pendingAction]);
+
+  // Close preview after printing (but not after PDF download)
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      // Only close if we were printing, not downloading PDF
+      if (!isDownloadingPdf) {
+        setShowPrintPreview(false);
+      }
+    };
     window.addEventListener('afterprint', handleAfterPrint);
     return () => window.removeEventListener('afterprint', handleAfterPrint);
-  }, []);
+  }, [isDownloadingPdf]);
 
   // Download PDF function
   const downloadPdf = useCallback(async () => {
@@ -390,12 +409,21 @@ const Reports = () => {
       // Wait for rendering to complete
       await new Promise(resolve => requestAnimationFrame(resolve));
       await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      // Wait for fonts
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
 
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: reportRef.current.scrollWidth,
+        windowHeight: reportRef.current.scrollHeight,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -409,21 +437,24 @@ const Reports = () => {
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const scaledWidth = imgWidth * ratio;
+      const ratio = pdfWidth / imgWidth;
+      const scaledWidth = pdfWidth;
       const scaledHeight = imgHeight * ratio;
 
       // Handle multi-page PDFs
-      const pageHeight = pdfHeight;
-      const totalPages = Math.ceil(scaledHeight / pageHeight);
+      let heightLeft = scaledHeight;
+      let position = 0;
+      let page = 0;
 
-      for (let page = 0; page < totalPages; page++) {
+      while (heightLeft > 0) {
         if (page > 0) {
           pdf.addPage();
         }
         
-        const yOffset = -page * pageHeight;
-        pdf.addImage(imgData, "PNG", 0, yOffset, scaledWidth, scaledHeight);
+        pdf.addImage(imgData, "PNG", 0, position, scaledWidth, scaledHeight);
+        heightLeft -= pdfHeight;
+        position -= pdfHeight;
+        page++;
       }
 
       // Generate filename
@@ -438,6 +469,9 @@ const Reports = () => {
         title: "PDF Downloaded",
         description: `Report saved as ${fileName}`,
       });
+      
+      // Close preview after successful download
+      setShowPrintPreview(false);
     } catch (error) {
       console.error("PDF generation error:", error);
       toast({
@@ -507,9 +541,13 @@ const Reports = () => {
               <Printer className="mr-2 h-4 w-4" />
               Print Report
             </Button>
-            <Button onClick={() => { setShowPrintPreview(true); }} disabled={isDownloadingPdf}>
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+            <Button onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
+              {isDownloadingPdf ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {isDownloadingPdf ? "Generating..." : "Download PDF"}
             </Button>
           </div>
         </div>
@@ -583,7 +621,7 @@ const Reports = () => {
 
       {/* Print Preview Portal - renders outside #root for reliable printing */}
       {showPrintPreview && createPortal(
-        <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-portal">
+        <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-root">
           <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center gap-4 flex-wrap">
             <span className="font-semibold">Print Preview</span>
             
