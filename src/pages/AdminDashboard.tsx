@@ -16,6 +16,8 @@ import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
 import { MassageSales } from "@/components/MassageSales";
 import AdvancedAnalytics from "@/components/AdvancedAnalytics";
+import EnhancedAnalytics from "@/components/EnhancedAnalytics";
+import NotificationManager from "@/components/NotificationManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
@@ -274,9 +276,10 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8 h-auto">
+        <TabsList className="grid w-full grid-cols-9 h-auto">
           <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
           <TabsTrigger value="analytics" className="py-3">📊 Analytics</TabsTrigger>
+          <TabsTrigger value="notifications" className="py-3">🔔 Notifications</TabsTrigger>
           <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
             ☕ Cafe
           </TabsTrigger>
@@ -303,7 +306,14 @@ const AdminDashboard = () => {
 
         {activeTab === "analytics" && (
           <div className="space-y-6">
+            <EnhancedAnalytics />
             <AdvancedAnalytics />
+          </div>
+        )}
+
+        {activeTab === "notifications" && (
+          <div className="space-y-6">
+            <NotificationManager />
           </div>
         )}
 
