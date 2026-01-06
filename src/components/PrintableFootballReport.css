@@ -1,26 +1,9 @@
 /* Print-specific styles for Football Sales Report */
+/* NOTE: Global print visibility is handled by index.css - DO NOT add body > * rules here */
 @media print {
   @page {
     size: A4 landscape;
     margin: 10mm;
-  }
-
-  body {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  /* Hide everything except the print report */
-  body > *:not(.print-container) {
-    display: none !important;
-  }
-
-  .print-container {
-    display: block !important;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
   }
 
   /* Report container */
@@ -100,11 +83,6 @@
 
   .print-report .text-blue-600 {
     color: #2563eb !important;
-  }
-
-  /* Hide elements not needed in print */
-  .no-print {
-    display: none !important;
   }
 }
 
