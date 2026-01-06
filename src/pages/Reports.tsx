@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Printer, CalendarIcon, TrendingUp, BarChart3, CreditCard, Banknote, Edit } from "lucide-react";
+import { DollarSign, Printer, CalendarIcon, BarChart3, Edit, Download, Loader2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 interface ZoneSummary {
   zone: string;
@@ -41,6 +43,8 @@ const Reports = () => {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [hasData, setHasData] = useState(true);
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
   
   // Admin-only editable fields
   const [headerNotes, setHeaderNotes] = useState("");
@@ -344,13 +348,21 @@ const Reports = () => {
     setShowPrintPreview(true);
   };
 
-  // Trigger print when preview is shown (with sufficient delay for rendering)
+  // Trigger print when preview is shown - use requestAnimationFrame for reliable rendering
   useEffect(() => {
     if (showPrintPreview) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 400);
-      return () => clearTimeout(timer);
+      // Wait for multiple animation frames to ensure content is fully rendered
+      const waitForRender = () => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Additional small delay for fonts/images
+            setTimeout(() => {
+              window.print();
+            }, 100);
+          });
+        });
+      };
+      waitForRender();
     }
   }, [showPrintPreview]);
 
@@ -360,6 +372,83 @@ const Reports = () => {
     window.addEventListener('afterprint', handleAfterPrint);
     return () => window.removeEventListener('afterprint', handleAfterPrint);
   }, []);
+
+  // Download PDF function
+  const downloadPdf = useCallback(async () => {
+    if (!reportRef.current) {
+      toast({
+        title: "Error",
+        description: "Report not ready. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDownloadingPdf(true);
+
+    try {
+      // Wait for rendering to complete
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const scaledWidth = imgWidth * ratio;
+      const scaledHeight = imgHeight * ratio;
+
+      // Handle multi-page PDFs
+      const pageHeight = pdfHeight;
+      const totalPages = Math.ceil(scaledHeight / pageHeight);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
+        
+        const yOffset = -page * pageHeight;
+        pdf.addImage(imgData, "PNG", 0, yOffset, scaledWidth, scaledHeight);
+      }
+
+      // Generate filename
+      const dateStr = reportType === "daily" 
+        ? format(selectedDate, "yyyy-MM-dd")
+        : format(selectedDate, "yyyy-MM");
+      const fileName = `Sales-Report-${dateStr}.pdf`;
+
+      pdf.save(fileName);
+
+      toast({
+        title: "PDF Downloaded",
+        description: `Report saved as ${fileName}`,
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }, [reportType, selectedDate, toast]);
 
   return (
     <div className="space-y-6 dashboard-section">
@@ -413,10 +502,16 @@ const Reports = () => {
             </PopoverContent>
           </Popover>
 
-          <Button onClick={handlePrint} className="ml-auto">
-            <Printer className="mr-2 h-4 w-4" />
-            Print Report
-          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button onClick={handlePrint} variant="outline">
+              <Printer className="mr-2 h-4 w-4" />
+              Print Report
+            </Button>
+            <Button onClick={() => { setShowPrintPreview(true); }} disabled={isDownloadingPdf}>
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
         </div>
 
         {/* Date Range Indicator */}
@@ -502,9 +597,22 @@ const Reports = () => {
               </div>
             )}
             
-            <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
-              Close Preview
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={downloadPdf} 
+                disabled={isDownloadingPdf}
+              >
+                {isDownloadingPdf ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isDownloadingPdf ? "Generating..." : "Download PDF"}
+              </Button>
+              <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
+                Close Preview
+              </Button>
+            </div>
           </div>
           
           {/* Admin Edit Panel */}
@@ -557,19 +665,21 @@ const Reports = () => {
             </div>
           )}
           
-          <PrintableSalesReport
-            startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
-            endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
-            zoneSummaries={zoneSummaries}
-            totalRevenue={stats.totalCash + stats.totalCard + stats.totalOnline}
-            totalCash={stats.totalCash}
-            totalCard={stats.totalCard}
-            totalOnline={stats.totalOnline}
-            reportType={reportType}
-            headerNotes={headerNotes}
-            footerNotes={footerNotes}
-            adjustment={adjustmentAmount !== 0 ? { amount: adjustmentAmount, reason: adjustmentReason } : undefined}
-          />
+          <div ref={reportRef}>
+            <PrintableSalesReport
+              startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
+              endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
+              zoneSummaries={zoneSummaries}
+              totalRevenue={stats.totalCash + stats.totalCard + stats.totalOnline}
+              totalCash={stats.totalCash}
+              totalCard={stats.totalCard}
+              totalOnline={stats.totalOnline}
+              reportType={reportType}
+              headerNotes={headerNotes}
+              footerNotes={footerNotes}
+              adjustment={adjustmentAmount !== 0 ? { amount: adjustmentAmount, reason: adjustmentReason } : undefined}
+            />
+          </div>
         </div>,
         document.body
       )}

@@ -189,7 +189,11 @@ All colors MUST be HSL.
 }
 
 @media print {
-  /* Hide the main app root */
+  /* Hide everything except the print portal */
+  body > *:not(.print-portal) {
+    display: none !important;
+  }
+  
   #root {
     display: none !important;
   }
@@ -200,7 +204,10 @@ All colors MUST be HSL.
     position: static !important;
     width: 100% !important;
     height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     background: white !important;
+    z-index: 999999 !important;
   }
   
   .print-portal * {
@@ -228,6 +235,8 @@ All colors MUST be HSL.
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
   table {
