@@ -352,3 +352,13 @@ All colors MUST be HSL.
 .dashboard-section {
   animation: slide-in-up 0.6s ease-out;
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

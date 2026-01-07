@@ -133,24 +133,24 @@ export const ExpiryReminders = () => {
           {expiringMembers.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/10 transition-colors stat-card-hover"
+              className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-accent/10 transition-colors stat-card-hover"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{member.full_name}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium truncate">{member.full_name}</p>
                   <Badge variant={getUrgencyColor(member.days_until_expiry)}
                     className={cn(
-                      "flex items-center gap-1",
+                      "flex items-center gap-1 shrink-0",
                       member.days_until_expiry <= 7 && "bg-destructive/90 text-white",
                       member.days_until_expiry > 7 && member.days_until_expiry <= 14 && "bg-[hsl(var(--power))]/90 text-white",
                       member.days_until_expiry > 14 && "bg-accent/90 text-white"
                     )}
                   >
                     <Clock className="h-3 w-3" />
-                    {member.days_until_expiry} day{member.days_until_expiry > 1 ? 's' : ''}
+                    {member.days_until_expiry}d
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground truncate">
                   ID: {member.member_id} | Expires: {new Date(member.expiry_date).toLocaleDateString()}
                 </p>
               </div>
@@ -159,6 +159,7 @@ export const ExpiryReminders = () => {
                 message={getReminderMessage(member)}
                 variant="default"
                 size="sm"
+                className="w-full sm:w-auto shrink-0"
               >
                 Send Reminder
               </WhatsAppButton>

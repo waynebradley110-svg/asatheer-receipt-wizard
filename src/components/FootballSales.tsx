@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, Trash2, FileDown, Printer, Calendar } from "lucide-react";
+import { Trophy, Trash2, FileDown, Printer, Calendar, X } from "lucide-react";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -134,10 +135,6 @@ export function FootballSales() {
 
   const handlePrint = () => {
     setShowPrintView(true);
-    setTimeout(() => {
-      window.print();
-      setShowPrintView(false);
-    }, 500);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -501,9 +498,22 @@ export function FootballSales() {
         </CardContent>
       </Card>
 
-      {/* Print View - shown during print */}
-      {showPrintView && (
-        <div className="fixed inset-0 bg-white z-50 overflow-auto print:relative print:inset-auto">
+      {/* Print View - shown during print using portal with print-root */}
+      {showPrintView && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-root">
+          <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center shadow-sm">
+            <span className="font-semibold text-lg">⚽ Football Sales Report Preview</span>
+            <div className="flex gap-2">
+              <Button onClick={() => window.print()} className="bg-[hsl(var(--football))] hover:bg-[hsl(var(--football))]/90">
+                <Printer className="h-4 w-4 mr-2" />
+                Print Now
+              </Button>
+              <Button variant="outline" onClick={() => setShowPrintView(false)}>
+                <X className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+            </div>
+          </div>
           <PrintableFootballReport
             startDate={dateRange.from}
             endDate={dateRange.to}
@@ -512,7 +522,8 @@ export function FootballSales() {
             totalCard={filteredTotals.card}
             totalRevenue={filteredTotals.total}
           />
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Export View - positioned off-screen but visible for html2canvas */}

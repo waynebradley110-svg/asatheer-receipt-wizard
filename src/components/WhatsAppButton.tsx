@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface WhatsAppButtonProps {
   phoneNumber: string;
   message: string;
   variant?: "default" | "outline" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
   children?: React.ReactNode;
 }
 
@@ -15,6 +17,7 @@ export const WhatsAppButton = ({
   message, 
   variant = "outline",
   size = "sm",
+  className,
   children 
 }: WhatsAppButtonProps) => {
   const handleClick = () => {
@@ -38,7 +41,7 @@ export const WhatsAppButton = ({
       variant={variant} 
       size={size}
       onClick={handleClick}
-      className="gap-2"
+      className={cn("gap-2", className)}
     >
       <MessageCircle className="h-4 w-4" />
       {children || "WhatsApp"}
