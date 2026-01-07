@@ -224,7 +224,7 @@ const AdminDashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="stat-number text-4xl font-bold text-accent mb-2">
+            <div className="stat-number text-2xl md:text-4xl font-bold text-accent mb-2">
               AED {stats.totalCash.toFixed(2)}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border/50">
@@ -257,7 +257,7 @@ const AdminDashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="stat-number text-4xl font-bold text-primary mb-2">
+            <div className="stat-number text-2xl md:text-4xl font-bold text-primary mb-2">
               AED {stats.totalCard.toFixed(2)}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border/50">
@@ -276,22 +276,22 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9 h-auto">
-          <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
-          <TabsTrigger value="analytics" className="py-3">📊 Analytics</TabsTrigger>
-          <TabsTrigger value="notifications" className="py-3">🔔 Notifications</TabsTrigger>
-          <TabsTrigger value="cafe" className="py-3 data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
+        <TabsList className="flex w-full h-auto overflow-x-auto scrollbar-hide gap-1 p-1">
+          <TabsTrigger value="overview" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">Overview</TabsTrigger>
+          <TabsTrigger value="analytics" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">📊 Analytics</TabsTrigger>
+          <TabsTrigger value="notifications" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">🔔 Notifications</TabsTrigger>
+          <TabsTrigger value="cafe" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap data-[state=active]:bg-[hsl(var(--cafe))] data-[state=active]:text-[hsl(var(--cafe-foreground))]">
             ☕ Cafe
           </TabsTrigger>
-          <TabsTrigger value="football" className="py-3 data-[state=active]:bg-[hsl(var(--football))] data-[state=active]:text-[hsl(var(--football-foreground))]">
+          <TabsTrigger value="football" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap data-[state=active]:bg-[hsl(var(--football))] data-[state=active]:text-[hsl(var(--football-foreground))]">
             ⚽ Football
           </TabsTrigger>
-          <TabsTrigger value="massage" className="py-3 data-[state=active]:bg-[hsl(var(--massage))] data-[state=active]:text-[hsl(var(--massage-foreground))]">
+          <TabsTrigger value="massage" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap data-[state=active]:bg-[hsl(var(--massage))] data-[state=active]:text-[hsl(var(--massage-foreground))]">
             💆 Massage
           </TabsTrigger>
-          <TabsTrigger value="users" className="py-3">Users</TabsTrigger>
-          <TabsTrigger value="corrections" className="py-3">Corrections</TabsTrigger>
-          <TabsTrigger value="settings" className="py-3">Settings</TabsTrigger>
+          <TabsTrigger value="users" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">Users</TabsTrigger>
+          <TabsTrigger value="corrections" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">Corrections</TabsTrigger>
+          <TabsTrigger value="settings" className="shrink-0 px-3 py-2 text-sm whitespace-nowrap">Settings</TabsTrigger>
         </TabsList>
 
         {activeTab === "overview" && (
