@@ -30,7 +30,7 @@ export function ZoneAnalysis() {
       .from("members")
       .select("*, member_services(zone, expiry_date, is_active)");
 
-    const zones = ["gym", "ladies_gym", "pt", "crossfit", "football_court", "football_student", "swimming", "paddle_court"];
+    const zones = ["gym", "ladies_gym", "pt", "crossfit", "football_court", "football", "football_student", "swimming", "paddle_court"];
     
     const stats = zones.map((zone) => {
       const zonePayments = payments?.filter((p) => p.zone === zone) || [];
@@ -62,6 +62,7 @@ export function ZoneAnalysis() {
   };
 
   const formatZoneName = (zone: string) => {
+    if (zone === "football") return "Football Academy";
     return zone.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
@@ -72,6 +73,7 @@ export function ZoneAnalysis() {
       pt: UserCheck,
       crossfit: Activity,
       football_court: Trophy,
+      football: Target,
       football_student: Target,
       swimming: Waves,
       paddle_court: Activity
@@ -86,6 +88,7 @@ export function ZoneAnalysis() {
       pt: "energy",
       crossfit: "power",
       football_court: "performance",
+      football: "performance",
       football_student: "performance",
       swimming: "primary",
       paddle_court: "energy"
