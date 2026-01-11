@@ -484,29 +484,49 @@ const Members = () => {
     expired: members.filter(m => getMemberStatus(m) === "expired").length,
     byZone: {
       gym: { 
-        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active)).length,
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym')).length,
         active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
-        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active && new Date(s.expiry_date) < new Date())).length
+        expired: members.filter(m => {
+          const hasZoneHistory = m.member_services?.some((s: any) => s.zone === 'gym');
+          const hasActiveZone = m.member_services?.some((s: any) => s.zone === 'gym' && s.is_active && new Date(s.expiry_date) >= new Date());
+          return hasZoneHistory && !hasActiveZone;
+        }).length
       },
       ladies_gym: { 
-        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active)).length,
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym')).length,
         active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
-        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active && new Date(s.expiry_date) < new Date())).length
+        expired: members.filter(m => {
+          const hasZoneHistory = m.member_services?.some((s: any) => s.zone === 'ladies_gym');
+          const hasActiveZone = m.member_services?.some((s: any) => s.zone === 'ladies_gym' && s.is_active && new Date(s.expiry_date) >= new Date());
+          return hasZoneHistory && !hasActiveZone;
+        }).length
       },
       crossfit: { 
-        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active)).length,
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit')).length,
         active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
-        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active && new Date(s.expiry_date) < new Date())).length
+        expired: members.filter(m => {
+          const hasZoneHistory = m.member_services?.some((s: any) => s.zone === 'crossfit');
+          const hasActiveZone = m.member_services?.some((s: any) => s.zone === 'crossfit' && s.is_active && new Date(s.expiry_date) >= new Date());
+          return hasZoneHistory && !hasActiveZone;
+        }).length
       },
       football_student: { 
-        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active)).length,
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student')).length,
         active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
-        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active && new Date(s.expiry_date) < new Date())).length
+        expired: members.filter(m => {
+          const hasZoneHistory = m.member_services?.some((s: any) => s.zone === 'football_student');
+          const hasActiveZone = m.member_services?.some((s: any) => s.zone === 'football_student' && s.is_active && new Date(s.expiry_date) >= new Date());
+          return hasZoneHistory && !hasActiveZone;
+        }).length
       },
       pt: { 
-        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active)).length,
+        total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt')).length,
         active: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) >= new Date())).length,
-        expired: members.filter(m => m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) < new Date())).length
+        expired: members.filter(m => {
+          const hasZoneHistory = m.member_services?.some((s: any) => s.zone === 'pt');
+          const hasActiveZone = m.member_services?.some((s: any) => s.zone === 'pt' && s.is_active && new Date(s.expiry_date) >= new Date());
+          return hasZoneHistory && !hasActiveZone;
+        }).length
       },
     }
   };
