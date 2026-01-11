@@ -17,8 +17,12 @@ import {
   Edit,
   UserCheck,
   UserX,
-  Dumbbell
+  Dumbbell,
+  History,
+  ChevronDown
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
 
 interface MemberService {
   id: string;
@@ -144,15 +148,17 @@ export function MemberDetailsSheet({
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
 
-  // Sort services: active first, then by expiry date
-  const sortedServices = [...(member.member_services || [])]
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Active services only
+  const activeServices = [...(member.member_services || [])]
     .filter(s => s.is_active)
-    .sort((a, b) => {
-      const aExpired = new Date(a.expiry_date) < new Date();
-      const bExpired = new Date(b.expiry_date) < new Date();
-      if (aExpired !== bExpired) return aExpired ? 1 : -1;
-      return new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime();
-    });
+    .sort((a, b) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime());
+
+  // Historical (inactive) services
+  const historicalServices = [...(member.member_services || [])]
+    .filter(s => !s.is_active)
+    .sort((a, b) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime());
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -230,16 +236,16 @@ export function MemberDetailsSheet({
 
           <Separator />
 
-          {/* Section 2: Membership History */}
+          {/* Section 2: Active Membership Services */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
               <Dumbbell className="h-4 w-4" />
-              Membership Services
+              Active Memberships
             </h4>
             
-            {sortedServices.length > 0 ? (
+            {activeServices.length > 0 ? (
               <div className="space-y-2">
-                {sortedServices.map((service) => {
+                {activeServices.map((service) => {
                   const serviceStatus = getServiceStatus(service.expiry_date);
                   return (
                     <div 
@@ -287,6 +293,49 @@ export function MemberDetailsSheet({
               </div>
             )}
           </div>
+
+          {/* Section 3: Membership History (Inactive Services) */}
+          {historicalServices.length > 0 && (
+            <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between p-0 h-auto hover:bg-transparent"
+                >
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    Membership History ({historicalServices.length})
+                  </h4>
+                  <ChevronDown className={cn(
+                    "h-4 w-4 text-muted-foreground transition-transform",
+                    historyOpen && "rotate-180"
+                  )} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-2">
+                {historicalServices.map((service) => (
+                  <div 
+                    key={service.id}
+                    className="rounded-lg border border-muted bg-muted/20 p-3"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-muted-foreground">{getZoneLabel(service.zone)}</span>
+                      <Badge variant="outline" className="text-xs bg-muted/50 text-muted-foreground">
+                        Ended
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(service.start_date), 'dd/MM/yy')} - {format(new Date(service.expiry_date), 'dd/MM/yy')}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground/70">
+                      {getPlanLabel(service.subscription_plan)}
+                      {service.coach_name && ` • Coach: ${service.coach_name}`}
+                    </div>
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           <Separator />
 
