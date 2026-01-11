@@ -42,13 +42,29 @@ export const ExpiryReminders = () => {
       .order('created_at', { ascending: false });
 
     const expiring: ExpiringMember[] = [];
+    const addedMemberZones = new Set<string>(); // Track member+zone combinations to avoid duplicates
 
     members?.forEach((member: any) => {
+      // Group services by zone and get only the latest one per zone
+      const servicesByZone = new Map<string, any>();
+      
       member.member_services?.forEach((service: any) => {
+        if (!service.is_active) return;
+        
+        const existingService = servicesByZone.get(service.zone);
+        if (!existingService || new Date(service.expiry_date) > new Date(existingService.expiry_date)) {
+          servicesByZone.set(service.zone, service);
+        }
+      });
+      
+      // Check only the latest services for expiry
+      servicesByZone.forEach((service, zone) => {
         const expiryDate = new Date(service.expiry_date);
         const daysUntil = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const memberZoneKey = `${member.id}-${zone}`;
 
-        if (service.is_active && daysUntil > 0 && daysUntil <= 30) {
+        if (daysUntil > 0 && daysUntil <= 30 && !addedMemberZones.has(memberZoneKey)) {
+          addedMemberZones.add(memberZoneKey);
           expiring.push({
             id: member.id,
             full_name: member.full_name,
