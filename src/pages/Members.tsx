@@ -185,6 +185,20 @@ const Members = () => {
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
 
+      // If member exists, deactivate old services in the same zone first
+      if (existingMember) {
+        const { error: deactivateError } = await supabase
+          .from("member_services")
+          .update({ is_active: false })
+          .eq("member_id", memberDbId)
+          .eq("zone", formData.zone as any)
+          .eq("is_active", true);
+
+        if (deactivateError) {
+          console.error("Error deactivating old service:", deactivateError);
+        }
+      }
+
       // Insert service
       const { error: serviceError } = await supabase
         .from("member_services")
@@ -643,6 +657,18 @@ const Members = () => {
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
 
+      // DEACTIVATE OLD SERVICES IN THE SAME ZONE FIRST
+      const { error: deactivateError } = await supabase
+        .from("member_services")
+        .update({ is_active: false })
+        .eq("member_id", renewingMember.id)
+        .eq("zone", formData.zone as any)
+        .eq("is_active", true);
+
+      if (deactivateError) {
+        console.error("Error deactivating old service:", deactivateError);
+      }
+
       // Add new service
       const { error: serviceError } = await supabase
         .from("member_services")
@@ -732,23 +758,22 @@ const Members = () => {
         return;
       }
 
-      // Check for duplicate active service in the same zone
-      const existingActiveService = addingServiceMember.member_services?.find(
-        (s: any) => s.zone === formData.zone && s.is_active && new Date(s.expiry_date) >= new Date()
-      );
-
-      if (existingActiveService) {
-        const expiryFormatted = format(new Date(existingActiveService.expiry_date), 'dd/MM/yyyy');
-        toast.warning(
-          `Member already has an active ${getZoneLabel(formData.zone)} subscription expiring on ${expiryFormatted}. Adding new service anyway.`,
-          { duration: 5000 }
-        );
-      }
-
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
       const startDate = new Date(formData.payment_date);
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       const transactionId = crypto.randomUUID();
+
+      // DEACTIVATE OLD SERVICES IN THE SAME ZONE FIRST
+      const { error: deactivateError } = await supabase
+        .from("member_services")
+        .update({ is_active: false })
+        .eq("member_id", addingServiceMember.id)
+        .eq("zone", formData.zone as any)
+        .eq("is_active", true);
+
+      if (deactivateError) {
+        console.error("Error deactivating old service:", deactivateError);
+      }
 
       // Insert new service
       const { error: serviceError } = await supabase
