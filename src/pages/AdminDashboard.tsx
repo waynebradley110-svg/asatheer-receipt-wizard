@@ -15,8 +15,7 @@ import { ExcelBackup } from "@/components/ExcelBackup";
 import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
 import { MassageSales } from "@/components/MassageSales";
-import AdvancedAnalytics from "@/components/AdvancedAnalytics";
-import EnhancedAnalytics from "@/components/EnhancedAnalytics";
+import FuturisticAnalyticsDashboard from "@/components/FuturisticAnalyticsDashboard";
 import NotificationManager from "@/components/NotificationManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -305,10 +304,7 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === "analytics" && (
-          <div className="space-y-6">
-            <EnhancedAnalytics />
-            <AdvancedAnalytics />
-          </div>
+          <FuturisticAnalyticsDashboard />
         )}
 
         {activeTab === "notifications" && (

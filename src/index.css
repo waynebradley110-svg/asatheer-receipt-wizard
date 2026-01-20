@@ -6,6 +6,20 @@
 All colors MUST be HSL.
 */
 
+/* Futuristic Dashboard Theme */
+:root {
+  --futuristic-bg: 222 47% 5%;
+  --futuristic-panel: 222 47% 9%;
+  --futuristic-gold: 45 93% 47%;
+  --futuristic-cyan: 187 92% 53%;
+  --futuristic-purple: 258 89% 66%;
+  --futuristic-green: 142 76% 46%;
+  --futuristic-blue: 217 91% 60%;
+  --futuristic-orange: 25 95% 53%;
+  --futuristic-pink: 328 85% 62%;
+  --futuristic-amber: 38 92% 50%;
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
@@ -361,4 +375,250 @@ All colors MUST be HSL.
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Futuristic Dashboard Styles */
+.bg-futuristic-bg {
+  background-color: hsl(var(--futuristic-bg));
+}
+
+.bg-futuristic-panel {
+  background-color: hsl(var(--futuristic-panel));
+}
+
+.text-futuristic-gold {
+  color: hsl(var(--futuristic-gold));
+}
+
+.text-futuristic-cyan {
+  color: hsl(var(--futuristic-cyan));
+}
+
+.text-futuristic-purple {
+  color: hsl(var(--futuristic-purple));
+}
+
+.text-futuristic-green {
+  color: hsl(var(--futuristic-green));
+}
+
+.text-futuristic-blue {
+  color: hsl(var(--futuristic-blue));
+}
+
+.text-futuristic-orange {
+  color: hsl(var(--futuristic-orange));
+}
+
+.text-futuristic-pink {
+  color: hsl(var(--futuristic-pink));
+}
+
+.text-futuristic-amber {
+  color: hsl(var(--futuristic-amber));
+}
+
+.bg-futuristic-gold\/10 {
+  background-color: hsl(var(--futuristic-gold) / 0.1);
+}
+
+.bg-futuristic-cyan\/10 {
+  background-color: hsl(var(--futuristic-cyan) / 0.1);
+}
+
+.bg-futuristic-purple\/10 {
+  background-color: hsl(var(--futuristic-purple) / 0.1);
+}
+
+.bg-futuristic-green\/10 {
+  background-color: hsl(var(--futuristic-green) / 0.1);
+}
+
+.bg-futuristic-orange\/10 {
+  background-color: hsl(var(--futuristic-orange) / 0.1);
+}
+
+.glass-card {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+}
+
+.futuristic-card {
+  background: linear-gradient(135deg, hsl(var(--futuristic-panel)) 0%, hsl(var(--futuristic-panel) / 0.6) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.futuristic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.hero-kpi-card {
+  background: linear-gradient(135deg, hsl(var(--futuristic-panel)) 0%, hsl(var(--futuristic-bg)) 100%);
+  border: 2px solid hsl(var(--futuristic-gold) / 0.3);
+  box-shadow: 0 0 30px hsl(var(--futuristic-gold) / 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.border-gradient-gold {
+  border-image: linear-gradient(90deg, hsl(var(--futuristic-gold)), transparent) 1;
+}
+
+/* Light sweep animation */
+@keyframes light-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.light-sweep-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--futuristic-gold) / 0.2), transparent);
+  animation: light-sweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Count up animation */
+@keyframes count-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.count-up-animation {
+  animation: stat-count-up 0.6s ease-out;
+}
+
+/* Futuristic glow effects */
+.shadow-futuristic-cyan {
+  box-shadow: 0 0 20px hsl(var(--futuristic-cyan) / 0.4);
+}
+
+.shadow-futuristic-gold {
+  box-shadow: 0 0 20px hsl(var(--futuristic-gold) / 0.4);
+}
+
+.shadow-futuristic-purple {
+  box-shadow: 0 0 20px hsl(var(--futuristic-purple) / 0.4);
+}
+
+.shadow-futuristic-green {
+  box-shadow: 0 0 20px hsl(var(--futuristic-green) / 0.4);
+}
+
+.shadow-futuristic-orange {
+  box-shadow: 0 0 20px hsl(var(--futuristic-orange) / 0.4);
+}
+
+/* Zone gradient backgrounds */
+.from-futuristic-cyan\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-cyan) / 0.2);
+}
+
+.to-futuristic-cyan\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-cyan) / 0.05);
+}
+
+.border-futuristic-cyan\/30 {
+  border-color: hsl(var(--futuristic-cyan) / 0.3);
+}
+
+.from-futuristic-orange\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-orange) / 0.2);
+}
+
+.to-futuristic-orange\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-orange) / 0.05);
+}
+
+.border-futuristic-orange\/30 {
+  border-color: hsl(var(--futuristic-orange) / 0.3);
+}
+
+.from-futuristic-purple\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-purple) / 0.2);
+}
+
+.to-futuristic-purple\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-purple) / 0.05);
+}
+
+.border-futuristic-purple\/30 {
+  border-color: hsl(var(--futuristic-purple) / 0.3);
+}
+
+.from-futuristic-blue\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-blue) / 0.2);
+}
+
+.to-futuristic-blue\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-blue) / 0.05);
+}
+
+.border-futuristic-blue\/30 {
+  border-color: hsl(var(--futuristic-blue) / 0.3);
+}
+
+.from-futuristic-green\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-green) / 0.2);
+}
+
+.to-futuristic-green\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-green) / 0.05);
+}
+
+.border-futuristic-green\/30 {
+  border-color: hsl(var(--futuristic-green) / 0.3);
+}
+
+.from-futuristic-pink\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-pink) / 0.2);
+}
+
+.to-futuristic-pink\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-pink) / 0.05);
+}
+
+.border-futuristic-pink\/30 {
+  border-color: hsl(var(--futuristic-pink) / 0.3);
+}
+
+.from-futuristic-amber\/20 {
+  --tw-gradient-from: hsl(var(--futuristic-amber) / 0.2);
+}
+
+.to-futuristic-amber\/5 {
+  --tw-gradient-to: hsl(var(--futuristic-amber) / 0.05);
+}
+
+.border-futuristic-amber\/30 {
+  border-color: hsl(var(--futuristic-amber) / 0.3);
+}
+
+.from-futuristic-panel\/80 {
+  --tw-gradient-from: hsl(var(--futuristic-panel) / 0.8);
+}
+
+.to-futuristic-panel\/40 {
+  --tw-gradient-to: hsl(var(--futuristic-panel) / 0.4);
 }
