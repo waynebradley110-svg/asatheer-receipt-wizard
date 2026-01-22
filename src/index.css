@@ -293,6 +293,94 @@ All colors MUST be HSL.
   .break-inside-avoid {
     page-break-inside: avoid;
   }
+  
+  /* Show print-only elements when printing */
+  .print-only {
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .printable-pt-report {
+    display: block !important;
+    visibility: visible !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    padding: 20pt !important;
+    font-size: 9pt !important;
+    line-height: 1.4 !important;
+  }
+  
+  .printable-pt-report * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .printable-pt-report .report-header {
+    text-align: center;
+    border-bottom: 2pt solid #000;
+    margin-bottom: 15pt;
+    padding-bottom: 10pt;
+  }
+  
+  .printable-pt-report .report-header h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    margin: 0 0 5pt 0;
+  }
+  
+  .printable-pt-report .report-header h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 5pt 0;
+    color: #333 !important;
+  }
+  
+  .printable-pt-report .summary-section {
+    margin-bottom: 15pt;
+    padding: 10pt;
+    background-color: #f5f5f5 !important;
+    border: 1pt solid #ddd;
+  }
+  
+  .printable-pt-report .coach-section {
+    page-break-inside: avoid;
+    margin-bottom: 20pt;
+    border: 1pt solid #ddd;
+    padding: 10pt;
+  }
+  
+  .printable-pt-report .sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .printable-pt-report .sessions-table th,
+  .printable-pt-report .sessions-table td {
+    border: 1pt solid #ddd;
+    padding: 4pt 8pt;
+    font-size: 8pt;
+  }
+  
+  .printable-pt-report .sessions-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold;
+  }
+  
+  .printable-pt-report .grand-total {
+    margin-top: 20pt;
+    padding: 10pt;
+    background-color: #333 !important;
+    color: white !important;
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
+  }
+  
+  .printable-pt-report .grand-total * {
+    color: white !important;
+    background-color: #333 !important;
+  }
 }
 
 .print-only {
