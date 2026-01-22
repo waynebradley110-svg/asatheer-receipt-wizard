@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Printer, Users, TrendingUp, CalendarIcon, Activity, UserCheck } from "lucide-react";
+import { DollarSign, Printer, Users, TrendingUp, CalendarIcon, Activity, UserCheck, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
@@ -36,6 +37,7 @@ const PTReport = () => {
   const [reportType, setReportType] = useState<"daily" | "monthly">("monthly");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [coachSummaries, setCoachSummaries] = useState<CoachSummary[]>([]);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalCoaches: 0,
@@ -155,7 +157,7 @@ const PTReport = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    setShowPrintPreview(true);
   };
 
   return (
@@ -445,18 +447,34 @@ const PTReport = () => {
         )}
       </div>
 
-      {/* Printable Report */}
-      <div className="print-only">
-        <PrintablePTReport
-          startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
-          endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
-          coachSummaries={coachSummaries}
-          totalRevenue={stats.totalRevenue}
-          totalCoaches={stats.totalCoaches}
-          totalSessions={stats.totalSessions}
-          reportType={reportType}
-        />
-      </div>
+      {/* Print Preview Portal */}
+      {showPrintPreview && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-root">
+          <div className="no-print sticky top-0 bg-white border-b p-4 flex justify-between items-center shadow-sm z-10">
+            <span className="font-semibold text-lg text-foreground">PT Coach Commission Report Preview</span>
+            <div className="flex gap-2">
+              <Button onClick={() => window.print()} className="bg-accent hover:bg-accent/90">
+                <Printer className="h-4 w-4 mr-2" />
+                Print Now
+              </Button>
+              <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
+                <X className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+            </div>
+          </div>
+          <PrintablePTReport
+            startDate={reportType === "daily" ? selectedDate : startOfMonth(selectedDate)}
+            endDate={reportType === "daily" ? selectedDate : endOfMonth(selectedDate)}
+            coachSummaries={coachSummaries}
+            totalRevenue={stats.totalRevenue}
+            totalCoaches={stats.totalCoaches}
+            totalSessions={stats.totalSessions}
+            reportType={reportType}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
