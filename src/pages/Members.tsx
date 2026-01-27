@@ -446,6 +446,47 @@ const Members = () => {
     return activeService ? "active" : "expired";
   };
 
+  // Helper function to find active service for a specific zone (for extend renewal)
+  const getActiveServiceForZone = (member: any, zone: string) => {
+    return member?.member_services?.find((s: any) => 
+      s.zone === zone && 
+      s.is_active && 
+      new Date(s.expiry_date) >= new Date()
+    );
+  };
+
+  // Calculate renewal preview based on current zone and plan selection
+  const renewalPreview = useMemo(() => {
+    if (!renewingMember || !formData.zone || !formData.subscription_plan) {
+      return null;
+    }
+    
+    const activeService = getActiveServiceForZone(renewingMember, formData.zone);
+    const paymentDate = new Date(formData.payment_date);
+    
+    if (activeService) {
+      const currentExpiry = new Date(activeService.expiry_date);
+      const daysRemaining = Math.ceil(
+        (currentExpiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const newExpiry = calculateExpiryDate(currentExpiry, formData.subscription_plan);
+      
+      return {
+        isExtension: true,
+        currentExpiry,
+        daysRemaining,
+        newExpiry
+      };
+    } else {
+      const newExpiry = calculateExpiryDate(paymentDate, formData.subscription_plan);
+      return {
+        isExtension: false,
+        startDate: paymentDate,
+        newExpiry
+      };
+    }
+  }, [renewingMember, formData.zone, formData.subscription_plan, formData.payment_date]);
+
   // Helper function to convert zone codes to readable labels
   const getZoneLabel = (zone: string): string => {
     const labels: Record<string, string> = {
@@ -673,8 +714,23 @@ const Members = () => {
       }
 
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-      const startDate = new Date(formData.payment_date);
-      const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
+      
+      // Check for active service in the selected zone for EXTEND RENEWAL
+      const activeService = getActiveServiceForZone(renewingMember, formData.zone);
+      
+      let startDate: Date;
+      let expiryDate: Date;
+      
+      if (activeService) {
+        // EXTEND: Add duration on top of current expiry
+        startDate = new Date(formData.payment_date);
+        expiryDate = calculateExpiryDate(new Date(activeService.expiry_date), formData.subscription_plan);
+      } else {
+        // FRESH: Start from payment date
+        startDate = new Date(formData.payment_date);
+        expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
+      }
+      
       const transactionId = crypto.randomUUID();
 
       // DEACTIVATE OLD SERVICES IN THE SAME ZONE FIRST
@@ -1628,6 +1684,73 @@ const Members = () => {
                 Select the actual date the payment was made
               </p>
             </div>
+
+            {/* Renewal Preview Section */}
+            {renewalPreview && (
+              <div className={cn(
+                "rounded-lg border p-4 space-y-3",
+                renewalPreview.isExtension 
+                  ? "bg-accent/5 border-accent/30" 
+                  : "bg-muted/50 border-border"
+              )}>
+                <div className="flex items-center gap-2">
+                  {renewalPreview.isExtension ? (
+                    <>
+                      <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Active Membership Detected
+                      </Badge>
+                    </>
+                  ) : (
+                    <Badge variant="outline" className="bg-muted text-muted-foreground">
+                      New Membership
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {renewalPreview.isExtension ? (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">Current Expiry:</span>
+                        <p className="font-medium">
+                          {format(renewalPreview.currentExpiry, 'dd/MM/yyyy')}
+                          <span className="text-accent ml-2">({renewalPreview.daysRemaining} days remaining)</span>
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">New Plan:</span>
+                        <p className="font-medium">
+                          {formData.subscription_plan.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">Start Date:</span>
+                        <p className="font-medium">{format(renewalPreview.startDate!, 'dd/MM/yyyy')}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Plan:</span>
+                        <p className="font-medium">
+                          {formData.subscription_plan.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="border-t border-border/50 pt-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">New Expiry Date:</span>
+                    <span className="text-lg font-bold text-accent">
+                      {format(renewalPreview.newExpiry, 'dd/MM/yyyy')} ✓
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
