@@ -45,6 +45,7 @@ const Members = () => {
   });
   const [renewDialogOpen, setRenewDialogOpen] = useState(false);
   const [renewingMember, setRenewingMember] = useState<any>(null);
+  const [renewalMode, setRenewalMode] = useState<'extend' | 'reset'>('extend');
   const [paymentEntries, setPaymentEntries] = useState<PaymentEntry[]>([
     { payment_method: "", amount: "" }
   ]);
@@ -469,23 +470,30 @@ const Members = () => {
       const daysRemaining = Math.ceil(
         (currentExpiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
       );
-      const newExpiry = calculateExpiryDate(currentExpiry, formData.subscription_plan);
+      
+      // Calculate based on selected renewal mode
+      const newExpiry = renewalMode === 'extend'
+        ? calculateExpiryDate(currentExpiry, formData.subscription_plan)
+        : calculateExpiryDate(paymentDate, formData.subscription_plan);
       
       return {
-        isExtension: true,
+        hasActiveService: true,
+        isExtension: renewalMode === 'extend',
         currentExpiry,
         daysRemaining,
+        startDate: paymentDate,
         newExpiry
       };
     } else {
       const newExpiry = calculateExpiryDate(paymentDate, formData.subscription_plan);
       return {
+        hasActiveService: false,
         isExtension: false,
         startDate: paymentDate,
         newExpiry
       };
     }
-  }, [renewingMember, formData.zone, formData.subscription_plan, formData.payment_date]);
+  }, [renewingMember, formData.zone, formData.subscription_plan, formData.payment_date, renewalMode]);
 
   // Helper function to convert zone codes to readable labels
   const getZoneLabel = (zone: string): string => {
@@ -690,6 +698,7 @@ const Members = () => {
 
   const handleRenewMembership = (member: any) => {
     setRenewingMember(member);
+    setRenewalMode('extend'); // Default to extend mode
     setFormData({
       ...formData,
       full_name: member.full_name,
@@ -721,12 +730,12 @@ const Members = () => {
       let startDate: Date;
       let expiryDate: Date;
       
-      if (activeService) {
+      if (activeService && renewalMode === 'extend') {
         // EXTEND: Add duration on top of current expiry
         startDate = new Date(formData.payment_date);
         expiryDate = calculateExpiryDate(new Date(activeService.expiry_date), formData.subscription_plan);
       } else {
-        // FRESH: Start from payment date
+        // RESET/FRESH: Start from payment date
         startDate = new Date(formData.payment_date);
         expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
       }
@@ -1693,20 +1702,49 @@ const Members = () => {
                   ? "bg-accent/5 border-accent/30" 
                   : "bg-muted/50 border-border"
               )}>
-                <div className="flex items-center gap-2">
-                  {renewalPreview.isExtension ? (
-                    <>
+                {/* Toggle for extend/reset mode - only show if active service exists */}
+                {renewalPreview.hasActiveService && (
+                  <div className="flex items-center justify-between pb-3 border-b border-border/50">
+                    <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30">
                         <Calendar className="h-3 w-3 mr-1" />
-                        Active Membership Detected
+                        Active Membership
                       </Badge>
-                    </>
-                  ) : (
-                    <Badge variant="outline" className="bg-muted text-muted-foreground">
-                      New Membership
-                    </Badge>
-                  )}
-                </div>
+                      <span className="text-sm text-muted-foreground">
+                        Expires: {format(renewalPreview.currentExpiry!, 'dd/MM/yyyy')} ({renewalPreview.daysRemaining} days left)
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mode Toggle */}
+                {renewalPreview.hasActiveService && (
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={renewalMode === 'extend' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setRenewalMode('extend')}
+                      className={cn(
+                        "flex-1",
+                        renewalMode === 'extend' && "bg-accent hover:bg-accent/90"
+                      )}
+                    >
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Extend (Add to Current)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={renewalMode === 'reset' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setRenewalMode('reset')}
+                      className="flex-1"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Reset (Start Fresh)
+                    </Button>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   {renewalPreview.isExtension ? (
@@ -1714,12 +1752,11 @@ const Members = () => {
                       <div>
                         <span className="text-muted-foreground">Current Expiry:</span>
                         <p className="font-medium">
-                          {format(renewalPreview.currentExpiry, 'dd/MM/yyyy')}
-                          <span className="text-accent ml-2">({renewalPreview.daysRemaining} days remaining)</span>
+                          {format(renewalPreview.currentExpiry!, 'dd/MM/yyyy')}
                         </p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">New Plan:</span>
+                        <span className="text-muted-foreground">+ Plan Duration:</span>
                         <p className="font-medium">
                           {formData.subscription_plan.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </p>
@@ -1748,6 +1785,11 @@ const Members = () => {
                       {format(renewalPreview.newExpiry, 'dd/MM/yyyy')} ✓
                     </span>
                   </div>
+                  {renewalPreview.hasActiveService && !renewalPreview.isExtension && (
+                    <p className="text-xs text-orange-500 mt-1">
+                      ⚠️ Reset mode: {renewalPreview.daysRemaining} remaining days will be lost
+                    </p>
+                  )}
                 </div>
               </div>
             )}
