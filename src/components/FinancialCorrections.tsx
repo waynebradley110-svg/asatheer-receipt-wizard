@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { AlertTriangle, Edit, RefreshCw, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-type CorrectionType = "name_edit" | "refund" | "price_adjustment";
+type CorrectionType = "name_edit" | "refund" | "price_adjustment" | "payment_method_change";
 
 interface Correction {
   id: string;
@@ -23,13 +23,24 @@ interface Correction {
   created_at: string;
 }
 
+interface PaymentReceipt {
+  id: string;
+  amount: number;
+  payment_method: string;
+  created_at: string;
+  zone: string;
+  subscription_plan: string;
+}
+
 export function FinancialCorrections() {
   const [members, setMembers] = useState<any[]>([]);
   const [corrections, setCorrections] = useState<Correction[]>([]);
+  const [memberPayments, setMemberPayments] = useState<PaymentReceipt[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [correctionType, setCorrectionType] = useState<CorrectionType>("name_edit");
   const [selectedMember, setSelectedMember] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("");
   const [formData, setFormData] = useState({
     newName: "",
     refundAmount: "",
@@ -37,12 +48,19 @@ export function FinancialCorrections() {
     adjustmentAmount: "",
     adjustmentReason: "",
     paymentMethod: "",
+    newPaymentMethod: "",
   });
 
   useEffect(() => {
     fetchMembers();
     fetchCorrections();
   }, []);
+
+  useEffect(() => {
+    if (selectedMember && correctionType === "payment_method_change") {
+      fetchMemberPayments(selectedMember);
+    }
+  }, [selectedMember, correctionType]);
 
   const fetchMembers = async () => {
     const { data } = await supabase
@@ -59,6 +77,17 @@ export function FinancialCorrections() {
       .order("timestamp", { ascending: false })
       .limit(20);
     setCorrections(data as any || []);
+  };
+
+  const fetchMemberPayments = async (memberId: string) => {
+    const { data } = await supabase
+      .from("payment_receipts")
+      .select("id, amount, payment_method, created_at, zone, subscription_plan")
+      .eq("member_id", memberId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setMemberPayments(data || []);
+    setSelectedPayment("");
   };
 
   const handleNameCorrection = async () => {
@@ -183,6 +212,47 @@ export function FinancialCorrections() {
     }
   };
 
+  const handlePaymentMethodChange = async () => {
+    if (!selectedPayment || !formData.newPaymentMethod) {
+      toast.error("Please select a payment and new payment method");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payment = memberPayments.find(p => p.id === selectedPayment);
+      if (!payment) throw new Error("Payment not found");
+
+      const { error: updateError } = await supabase
+        .from("payment_receipts")
+        .update({ payment_method: formData.newPaymentMethod as 'cash' | 'card' | 'online' })
+        .eq("id", selectedPayment);
+
+      if (updateError) throw updateError;
+
+      const { error: auditError } = await supabase
+        .from("financial_audit_trail")
+        .insert([{
+          table_name: "payment_receipts",
+          action_type: "payment_method_change",
+          record_id: selectedPayment,
+          action_by: "admin",
+          description: `Payment method changed from "${payment.payment_method}" to "${formData.newPaymentMethod}" for ${payment.amount} AED (${payment.zone})`,
+        }]);
+
+      if (auditError) throw auditError;
+
+      toast.success("Payment method updated successfully");
+      setDialogOpen(false);
+      resetForm();
+      fetchCorrections();
+    } catch (error: any) {
+      toast.error(error.message || "Error updating payment method");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     switch (correctionType) {
@@ -195,6 +265,9 @@ export function FinancialCorrections() {
       case "price_adjustment":
         handlePriceAdjustment();
         break;
+      case "payment_method_change":
+        handlePaymentMethodChange();
+        break;
     }
   };
 
@@ -206,8 +279,11 @@ export function FinancialCorrections() {
       adjustmentAmount: "",
       adjustmentReason: "",
       paymentMethod: "",
+      newPaymentMethod: "",
     });
     setSelectedMember("");
+    setSelectedPayment("");
+    setMemberPayments([]);
     setCorrectionType("name_edit");
   };
 
@@ -242,6 +318,7 @@ export function FinancialCorrections() {
                         <SelectItem value="name_edit">Name Spelling Correction</SelectItem>
                         <SelectItem value="refund">Process Refund</SelectItem>
                         <SelectItem value="price_adjustment">Price Adjustment</SelectItem>
+                        <SelectItem value="payment_method_change">Change Payment Method</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -334,6 +411,48 @@ export function FinancialCorrections() {
                           rows={3}
                         />
                       </div>
+                    </>
+                  )}
+
+                  {correctionType === "payment_method_change" && selectedMember && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Select Payment to Edit *</Label>
+                        <Select value={selectedPayment} onValueChange={setSelectedPayment}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose payment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {memberPayments.length === 0 ? (
+                              <SelectItem value="none" disabled>No payments found</SelectItem>
+                            ) : (
+                              memberPayments.map((payment) => (
+                                <SelectItem key={payment.id} value={payment.id}>
+                                  {new Date(payment.created_at).toLocaleDateString()} - {payment.amount} AED ({payment.payment_method}) - {payment.zone}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {selectedPayment && (
+                        <div className="space-y-2">
+                          <Label>New Payment Method *</Label>
+                          <Select
+                            value={formData.newPaymentMethod}
+                            onValueChange={(v) => setFormData({ ...formData, newPaymentMethod: v })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select new method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="online">Online</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </>
                   )}
 
