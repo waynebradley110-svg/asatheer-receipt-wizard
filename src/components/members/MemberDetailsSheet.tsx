@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { EditPaymentDialog } from "./EditPaymentDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { 
@@ -19,7 +20,8 @@ import {
   UserX,
   Dumbbell,
   History,
-  ChevronDown
+  ChevronDown,
+  Receipt
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
@@ -143,12 +145,13 @@ export function MemberDetailsSheet({
   onDelete,
   isAdmin
 }: MemberDetailsSheetProps) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [editPaymentOpen, setEditPaymentOpen] = useState(false);
+
   if (!member) return null;
 
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
-
-  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Active services only
   const activeServices = [...(member.member_services || [])]
@@ -386,6 +389,14 @@ export function MemberDetailsSheet({
               />
               
               <Button 
+                variant="outline"
+                onClick={() => setEditPaymentOpen(true)}
+              >
+                <Receipt className="h-4 w-4 mr-2" />
+                Edit Payment
+              </Button>
+              
+              <Button 
                 variant="ghost"
                 onClick={() => {
                   onOpenChange(false);
@@ -444,6 +455,13 @@ export function MemberDetailsSheet({
             </>
           )}
         </div>
+
+        <EditPaymentDialog
+          memberId={member.id}
+          memberName={member.full_name}
+          open={editPaymentOpen}
+          onOpenChange={setEditPaymentOpen}
+        />
       </SheetContent>
     </Sheet>
   );
