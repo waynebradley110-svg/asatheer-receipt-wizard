@@ -103,7 +103,8 @@ const AdvancedAnalytics = () => {
       // Fetch payment receipts
       const { data: payments } = await supabase
         .from("payment_receipts")
-        .select("*")
+        .select("*, members!inner(is_vip)")
+        .eq("members.is_vip", false)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 

@@ -99,7 +99,7 @@ const Reports = () => {
       .from("payment_receipts")
       .select(`
         *,
-        members(full_name, notes)
+        members!inner(full_name, notes, is_vip)
       `);
 
     if (reportType === "daily") {
@@ -113,6 +113,9 @@ const Reports = () => {
         .gte("created_at", `${startDateStr}T00:00:00`)
         .lte("created_at", `${endDateStr}T23:59:59.999`);
     }
+
+    // Exclude VIP members from reports
+    paymentsQuery = paymentsQuery.eq("members.is_vip", false);
 
     const { data: payments } = await paymentsQuery;
 

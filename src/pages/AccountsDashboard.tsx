@@ -24,7 +24,8 @@ const AccountsDashboard = () => {
 
     const { data: payments } = await supabase
       .from("payment_receipts")
-      .select("amount, payment_method, created_at");
+      .select("amount, payment_method, created_at, members!inner(is_vip)")
+      .eq("members.is_vip", false);
 
     const { data: expenses } = await supabase
       .from("expenses")

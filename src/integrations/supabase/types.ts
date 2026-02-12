@@ -487,6 +487,7 @@ export type Database = {
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          is_vip: boolean
           member_id: string
           notes: string | null
           phone_number: string
@@ -499,6 +500,7 @@ export type Database = {
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id?: string
+          is_vip?: boolean
           member_id: string
           notes?: string | null
           phone_number: string
@@ -511,6 +513,7 @@ export type Database = {
           full_name?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
+          is_vip?: boolean
           member_id?: string
           notes?: string | null
           phone_number?: string

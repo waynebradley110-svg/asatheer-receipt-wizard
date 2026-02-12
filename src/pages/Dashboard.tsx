@@ -76,7 +76,8 @@ const LegacyDashboard = () => {
 
     const { data: payments } = await supabase
       .from("payment_receipts")
-      .select("amount, payment_method");
+      .select("amount, payment_method, members!inner(is_vip)")
+      .eq("members.is_vip", false);
 
     const { data: newMembers } = await supabase
       .from("members")

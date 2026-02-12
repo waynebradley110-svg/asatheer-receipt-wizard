@@ -123,7 +123,8 @@ const FuturisticAnalyticsDashboard = () => {
       // Fetch payment receipts
       const { data: payments } = await supabase
         .from("payment_receipts")
-        .select("*")
+        .select("*, members!inner(is_vip)")
+        .eq("members.is_vip", false)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 
@@ -156,7 +157,8 @@ const FuturisticAnalyticsDashboard = () => {
       // Fetch all-time stats for lifetime summary
       const { data: allPayments } = await supabase
         .from("payment_receipts")
-        .select("amount, created_at");
+        .select("amount, created_at, members!inner(is_vip)")
+        .eq("members.is_vip", false);
 
       const { data: allCafeSales } = await supabase
         .from("cafe_sales")
