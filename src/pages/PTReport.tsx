@@ -73,8 +73,9 @@ const PTReport = () => {
       .from("payment_receipts")
       .select(`
         *,
-        members!inner(full_name, phone_number, notes)
+        members!inner(full_name, phone_number, notes, is_vip)
       `)
+      .eq("members.is_vip", false)
       .eq("zone", "pt")
       .gte("created_at", startDate.toISOString())
       .lte("created_at", endDate.toISOString())

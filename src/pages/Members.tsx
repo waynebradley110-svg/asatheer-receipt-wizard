@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Users, TrendingUp, Dumbbell, Heart, Trophy, Activity, Calendar, User, DollarSign, UserCheck, UserX, Search, Filter, Edit, Trash2 } from "lucide-react";
+import { Plus, Users, TrendingUp, Dumbbell, Heart, Trophy, Activity, Calendar, User, DollarSign, UserCheck, UserX, Search, Filter, Edit, Trash2, Crown } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -32,6 +33,7 @@ const Members = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [isVip, setIsVip] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     gender: "",
@@ -174,6 +176,7 @@ const Members = () => {
             phone_number: formData.phone_number,
             date_of_birth: formData.date_of_birth || null,
             notes: formData.notes || null,
+            is_vip: isVip,
           }])
           .select()
           .single();
@@ -280,6 +283,7 @@ const Members = () => {
       payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setPaymentEntries([{ payment_method: "", amount: "" }]);
+    setIsVip(false);
   };
 
   const resetEventForm = () => {
@@ -652,6 +656,7 @@ const Members = () => {
 
   const handleEditMember = (member: any) => {
     setEditingMember(member);
+    setIsVip(member.is_vip || false);
     setFormData({
       full_name: member.full_name,
       gender: member.gender,
@@ -679,6 +684,7 @@ const Members = () => {
           phone_number: formData.phone_number,
           date_of_birth: formData.date_of_birth || null,
           notes: formData.notes || null,
+          is_vip: isVip,
         })
         .eq("id", editingMember.id);
 
@@ -1363,6 +1369,21 @@ const Members = () => {
                     />
                   </div>
 
+                  {isAdmin && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700">
+                      <Checkbox
+                        id="is_vip"
+                        checked={isVip}
+                        onCheckedChange={(checked) => setIsVip(checked === true)}
+                      />
+                      <Label htmlFor="is_vip" className="flex items-center gap-2 cursor-pointer">
+                        <Crown className="h-4 w-4 text-yellow-600" />
+                        <span className="font-medium">VIP Pass</span>
+                        <span className="text-xs text-muted-foreground">(Payment NOT recorded in reports)</span>
+                      </Label>
+                    </div>
+                  )}
+
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Registering..." : "Register Member"}
                     </Button>
@@ -1606,6 +1627,21 @@ const Members = () => {
                 rows={3}
               />
             </div>
+
+            {isAdmin && (
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700">
+                <Checkbox
+                  id="edit_is_vip"
+                  checked={isVip}
+                  onCheckedChange={(checked) => setIsVip(checked === true)}
+                />
+                <Label htmlFor="edit_is_vip" className="flex items-center gap-2 cursor-pointer">
+                  <Crown className="h-4 w-4 text-yellow-600" />
+                  <span className="font-medium">VIP Pass</span>
+                  <span className="text-xs text-muted-foreground">(Payment NOT recorded in reports)</span>
+                </Label>
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Updating..." : "Update Member"}

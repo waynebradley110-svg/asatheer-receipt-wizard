@@ -24,7 +24,8 @@ export function ZoneAnalysis() {
   const fetchZoneAnalysis = async () => {
     const { data: payments } = await supabase
       .from("payment_receipts")
-      .select("zone, amount");
+      .select("zone, amount, members!inner(is_vip)")
+      .eq("members.is_vip", false);
 
     const { data: members } = await supabase
       .from("members")

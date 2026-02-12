@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { RefreshCw, ChevronRight, UserCheck, UserX, Phone } from "lucide-react";
+import { RefreshCw, ChevronRight, UserCheck, UserX, Phone, Crown } from "lucide-react";
 
 interface MemberService {
   id: string;
@@ -23,6 +23,7 @@ interface Member {
   gender: string;
   date_of_birth?: string;
   notes?: string;
+  is_vip?: boolean;
   member_services?: MemberService[];
 }
 
@@ -96,9 +97,17 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
       <div className="p-4 space-y-3">
         {/* Header: Member ID & Status Badge */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">
-            {member.member_id}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-mono text-muted-foreground">
+              {member.member_id}
+            </span>
+            {member.is_vip && (
+              <Badge className="text-xs bg-yellow-500/90 hover:bg-yellow-500 text-white border-0 px-1.5 py-0">
+                <Crown className="h-3 w-3 mr-0.5" />
+                VIP
+              </Badge>
+            )}
+          </div>
           <Badge 
             variant={isExpired ? "destructive" : "default"}
             className={cn(

@@ -21,7 +21,8 @@ import {
   Dumbbell,
   History,
   ChevronDown,
-  Receipt
+  Receipt,
+  Crown
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
@@ -50,6 +51,7 @@ interface Member {
   gender: string;
   date_of_birth?: string;
   notes?: string;
+  is_vip?: boolean;
   member_services?: MemberService[];
 }
 
@@ -185,7 +187,15 @@ export function MemberDetailsSheet({
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="space-y-1">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl">{member.full_name}</SheetTitle>
+            <div className="flex items-center gap-2">
+              <SheetTitle className="text-xl">{member.full_name}</SheetTitle>
+              {member.is_vip && (
+                <Badge className="bg-yellow-500/90 hover:bg-yellow-500 text-white border-0">
+                  <Crown className="h-3.5 w-3.5 mr-1" />
+                  VIP
+                </Badge>
+              )}
+            </div>
             <Badge 
               variant={isExpired ? "destructive" : "default"}
               className={cn(

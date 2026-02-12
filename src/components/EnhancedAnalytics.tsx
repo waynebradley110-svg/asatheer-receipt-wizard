@@ -82,12 +82,14 @@ const EnhancedAnalytics = () => {
       // Fetch payments for revenue growth
       const { data: thisMonthPayments } = await supabase
         .from("payment_receipts")
-        .select("amount")
+        .select("amount, members!inner(is_vip)")
+        .eq("members.is_vip", false)
         .gte("created_at", thisMonthStart.toISOString());
 
       const { data: lastMonthPayments } = await supabase
         .from("payment_receipts")
-        .select("amount")
+        .select("amount, members!inner(is_vip)")
+        .eq("members.is_vip", false)
         .gte("created_at", lastMonthStart.toISOString())
         .lte("created_at", lastMonthEnd.toISOString());
 
