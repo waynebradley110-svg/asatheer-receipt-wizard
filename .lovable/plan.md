@@ -1,149 +1,82 @@
 
-# Extend Renewal Feature
+# Implementation Plan: Self-Service Portal + Session Scheduling + Real-Time Notifications
 
-## Overview
-Add an "extend renewal" capability that preserves remaining membership days when a member renews before their current subscription expires.
+## Feature 1: Member Self-Service Portal (QR-Based)
 
-## Current Behavior (Problem)
-When renewing a membership today:
-- Start date = Payment date (e.g., today: January 27)
-- Expiry = Start + Plan duration
+A public page where members can scan a QR code (or enter their member ID) to view their own membership status -- no login required.
 
-**Example**: Member has Gym expiring February 15. They renew today with a 1-month plan:
-- Current logic: New expiry = January 27 + 1 month = **February 27** (loses 19 days!)
+### What members will see:
+- Their name, member ID, zone, and subscription status
+- Expiry date and days remaining
+- Attendance history (last 10 check-ins)
+- Digital member card (download/share)
 
-## New Behavior (Extend Renewal)
-When the member has an active subscription in the selected zone:
-- New expiry = Current expiry date + Plan duration
+### How it works:
+- A new public route `/member-portal/:memberId` (no auth required)
+- Each member card already has a barcode -- we'll generate a QR code URL pointing to this portal
+- Staff can share the QR link via WhatsApp alongside the member card
 
-**Same Example**: Member has Gym expiring February 15. They renew today with 1-month plan:
-- Extended logic: New expiry = February 15 + 1 month = **March 15** (preserves all days!)
-
----
-
-## User Interface Changes
-
-### Renewal Dialog Enhancements
-
-When a zone is selected, the system will check if there's an active subscription in that zone:
-
-**If active subscription exists:**
-```
-┌─────────────────────────────────────────────────────┐
-│ ℹ️ Active Membership Detected                       │
-├─────────────────────────────────────────────────────┤
-│ Current Expiry:    15/02/2026 (19 days remaining)  │
-│ New Plan:          1 Month                          │
-│ ─────────────────────────────────────────────────── │
-│ New Expiry:        15/03/2026 ✓                    │
-└─────────────────────────────────────────────────────┘
-```
-
-**If no active subscription (expired or first time):**
-```
-┌─────────────────────────────────────────────────────┐
-│ New Membership                                      │
-├─────────────────────────────────────────────────────┤
-│ Start Date:        27/01/2026                       │
-│ Plan:              1 Month                          │
-│ ─────────────────────────────────────────────────── │
-│ Expiry Date:       27/02/2026                       │
-└─────────────────────────────────────────────────────┘
-```
+### Technical steps:
+- Create `src/pages/MemberPortal.tsx` -- public page that fetches member data by `member_id`
+- Add route in `App.tsx` (outside the `DashboardLayout` wrapper so no auth is needed)
+- Create a database function or RLS policy for limited public read access to member info (read-only, by member_id only)
+- Update `DigitalMemberCard.tsx` to include the portal QR code URL
 
 ---
 
-## Technical Implementation
+## Feature 2: Session/Class Scheduling with Calendar
 
-### 1. Add Helper Function to Find Active Service
-```typescript
-const getActiveServiceForZone = (member: any, zone: string) => {
-  return member?.member_services?.find((s: any) => 
-    s.zone === zone && 
-    s.is_active && 
-    new Date(s.expiry_date) >= new Date()
-  );
-};
-```
+A scheduling system for PT sessions, football slots, and other bookable activities.
 
-### 2. Modify `handleRenewalSubmit` Logic
-```typescript
-// Check for active service in the selected zone
-const activeService = getActiveServiceForZone(renewingMember, formData.zone);
+### What it includes:
+- Admin/receptionist can create available time slots (e.g., "Football 5v5 - Sunday 6PM")
+- Calendar view showing upcoming sessions
+- Link sessions to members (who's booked)
+- Track capacity per session
 
-let startDate, expiryDate;
+### Database:
+- New `sessions` table: id, title, session_type (pt/football/crossfit/swimming/paddle), date, start_time, end_time, coach_id, max_capacity, zone, notes, is_recurring, created_at
+- New `session_bookings` table: id, session_id, member_id, status (booked/attended/cancelled), created_at
+- RLS: admin/receptionist can manage; accounts can view
 
-if (activeService) {
-  // EXTEND: Add duration on top of current expiry
-  startDate = new Date(formData.payment_date);
-  expiryDate = calculateExpiryDate(
-    new Date(activeService.expiry_date), 
-    formData.subscription_plan
-  );
-} else {
-  // FRESH: Start from payment date
-  startDate = new Date(formData.payment_date);
-  expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
-}
-```
-
-### 3. Add Preview Section in Renewal Dialog UI
-Add a calculated preview section that updates when zone and plan are selected:
-- Shows current expiry (if active)
-- Shows days remaining
-- Shows selected plan duration
-- Shows calculated new expiry date
-
-### 4. State for Preview Calculation
-```typescript
-const renewalPreview = useMemo(() => {
-  if (!renewingMember || !formData.zone || !formData.subscription_plan) {
-    return null;
-  }
-  
-  const activeService = getActiveServiceForZone(renewingMember, formData.zone);
-  const paymentDate = new Date(formData.payment_date);
-  
-  if (activeService) {
-    const currentExpiry = new Date(activeService.expiry_date);
-    const daysRemaining = Math.ceil(
-      (currentExpiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const newExpiry = calculateExpiryDate(currentExpiry, formData.subscription_plan);
-    
-    return {
-      isExtension: true,
-      currentExpiry,
-      daysRemaining,
-      newExpiry
-    };
-  } else {
-    const newExpiry = calculateExpiryDate(paymentDate, formData.subscription_plan);
-    return {
-      isExtension: false,
-      startDate: paymentDate,
-      newExpiry
-    };
-  }
-}, [renewingMember, formData.zone, formData.subscription_plan, formData.payment_date]);
-```
+### Technical steps:
+- Create DB migration for `sessions` and `session_bookings` tables with RLS policies
+- Create `src/pages/Schedule.tsx` with a weekly calendar view using a grid layout
+- Add session creation dialog (title, type, date/time, coach, capacity)
+- Add booking dialog to assign members to sessions
+- Add "Schedule" to sidebar navigation
+- Add route in `App.tsx`
 
 ---
 
-## Files to Modify
+## Feature 3: Real-Time Check-In Notifications
 
-| File | Changes |
-|------|---------|
-| `src/pages/Members.tsx` | Add helper function, modify renewal submit logic, add preview UI section in renewal dialog |
+Live toast notifications on the dashboard when a member scans in at any zone.
+
+### What it does:
+- When a member checks in (attendance record inserted), all logged-in staff see a real-time toast notification
+- Shows member name, zone, status (active/expired), and time
+- Dashboard counter updates live without refresh
+
+### Technical steps:
+- Enable Realtime on the `attendance` table via migration (`ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance`)
+- Create `src/components/RealtimeAttendanceNotifier.tsx` -- subscribes to attendance inserts, fetches member name, and shows toast
+- Add the notifier component to `DashboardLayout.tsx` so it runs on all dashboard pages
+- Show a styled toast with member name, zone badge, and active/expired status
 
 ---
 
-## Validation Checklist
+## Summary of Changes
 
-| Scenario | Expected Result |
-|----------|-----------------|
-| Renew active gym (expires Feb 15) with 1 month | New expiry = Mar 15 |
-| Renew expired gym with 1 month | New expiry = Payment date + 1 month |
-| Renew PT (no active PT service) with 3 months | New expiry = Payment date + 3 months |
-| Preview shows correct calculation before submit | Yes |
-| Days remaining displayed for active memberships | Yes |
+| Area | Files |
+|------|-------|
+| Database | 1 migration: `sessions` table, `session_bookings` table, realtime on `attendance` |
+| New pages | `MemberPortal.tsx`, `Schedule.tsx` |
+| New components | `RealtimeAttendanceNotifier.tsx`, `SessionCalendar.tsx`, `CreateSessionDialog.tsx` |
+| Modified | `App.tsx` (routes), `AppSidebar.tsx` (nav), `DashboardLayout.tsx` (notifier), `DigitalMemberCard.tsx` (QR link) |
+
+### Implementation order:
+1. Database migration (all tables + realtime)
+2. Real-time notifications (smallest, quickest win)
+3. Session scheduling (new page + components)
+4. Member self-service portal (public page + QR integration)
