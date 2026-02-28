@@ -1,4 +1,4 @@
-import { Home, Users, CreditCard, Bell, LogOut, Dumbbell, Receipt, ScanLine, UserCog } from "lucide-react";
+import { Home, Users, CreditCard, Bell, LogOut, Dumbbell, Receipt, ScanLine, UserCog, CalendarDays } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -24,6 +24,7 @@ const menuItems = [
   { title: "Reports", url: "/reports", icon: CreditCard },
   { title: "PT Report", url: "/pt-report", icon: UserCog },
   { title: "Expenses", url: "/expenses", icon: Receipt },
+  { title: "Schedule", url: "/schedule", icon: CalendarDays },
   { title: "Notifications", url: "/notifications", icon: Bell },
 ];
 

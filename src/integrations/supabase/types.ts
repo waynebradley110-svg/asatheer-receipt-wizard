@@ -801,6 +801,104 @@ export type Database = {
           },
         ]
       }
+      session_bookings: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          session_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_bookings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          coach_id: string | null
+          created_at: string
+          created_by: string | null
+          end_time: string
+          id: string
+          is_recurring: boolean | null
+          max_capacity: number
+          notes: string | null
+          session_date: string
+          session_type: string
+          start_time: string
+          title: string
+          updated_at: string
+          zone: string | null
+        }
+        Insert: {
+          coach_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_time: string
+          id?: string
+          is_recurring?: boolean | null
+          max_capacity?: number
+          notes?: string | null
+          session_date: string
+          session_type: string
+          start_time: string
+          title: string
+          updated_at?: string
+          zone?: string | null
+        }
+        Update: {
+          coach_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          id?: string
+          is_recurring?: boolean | null
+          max_capacity?: number
+          notes?: string | null
+          session_date?: string
+          session_type?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
