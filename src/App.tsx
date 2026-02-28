@@ -15,6 +15,8 @@ import Reports from "./pages/Reports";
 import PTReport from "./pages/PTReport";
 import Expenses from "./pages/Expenses";
 import Notifications from "./pages/Notifications";
+import Schedule from "./pages/Schedule";
+import MemberPortal from "./pages/MemberPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/member-portal/:memberId" element={<MemberPortal />} />
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/members" element={<Members />} />
@@ -36,6 +39,7 @@ const App = () => (
             <Route path="/pt-report" element={<PTReport />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/schedule" element={<Schedule />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

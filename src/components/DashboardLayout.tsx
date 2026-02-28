@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { RealtimeAttendanceNotifier } from "@/components/RealtimeAttendanceNotifier";
 
 export function DashboardLayout() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export function DashboardLayout() {
             <ThemeToggle />
           </header>
           <main className="flex-1 p-6 overflow-auto">
+            <RealtimeAttendanceNotifier />
             <Outlet />
           </main>
         </div>

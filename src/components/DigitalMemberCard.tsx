@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, Share2, Zap } from "lucide-react";
+import { Download, Share2, Zap, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import JsBarcode from "jsbarcode";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
@@ -336,6 +337,15 @@ export const DigitalMemberCard = ({
                 className="w-full"
                 style={{ maxHeight: '80px' }}
               ></svg>
+            </div>
+
+            {/* QR Code for Member Portal */}
+            <div className="bg-white dark:bg-background p-2 rounded-lg flex flex-col items-center justify-center border border-border">
+              <p className="text-[8px] text-muted-foreground mb-1">Scan for Member Portal</p>
+              <QRCodeSVG
+                value={`${window.location.origin}/member-portal/${memberId}`}
+                size={60}
+              />
             </div>
           </div>
 
