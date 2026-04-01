@@ -16,6 +16,7 @@ import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
 import { MassageSales } from "@/components/MassageSales";
 import FuturisticAnalyticsDashboard from "@/components/FuturisticAnalyticsDashboard";
+import { EmergencyBanner } from "@/components/EmergencyBanner";
 import NotificationManager from "@/components/NotificationManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
