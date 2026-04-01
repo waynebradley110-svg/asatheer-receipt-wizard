@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.send-notifications]
 verify_jwt = false
+
+[functions.emergency-freeze]
+verify_jwt = false
+
+[functions.emergency-resume]
+verify_jwt = false

@@ -27,7 +27,7 @@ const Attendance = () => {
   const [manualInput, setManualInput] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
-  const clearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
