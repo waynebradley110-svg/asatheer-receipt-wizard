@@ -119,6 +119,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 dashboard-section">
+      <EmergencyBanner onStatusChange={fetchStats} />
+
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-8 border border-border/50">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
