@@ -97,6 +97,8 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
         "border-l-4",
         isExpired 
           ? "border-l-destructive bg-destructive/5 dark:bg-destructive/10" 
+          : isFrozen
+          ? "border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
           : "border-l-accent bg-card"
       )}
       onClick={() => onViewDetails(member)}
