@@ -171,7 +171,7 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
                     variant="outline"
                     className={cn("text-xs", color)}
                   >
-                    {getZoneLabel(service.zone)}: {format(new Date(service.expiry_date), 'dd/MM/yy')}
+                    {getZoneLabel(service.zone)}: {svcStatus === 'frozen' ? '❄️ Frozen' : format(new Date(service.expiry_date), 'dd/MM/yy')}
                   </Badge>
                 );
               })}
