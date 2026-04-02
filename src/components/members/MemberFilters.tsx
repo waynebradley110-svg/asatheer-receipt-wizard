@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Search, Filter, SortAsc, Users, UserCheck, UserX, Clock, Download, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Filter, SortAsc, Users, UserCheck, UserX, Clock, Download, BarChart3, ChevronDown, ChevronUp, Snowflake } from "lucide-react";
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import * as XLSX from "xlsx";
