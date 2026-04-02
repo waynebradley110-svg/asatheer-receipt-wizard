@@ -216,6 +216,8 @@ export function MemberDetailsSheet({
                 "text-sm",
                 isExpired 
                   ? "bg-destructive/90" 
+                  : isFrozen
+                  ? "bg-blue-500/90 text-white"
                   : "bg-accent/90"
               )}
             >
@@ -223,6 +225,11 @@ export function MemberDetailsSheet({
                 <>
                   <UserX className="h-3.5 w-3.5 mr-1" />
                   Expired
+                </>
+              ) : isFrozen ? (
+                <>
+                  <Snowflake className="h-3.5 w-3.5 mr-1" />
+                  Frozen
                 </>
               ) : (
                 <>
