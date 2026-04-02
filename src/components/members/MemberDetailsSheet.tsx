@@ -303,7 +303,9 @@ export function MemberDetailsSheet({
                       key={service.id}
                       className={cn(
                         "rounded-lg border p-3 transition-colors",
-                        serviceStatus.status === "expired" 
+                        serviceStatus.status === "frozen"
+                          ? "bg-blue-50 border-blue-200 dark:bg-blue-900/20"
+                          : serviceStatus.status === "expired" 
                           ? "bg-destructive/5 border-destructive/20" 
                           : serviceStatus.status === "expiring"
                           ? "bg-orange-50 border-orange-200 dark:bg-orange-900/20"
