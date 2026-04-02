@@ -297,7 +297,7 @@ export function MemberDetailsSheet({
             {activeServices.length > 0 ? (
               <div className="space-y-2">
                 {activeServices.map((service) => {
-                  const serviceStatus = getServiceStatus(service.expiry_date);
+                  const serviceStatus = getServiceStatus(service.expiry_date, service.freeze_status);
                   return (
                     <div 
                       key={service.id}
