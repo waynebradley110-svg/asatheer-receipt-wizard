@@ -13,14 +13,44 @@ Deno.serve(async (req) => {
   console.log('[EMERGENCY-RESUME] Starting mass resume of emergency-frozen memberships...')
 
   try {
+    // Validate JWT and check admin role
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // Check admin role
+    const { data: hasAdmin } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
+    if (!hasAdmin) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const today = new Date().toISOString().split('T')[0]
 
-    // Fetch all active emergency freezes
     const { data: emergencyFreezes, error: fetchError } = await supabase
       .from('membership_freezes')
       .select('id, member_id, service_id, freeze_start')
@@ -44,13 +74,10 @@ Deno.serve(async (req) => {
 
     for (const freeze of emergencyFreezes) {
       try {
-        // Calculate freeze duration
         const freezeStart = new Date(freeze.freeze_start)
         const now = new Date(today)
         const freezeDurationMs = now.getTime() - freezeStart.getTime()
-        const freezeDurationDays = Math.ceil(freezeDurationMs / (1000 * 60 * 60 * 24))
 
-        // Get current service expiry
         const { data: service, error: serviceError } = await supabase
           .from('member_services')
           .select('id, expiry_date, zone, subscription_plan')
@@ -63,12 +90,10 @@ Deno.serve(async (req) => {
           continue
         }
 
-        // Extend expiry by freeze duration
         const currentExpiry = new Date(service.expiry_date)
         const newExpiry = new Date(currentExpiry.getTime() + freezeDurationMs)
         const newExpiryDate = newExpiry.toISOString().split('T')[0]
 
-        // Update service
         const { error: updateServiceError } = await supabase
           .from('member_services')
           .update({ freeze_status: null, expiry_date: newExpiryDate })
@@ -79,7 +104,6 @@ Deno.serve(async (req) => {
           continue
         }
 
-        // Mark freeze as completed
         const { error: updateFreezeError } = await supabase
           .from('membership_freezes')
           .update({
@@ -96,7 +120,7 @@ Deno.serve(async (req) => {
         }
 
         resumedCount++
-        console.log(`[EMERGENCY-RESUME] Resumed service ${service.id}: +${freezeDurationDays} days, new expiry: ${newExpiryDate}`)
+        console.log(`[EMERGENCY-RESUME] Resumed service ${service.id}: new expiry: ${newExpiryDate}`)
       } catch (err) {
         console.error('[EMERGENCY-RESUME] Error processing freeze', freeze.id, err)
         failedCount++
@@ -113,7 +137,7 @@ Deno.serve(async (req) => {
     await supabase.from('financial_audit_trail').insert({
       table_name: 'membership_freezes',
       action_type: 'emergency_mass_resume',
-      action_by: 'system-emergency-resume',
+      action_by: user.email || 'admin',
       description: `Emergency mass resume completed. ${resumedCount} memberships resumed with expiry dates extended. ${failedCount} failed. Closure period ended ${today}.`,
     })
 
@@ -131,7 +155,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[EMERGENCY-RESUME] Fatal error:', error)
     return new Response(
-      JSON.stringify({ success: false, error: String(error) }),
+      JSON.stringify({ success: false, error: 'An internal error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
