@@ -105,7 +105,7 @@ const Expenses = () => {
       resetForm();
       fetchExpenses();
     } catch (error: any) {
-      toast.error(error.message || (editingExpense ? "Error updating expense" : "Error adding expense"));
+      toast.error(getGenericError(error, editingExpense ? "Error updating expense" : "Error adding expense"));
     } finally {
       setLoading(false);
     }
