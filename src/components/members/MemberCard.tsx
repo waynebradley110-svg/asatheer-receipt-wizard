@@ -79,6 +79,7 @@ const getMemberStatus = (member: Member) => {
 export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) {
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
+  const isFrozen = status === "frozen";
   
   // Get latest 2 services for display
   const displayServices = member.member_services
