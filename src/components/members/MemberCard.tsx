@@ -50,7 +50,10 @@ const getZoneLabel = (zone: string): string => {
   return labels[zone] || zone;
 };
 
-const getServiceStatus = (expiryDate: string) => {
+const getServiceStatus = (expiryDate: string, freezeStatus?: string | null) => {
+  if (freezeStatus === 'frozen') {
+    return { status: "frozen", color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400" };
+  }
   const expiry = new Date(expiryDate);
   const today = new Date();
   const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
