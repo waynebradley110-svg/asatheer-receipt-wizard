@@ -147,7 +147,7 @@ export function EditPaymentDialog({
       resetForm();
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error.message || "Error updating payment");
+      toast.error(getGenericError(error, "Error updating payment");
     } finally {
       setLoading(false);
     }

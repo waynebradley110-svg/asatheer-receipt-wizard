@@ -41,7 +41,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Account created successfully!");
     }
@@ -58,7 +58,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Signed in successfully!");
     }
@@ -74,7 +74,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Password reset link sent to your email!");
       setShowForgotPassword(false);

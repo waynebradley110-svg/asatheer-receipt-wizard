@@ -125,7 +125,7 @@ export function FinancialCorrections() {
       fetchMembers();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error updating name");
+      toast.error(getGenericError(error, "Error updating name");
     } finally {
       setLoading(false);
     }
@@ -173,7 +173,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error processing refund");
+      toast.error(getGenericError(error, "Error processing refund");
     } finally {
       setLoading(false);
     }
@@ -206,7 +206,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error recording adjustment");
+      toast.error(getGenericError(error, "Error recording adjustment");
     } finally {
       setLoading(false);
     }
@@ -247,7 +247,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error updating payment method");
+      toast.error(getGenericError(error, "Error updating payment method");
     } finally {
       setLoading(false);
     }
