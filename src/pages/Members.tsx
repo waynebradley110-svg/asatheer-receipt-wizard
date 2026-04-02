@@ -445,10 +445,13 @@ const Members = () => {
 
   // Helper function to determine member status
   const getMemberStatus = (member: any) => {
-    const activeService = member.member_services?.find((s: any) => 
+    const activeServices = member.member_services?.filter((s: any) => 
       new Date(s.expiry_date) >= new Date() && s.is_active
     );
-    return activeService ? "active" : "expired";
+    if (!activeServices?.length) return "expired";
+    const allFrozen = activeServices.every((s: any) => s.freeze_status === 'frozen');
+    if (allFrozen) return "frozen";
+    return "active";
   };
 
   // Helper function to find active service for a specific zone (for extend renewal)
