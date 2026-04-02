@@ -1520,6 +1520,7 @@ const Members = () => {
           total: filteredMembers.length,
           active: filteredMembers.filter(m => getMemberStatus(m) === "active").length,
           expired: filteredMembers.filter(m => getMemberStatus(m) === "expired").length,
+          frozen: filteredMembers.filter(m => getMemberStatus(m) === "frozen").length,
           expiringSoon: filteredMembers.filter(m => isMemberExpiringSoon(m)).length
         }}
         members={members}
