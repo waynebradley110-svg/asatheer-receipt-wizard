@@ -207,7 +207,7 @@ export const MembershipFreezeCard = () => {
       // Refresh members
       fetchMembers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Failed to apply action");
+      toast.error(getGenericError(error, "Failed to apply action"));
     } finally {
       setSubmitting(false);
     }

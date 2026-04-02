@@ -92,7 +92,7 @@ export function UserManagement() {
       setFormData({ email: "", password: "", role: "" });
       fetchUsers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error creating user");
+      toast.error(getGenericError(error, "Error creating user"));
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export function UserManagement() {
       toast.success("User deleted successfully");
       fetchUsers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error deleting user");
+      toast.error(getGenericError(error, "Error deleting user"));
     }
   };
 

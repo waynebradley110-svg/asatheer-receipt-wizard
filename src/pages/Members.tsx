@@ -265,7 +265,7 @@ const Members = () => {
       
       fetchMembers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error registering member");
+      toast.error(getGenericError(error, "Error registering member"));
     } finally {
       setLoading(false);
     }
@@ -354,7 +354,7 @@ const Members = () => {
       
     } catch (error: any) {
       console.error("Event registration error:", error);
-      toast.error(getGenericError(error, "Failed to register for event");
+      toast.error(getGenericError(error, "Failed to register for event"));
     } finally {
       setLoading(false);
     }
@@ -700,7 +700,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error updating member");
+      toast.error(getGenericError(error, "Error updating member"));
     } finally {
       setLoading(false);
     }
@@ -802,7 +802,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error renewing membership");
+      toast.error(getGenericError(error, "Error renewing membership"));
     } finally {
       setLoading(false);
     }
@@ -908,7 +908,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error adding service");
+      toast.error(getGenericError(error, "Error adding service"));
     } finally {
       setLoading(false);
     }

@@ -139,7 +139,7 @@ const Expenses = () => {
       setExpenseToDelete(null);
       fetchExpenses();
     } catch (error: any) {
-      toast.error(getGenericError(error, "Error deleting expense");
+      toast.error(getGenericError(error, "Error deleting expense"));
     }
   };
 
