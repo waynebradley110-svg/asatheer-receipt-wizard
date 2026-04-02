@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ export function UserManagement() {
       setFormData({ email: "", password: "", role: "" });
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message || "Error creating user");
+      toast.error(getGenericError(error, "Error creating user"));
     } finally {
       setLoading(false);
     }
@@ -108,7 +109,7 @@ export function UserManagement() {
       toast.success("User deleted successfully");
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message || "Error deleting user");
+      toast.error(getGenericError(error, "Error deleting user"));
     }
   };
 

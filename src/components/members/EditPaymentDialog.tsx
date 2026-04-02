@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -147,7 +148,7 @@ export function EditPaymentDialog({
       resetForm();
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error.message || "Error updating payment");
+      toast.error(getGenericError(error, "Error updating payment"));
     } finally {
       setLoading(false);
     }

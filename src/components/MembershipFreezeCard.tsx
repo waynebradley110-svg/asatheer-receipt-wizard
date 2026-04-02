@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -206,7 +207,7 @@ export const MembershipFreezeCard = () => {
       // Refresh members
       fetchMembers();
     } catch (error: any) {
-      toast.error(error.message || "Failed to apply action");
+      toast.error(getGenericError(error, "Failed to apply action"));
     } finally {
       setSubmitting(false);
     }

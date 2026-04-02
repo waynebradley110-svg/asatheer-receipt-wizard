@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ export function FinancialCorrections() {
       fetchMembers();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error updating name");
+      toast.error(getGenericError(error, "Error updating name"));
     } finally {
       setLoading(false);
     }
@@ -173,7 +174,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error processing refund");
+      toast.error(getGenericError(error, "Error processing refund"));
     } finally {
       setLoading(false);
     }
@@ -206,7 +207,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error recording adjustment");
+      toast.error(getGenericError(error, "Error recording adjustment"));
     } finally {
       setLoading(false);
     }
@@ -247,7 +248,7 @@ export function FinancialCorrections() {
       resetForm();
       fetchCorrections();
     } catch (error: any) {
-      toast.error(error.message || "Error updating payment method");
+      toast.error(getGenericError(error, "Error updating payment method"));
     } finally {
       setLoading(false);
     }

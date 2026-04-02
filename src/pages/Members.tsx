@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -264,7 +265,7 @@ const Members = () => {
       
       fetchMembers();
     } catch (error: any) {
-      toast.error(error.message || "Error registering member");
+      toast.error(getGenericError(error, "Error registering member"));
     } finally {
       setLoading(false);
     }
@@ -353,7 +354,7 @@ const Members = () => {
       
     } catch (error: any) {
       console.error("Event registration error:", error);
-      toast.error(error.message || "Failed to register for event");
+      toast.error(getGenericError(error, "Failed to register for event"));
     } finally {
       setLoading(false);
     }
@@ -699,7 +700,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(error.message || "Error updating member");
+      toast.error(getGenericError(error, "Error updating member"));
     } finally {
       setLoading(false);
     }
@@ -801,7 +802,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(error.message || "Error renewing membership");
+      toast.error(getGenericError(error, "Error renewing membership"));
     } finally {
       setLoading(false);
     }
@@ -907,7 +908,7 @@ const Members = () => {
       resetForm();
       fetchMembers();
     } catch (error: any) {
-      toast.error(error.message || "Error adding service");
+      toast.error(getGenericError(error, "Error adding service"));
     } finally {
       setLoading(false);
     }

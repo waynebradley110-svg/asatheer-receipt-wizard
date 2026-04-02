@@ -13,10 +13,42 @@ Deno.serve(async (req) => {
   console.log('[EMERGENCY-FREEZE] Starting emergency mass freeze...')
 
   try {
+    // Validate JWT and check admin role
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Use service role for data operations
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
+
+    // Check admin role
+    const { data: hasAdmin } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
+    if (!hasAdmin) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     const freezeDate = '2026-03-31'
 
@@ -58,7 +90,6 @@ Deno.serve(async (req) => {
 
     for (const service of activeServices) {
       try {
-        // Insert freeze record
         const { error: insertError } = await supabase
           .from('membership_freezes')
           .insert({
@@ -79,7 +110,6 @@ Deno.serve(async (req) => {
           continue
         }
 
-        // Update service freeze status
         const { error: updateError } = await supabase
           .from('member_services')
           .update({ freeze_status: 'frozen' })
@@ -120,7 +150,7 @@ Deno.serve(async (req) => {
     await supabase.from('financial_audit_trail').insert({
       table_name: 'membership_freezes',
       action_type: 'emergency_mass_freeze',
-      action_by: 'system-emergency',
+      action_by: user.email || 'admin',
       description: `Emergency mass freeze activated. ${frozenCount} memberships frozen starting ${freezeDate}. Reason: Ongoing conflict in UAE. ${failedCount} failed.`,
     })
 
@@ -138,7 +168,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[EMERGENCY-FREEZE] Fatal error:', error)
     return new Response(
-      JSON.stringify({ success: false, error: String(error) }),
+      JSON.stringify({ success: false, error: 'An internal error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

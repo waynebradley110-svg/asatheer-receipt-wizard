@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,7 +105,7 @@ const Expenses = () => {
       resetForm();
       fetchExpenses();
     } catch (error: any) {
-      toast.error(error.message || (editingExpense ? "Error updating expense" : "Error adding expense"));
+      toast.error(getGenericError(error, editingExpense ? "Error updating expense" : "Error adding expense"));
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,7 @@ const Expenses = () => {
       setExpenseToDelete(null);
       fetchExpenses();
     } catch (error: any) {
-      toast.error(error.message || "Error deleting expense");
+      toast.error(getGenericError(error, "Error deleting expense"));
     }
   };
 

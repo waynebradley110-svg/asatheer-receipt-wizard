@@ -1,3 +1,4 @@
+import { getGenericError } from "@/lib/errorUtils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +42,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Account created successfully!");
     }
@@ -58,7 +59,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Signed in successfully!");
     }
@@ -74,7 +75,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericError(error));
     } else {
       toast.success("Password reset link sent to your email!");
       setShowForgotPassword(false);
