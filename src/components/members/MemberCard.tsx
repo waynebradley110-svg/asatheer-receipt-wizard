@@ -12,6 +12,7 @@ interface MemberService {
   is_active: boolean;
   coach_name?: string;
   subscription_plan: string;
+  freeze_status?: string | null;
 }
 
 interface Member {
