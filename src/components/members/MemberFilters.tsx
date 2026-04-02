@@ -179,6 +179,7 @@ export function MemberFilters({
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="frozen">Frozen</SelectItem>
                 <SelectItem value="expiring">Expiring Soon</SelectItem>
                 <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
