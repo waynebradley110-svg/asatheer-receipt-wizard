@@ -43,6 +43,7 @@ interface MemberFiltersProps {
     total: number;
     active: number;
     expired: number;
+    frozen: number;
     expiringSoon: number;
   };
   members: Member[];
