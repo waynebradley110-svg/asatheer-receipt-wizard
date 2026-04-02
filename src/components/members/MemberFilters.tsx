@@ -361,6 +361,7 @@ export function MemberFilters({
                 className={cn(
                   "text-xs",
                   filterStatus === "active" && "bg-accent/10 text-accent",
+                  filterStatus === "frozen" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30",
                   filterStatus === "expiring" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30",
                   filterStatus === "expired" && "bg-destructive/10 text-destructive"
                 )}

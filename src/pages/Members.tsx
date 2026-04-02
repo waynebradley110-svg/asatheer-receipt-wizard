@@ -415,9 +415,11 @@ const Members = () => {
       // Handle "expiring" filter option
       let matchesStatus = true;
       if (filterStatus === "active") {
-        matchesStatus = activeService !== undefined;
+        matchesStatus = getMemberStatus(m) === "active";
       } else if (filterStatus === "expired") {
-        matchesStatus = activeService === undefined;
+        matchesStatus = getMemberStatus(m) === "expired";
+      } else if (filterStatus === "frozen") {
+        matchesStatus = getMemberStatus(m) === "frozen";
       } else if (filterStatus === "expiring") {
         matchesStatus = isMemberExpiringSoon(m);
       }
