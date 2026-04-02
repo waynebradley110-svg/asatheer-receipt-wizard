@@ -164,7 +164,7 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
           {displayServices.length > 0 ? (
             <>
               {displayServices.map((service) => {
-                const { color } = getServiceStatus(service.expiry_date);
+                const { color, status: svcStatus } = getServiceStatus(service.expiry_date, service.freeze_status);
                 return (
                   <Badge
                     key={service.id}
