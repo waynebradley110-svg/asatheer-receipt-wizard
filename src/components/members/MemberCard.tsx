@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { RefreshCw, ChevronRight, UserCheck, UserX, Phone, Crown } from "lucide-react";
+import { RefreshCw, ChevronRight, UserCheck, UserX, Phone, Crown, Snowflake } from "lucide-react";
 
 interface MemberService {
   id: string;
