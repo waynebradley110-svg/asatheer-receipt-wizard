@@ -174,6 +174,7 @@ export function MemberDetailsSheet({
 
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
+  const isFrozen = status === "frozen";
 
   // Active services only
   const activeServices = [...(member.member_services || [])]
