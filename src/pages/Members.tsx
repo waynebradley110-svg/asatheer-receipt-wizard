@@ -399,15 +399,22 @@ const Members = () => {
     return new Date(Math.min(...activeServices.map((s: any) => new Date(s.expiry_date).getTime())));
   };
 
+  // Helper function to determine member status
+  const getMemberStatus = (member: any) => {
+    const activeServices = member.member_services?.filter((s: any) => 
+      new Date(s.expiry_date) >= new Date() && s.is_active
+    );
+    if (!activeServices?.length) return "expired";
+    const allFrozen = activeServices.every((s: any) => s.freeze_status === 'frozen');
+    if (allFrozen) return "frozen";
+    return "active";
+  };
+
   const filteredMembers = useMemo(() => {
     let result = members.filter(m => {
       const matchesSearch = m.full_name.toLowerCase().includes(search.toLowerCase()) ||
         m.member_id.toLowerCase().includes(search.toLowerCase()) ||
         m.phone_number.includes(search);
-      
-      const activeService = m.member_services?.find((s: any) => 
-        new Date(s.expiry_date) >= new Date() && s.is_active
-      );
       
       const matchesZone = filterZone === "all" || 
         m.member_services?.some((s: any) => s.zone === filterZone && s.is_active);
@@ -444,17 +451,6 @@ const Members = () => {
 
     return result;
   }, [members, search, filterZone, filterStatus, sortBy]);
-
-  // Helper function to determine member status
-  const getMemberStatus = (member: any) => {
-    const activeServices = member.member_services?.filter((s: any) => 
-      new Date(s.expiry_date) >= new Date() && s.is_active
-    );
-    if (!activeServices?.length) return "expired";
-    const allFrozen = activeServices.every((s: any) => s.freeze_status === 'frozen');
-    if (allFrozen) return "frozen";
-    return "active";
-  };
 
   // Helper function to find active service for a specific zone (for extend renewal)
   const getActiveServiceForZone = (member: any, zone: string) => {
