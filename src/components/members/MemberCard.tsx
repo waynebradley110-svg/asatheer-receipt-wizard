@@ -124,6 +124,8 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
               "text-xs font-medium",
               isExpired 
                 ? "bg-destructive/90 hover:bg-destructive" 
+                : isFrozen
+                ? "bg-blue-500/90 hover:bg-blue-500 text-white"
                 : "bg-accent/90 hover:bg-accent"
             )}
           >
@@ -131,6 +133,11 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
               <>
                 <UserX className="h-3 w-3 mr-1" />
                 Expired
+              </>
+            ) : isFrozen ? (
+              <>
+                <Snowflake className="h-3 w-3 mr-1" />
+                Frozen
               </>
             ) : (
               <>
