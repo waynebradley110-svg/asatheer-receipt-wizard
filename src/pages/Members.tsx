@@ -538,6 +538,8 @@ const Members = () => {
     total: members.length,
     active: members.filter(m => getMemberStatus(m) === "active").length,
     expired: members.filter(m => getMemberStatus(m) === "expired").length,
+    frozen: members.filter(m => getMemberStatus(m) === "frozen").length,
+    expiringSoon: members.filter(m => isMemberExpiringSoon(m)).length,
     byZone: {
       gym: { 
         total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym')).length,
