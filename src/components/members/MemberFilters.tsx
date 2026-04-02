@@ -257,6 +257,17 @@ export function MemberFilters({
             
             <span className="text-border">•</span>
             
+            {stats.frozen > 0 && (
+              <>
+                <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                  <Snowflake className="h-4 w-4" />
+                  <span className="font-medium">{stats.frozen}</span>
+                  <span className="text-muted-foreground">frozen</span>
+                </div>
+                <span className="text-border">•</span>
+              </>
+            )}
+            
             <div className="flex items-center gap-1.5 text-destructive">
               <UserX className="h-4 w-4" />
               <span className="font-medium">{stats.expired}</span>
