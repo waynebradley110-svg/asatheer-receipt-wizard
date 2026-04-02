@@ -22,7 +22,8 @@ import {
   History,
   ChevronDown,
   Receipt,
-  Crown
+  Crown,
+  Snowflake
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
