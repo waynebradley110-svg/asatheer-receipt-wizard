@@ -67,10 +67,13 @@ const getServiceStatus = (expiryDate: string, freezeStatus?: string | null) => {
 };
 
 const getMemberStatus = (member: Member) => {
-  const activeService = member.member_services?.find((s) => 
+  const activeServices = member.member_services?.filter((s) => 
     new Date(s.expiry_date) >= new Date() && s.is_active
   );
-  return activeService ? "active" : "expired";
+  if (!activeServices?.length) return "expired";
+  const allFrozen = activeServices.every(s => s.freeze_status === 'frozen');
+  if (allFrozen) return "frozen";
+  return "active";
 };
 
 export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) {
