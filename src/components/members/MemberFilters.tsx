@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Search, Filter, SortAsc, Users, UserCheck, UserX, Clock, Download, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Filter, SortAsc, Users, UserCheck, UserX, Clock, Download, BarChart3, ChevronDown, ChevronUp, Snowflake } from "lucide-react";
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import * as XLSX from "xlsx";
@@ -43,6 +43,7 @@ interface MemberFiltersProps {
     total: number;
     active: number;
     expired: number;
+    frozen: number;
     expiringSoon: number;
   };
   members: Member[];
@@ -178,6 +179,7 @@ export function MemberFilters({
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="frozen">Frozen</SelectItem>
                 <SelectItem value="expiring">Expiring Soon</SelectItem>
                 <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
@@ -254,6 +256,17 @@ export function MemberFilters({
             )}
             
             <span className="text-border">•</span>
+            
+            {stats.frozen > 0 && (
+              <>
+                <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                  <Snowflake className="h-4 w-4" />
+                  <span className="font-medium">{stats.frozen}</span>
+                  <span className="text-muted-foreground">frozen</span>
+                </div>
+                <span className="text-border">•</span>
+              </>
+            )}
             
             <div className="flex items-center gap-1.5 text-destructive">
               <UserX className="h-4 w-4" />
@@ -348,6 +361,7 @@ export function MemberFilters({
                 className={cn(
                   "text-xs",
                   filterStatus === "active" && "bg-accent/10 text-accent",
+                  filterStatus === "frozen" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30",
                   filterStatus === "expiring" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30",
                   filterStatus === "expired" && "bg-destructive/10 text-destructive"
                 )}

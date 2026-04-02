@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { RefreshCw, ChevronRight, UserCheck, UserX, Phone, Crown } from "lucide-react";
+import { RefreshCw, ChevronRight, UserCheck, UserX, Phone, Crown, Snowflake } from "lucide-react";
 
 interface MemberService {
   id: string;
@@ -12,6 +12,7 @@ interface MemberService {
   is_active: boolean;
   coach_name?: string;
   subscription_plan: string;
+  freeze_status?: string | null;
 }
 
 interface Member {
@@ -49,7 +50,10 @@ const getZoneLabel = (zone: string): string => {
   return labels[zone] || zone;
 };
 
-const getServiceStatus = (expiryDate: string) => {
+const getServiceStatus = (expiryDate: string, freezeStatus?: string | null) => {
+  if (freezeStatus === 'frozen') {
+    return { status: "frozen", color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400" };
+  }
   const expiry = new Date(expiryDate);
   const today = new Date();
   const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -63,15 +67,19 @@ const getServiceStatus = (expiryDate: string) => {
 };
 
 const getMemberStatus = (member: Member) => {
-  const activeService = member.member_services?.find((s) => 
+  const activeServices = member.member_services?.filter((s) => 
     new Date(s.expiry_date) >= new Date() && s.is_active
   );
-  return activeService ? "active" : "expired";
+  if (!activeServices?.length) return "expired";
+  const allFrozen = activeServices.every(s => s.freeze_status === 'frozen');
+  if (allFrozen) return "frozen";
+  return "active";
 };
 
 export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) {
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
+  const isFrozen = status === "frozen";
   
   // Get latest 2 services for display
   const displayServices = member.member_services
@@ -89,6 +97,8 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
         "border-l-4",
         isExpired 
           ? "border-l-destructive bg-destructive/5 dark:bg-destructive/10" 
+          : isFrozen
+          ? "border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
           : "border-l-accent bg-card"
       )}
       onClick={() => onViewDetails(member)}
@@ -114,6 +124,8 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
               "text-xs font-medium",
               isExpired 
                 ? "bg-destructive/90 hover:bg-destructive" 
+                : isFrozen
+                ? "bg-blue-500/90 hover:bg-blue-500 text-white"
                 : "bg-accent/90 hover:bg-accent"
             )}
           >
@@ -121,6 +133,11 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
               <>
                 <UserX className="h-3 w-3 mr-1" />
                 Expired
+              </>
+            ) : isFrozen ? (
+              <>
+                <Snowflake className="h-3 w-3 mr-1" />
+                Frozen
               </>
             ) : (
               <>
@@ -147,14 +164,14 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
           {displayServices.length > 0 ? (
             <>
               {displayServices.map((service) => {
-                const { color } = getServiceStatus(service.expiry_date);
+                const { color, status: svcStatus } = getServiceStatus(service.expiry_date, service.freeze_status);
                 return (
                   <Badge
                     key={service.id}
                     variant="outline"
                     className={cn("text-xs", color)}
                   >
-                    {getZoneLabel(service.zone)}: {format(new Date(service.expiry_date), 'dd/MM/yy')}
+                    {getZoneLabel(service.zone)}: {svcStatus === 'frozen' ? '❄️ Frozen' : format(new Date(service.expiry_date), 'dd/MM/yy')}
                   </Badge>
                 );
               })}

@@ -415,9 +415,11 @@ const Members = () => {
       // Handle "expiring" filter option
       let matchesStatus = true;
       if (filterStatus === "active") {
-        matchesStatus = activeService !== undefined;
+        matchesStatus = getMemberStatus(m) === "active";
       } else if (filterStatus === "expired") {
-        matchesStatus = activeService === undefined;
+        matchesStatus = getMemberStatus(m) === "expired";
+      } else if (filterStatus === "frozen") {
+        matchesStatus = getMemberStatus(m) === "frozen";
       } else if (filterStatus === "expiring") {
         matchesStatus = isMemberExpiringSoon(m);
       }
@@ -445,10 +447,13 @@ const Members = () => {
 
   // Helper function to determine member status
   const getMemberStatus = (member: any) => {
-    const activeService = member.member_services?.find((s: any) => 
+    const activeServices = member.member_services?.filter((s: any) => 
       new Date(s.expiry_date) >= new Date() && s.is_active
     );
-    return activeService ? "active" : "expired";
+    if (!activeServices?.length) return "expired";
+    const allFrozen = activeServices.every((s: any) => s.freeze_status === 'frozen');
+    if (allFrozen) return "frozen";
+    return "active";
   };
 
   // Helper function to find active service for a specific zone (for extend renewal)
@@ -535,6 +540,8 @@ const Members = () => {
     total: members.length,
     active: members.filter(m => getMemberStatus(m) === "active").length,
     expired: members.filter(m => getMemberStatus(m) === "expired").length,
+    frozen: members.filter(m => getMemberStatus(m) === "frozen").length,
+    expiringSoon: members.filter(m => isMemberExpiringSoon(m)).length,
     byZone: {
       gym: { 
         total: members.filter(m => m.member_services?.some((s: any) => s.zone === 'gym')).length,
@@ -1513,6 +1520,7 @@ const Members = () => {
           total: filteredMembers.length,
           active: filteredMembers.filter(m => getMemberStatus(m) === "active").length,
           expired: filteredMembers.filter(m => getMemberStatus(m) === "expired").length,
+          frozen: filteredMembers.filter(m => getMemberStatus(m) === "frozen").length,
           expiringSoon: filteredMembers.filter(m => isMemberExpiringSoon(m)).length
         }}
         members={members}

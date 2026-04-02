@@ -22,7 +22,8 @@ import {
   History,
   ChevronDown,
   Receipt,
-  Crown
+  Crown,
+  Snowflake
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
@@ -40,6 +41,7 @@ interface MemberService {
   is_active: boolean;
   coach_name?: string;
   subscription_plan: string;
+  freeze_status?: string | null;
 }
 
 interface Member {
@@ -95,7 +97,15 @@ const getPlanLabel = (plan: string): string => {
   return labels[plan] || plan;
 };
 
-const getServiceStatus = (expiryDate: string) => {
+const getServiceStatus = (expiryDate: string, freezeStatus?: string | null) => {
+  if (freezeStatus === 'frozen') {
+    return { 
+      status: "frozen", 
+      label: "❄️ Frozen",
+      color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400",
+      days: 0
+    };
+  }
   const expiry = new Date(expiryDate);
   const today = new Date();
   const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -124,10 +134,13 @@ const getServiceStatus = (expiryDate: string) => {
 };
 
 const getMemberStatus = (member: Member) => {
-  const activeService = member.member_services?.find((s) => 
+  const activeServices = member.member_services?.filter((s) => 
     new Date(s.expiry_date) >= new Date() && s.is_active
   );
-  return activeService ? "active" : "expired";
+  if (!activeServices?.length) return "expired";
+  const allFrozen = activeServices.every(s => s.freeze_status === 'frozen');
+  if (allFrozen) return "frozen";
+  return "active";
 };
 
 const getWelcomeMessage = (member: Member) => {
@@ -161,6 +174,7 @@ export function MemberDetailsSheet({
 
   const status = getMemberStatus(member);
   const isExpired = status === "expired";
+  const isFrozen = status === "frozen";
 
   // Active services only
   const activeServices = [...(member.member_services || [])]
@@ -202,6 +216,8 @@ export function MemberDetailsSheet({
                 "text-sm",
                 isExpired 
                   ? "bg-destructive/90" 
+                  : isFrozen
+                  ? "bg-blue-500/90 text-white"
                   : "bg-accent/90"
               )}
             >
@@ -209,6 +225,11 @@ export function MemberDetailsSheet({
                 <>
                   <UserX className="h-3.5 w-3.5 mr-1" />
                   Expired
+                </>
+              ) : isFrozen ? (
+                <>
+                  <Snowflake className="h-3.5 w-3.5 mr-1" />
+                  Frozen
                 </>
               ) : (
                 <>
@@ -276,13 +297,15 @@ export function MemberDetailsSheet({
             {activeServices.length > 0 ? (
               <div className="space-y-2">
                 {activeServices.map((service) => {
-                  const serviceStatus = getServiceStatus(service.expiry_date);
+                  const serviceStatus = getServiceStatus(service.expiry_date, service.freeze_status);
                   return (
                     <div 
                       key={service.id}
                       className={cn(
                         "rounded-lg border p-3 transition-colors",
-                        serviceStatus.status === "expired" 
+                        serviceStatus.status === "frozen"
+                          ? "bg-blue-50 border-blue-200 dark:bg-blue-900/20"
+                          : serviceStatus.status === "expired" 
                           ? "bg-destructive/5 border-destructive/20" 
                           : serviceStatus.status === "expiring"
                           ? "bg-orange-50 border-orange-200 dark:bg-orange-900/20"
