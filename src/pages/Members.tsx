@@ -709,12 +709,18 @@ const Members = () => {
   const handleRenewMembership = (member: any) => {
     setRenewingMember(member);
     setRenewalMode('extend'); // Default to extend mode
+    // Pre-fill from member's most recent active service
+    const activeServices = (member.member_services || [])
+      .filter((s: any) => s.is_active)
+      .sort((a: any, b: any) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime());
+    const latest = activeServices[0];
     setFormData({
       ...formData,
       full_name: member.full_name,
       phone_number: member.phone_number,
-      subscription_plan: "",
-      zone: "",
+      subscription_plan: latest?.subscription_plan || "",
+      zone: latest?.zone || "",
+      coach_name: latest?.coach_name || "",
       payment_date: format(new Date(), "yyyy-MM-dd"),
     });
     setRenewDialogOpen(true);
@@ -722,16 +728,29 @@ const Members = () => {
 
   const handleRenewalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate before any DB call
+    if (!renewingMember) {
+      toast.error("No member selected for renewal");
+      return;
+    }
+    if (!formData.zone || !formData.subscription_plan) {
+      toast.error("Please select a zone and subscription plan before renewing");
+      return;
+    }
+    if (formData.zone === 'pt' && !formData.coach_name) {
+      toast.error("Please select a coach for Personal Training");
+      return;
+    }
+    const validPayments = paymentEntries.filter(p => p.payment_method && p.amount && parseFloat(p.amount) > 0);
+    if (validPayments.length === 0) {
+      toast.error("Please add at least one payment");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const validPayments = paymentEntries.filter(p => p.payment_method && p.amount);
-      if (validPayments.length === 0) {
-        toast.error("Please add at least one payment");
-        setLoading(false);
-        return;
-      }
-
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
       
       // Check for active service in the selected zone for EXTEND RENEWAL
