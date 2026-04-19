@@ -1925,7 +1925,11 @@ const Members = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || !formData.zone || !formData.subscription_plan || (formData.zone === 'pt' && !formData.coach_name)}
+            >
               {loading ? "Renewing..." : "Renew Membership"}
             </Button>
           </form>
@@ -2119,7 +2123,11 @@ const Members = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || !formData.zone || !formData.subscription_plan || (formData.zone === 'pt' && !formData.coach_name)}
+            >
               {loading ? "Adding Service..." : "Add Service"}
             </Button>
           </form>
