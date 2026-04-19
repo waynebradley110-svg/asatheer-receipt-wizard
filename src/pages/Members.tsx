@@ -862,16 +862,24 @@ const Members = () => {
   const handleAddServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addingServiceMember) return;
-    
+
+    // Validate before any DB call
+    if (!formData.zone || !formData.subscription_plan) {
+      toast.error("Please select a zone and subscription plan");
+      return;
+    }
+    if (formData.zone === 'pt' && !formData.coach_name) {
+      toast.error("Please select a coach for Personal Training");
+      return;
+    }
+    const validPayments = paymentEntries.filter(p => p.payment_method && p.amount && parseFloat(p.amount) > 0);
+    if (validPayments.length === 0) {
+      toast.error("Please add at least one payment");
+      return;
+    }
+
     setLoading(true);
     try {
-      const validPayments = paymentEntries.filter(p => p.payment_method && p.amount);
-      if (validPayments.length === 0) {
-        toast.error("Please add at least one payment");
-        setLoading(false);
-        return;
-      }
-
       const totalPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
       const startDate = new Date(formData.payment_date);
       const expiryDate = calculateExpiryDate(startDate, formData.subscription_plan);
