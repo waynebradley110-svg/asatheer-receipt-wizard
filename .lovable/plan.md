@@ -1,47 +1,56 @@
 
+Goal: fix the renewal flow on `/members` so renewing a membership cannot send an empty zone to the backend.
 
-# Fix: Show "Frozen" Status on Member Cards
+What I found:
+- The current renewal error is coming from `Members.tsx` during the “deactivate old service” step.
+- Console logs show: `invalid input value for enum zone_type: ""`.
+- That means `formData.zone` is still an empty string when `handleRenewalSubmit` runs.
+- The renew dialog uses custom `Select` components. Their `required` prop does not reliably block form submission like a native `<select>`, so the form can submit with blank `zone` / `subscription_plan`.
+- Session replay matches this: the user entered an amount and clicked renew, but no valid zone was enforced before submit.
 
-## Problem
-All member cards still show "Active" even though their services have `freeze_status = 'frozen'` in the database. The status logic only checks `expiry_date` and `is_active` — it completely ignores `freeze_status`.
+Plan
 
-## Changes
+1. Harden renewal validation in `src/pages/Members.tsx`
+- Add explicit early validation inside `handleRenewalSubmit` for:
+  - selected member exists
+  - `formData.zone` is non-empty
+  - `formData.subscription_plan` is non-empty
+  - PT renewals require coach when needed
+  - at least one valid payment entry
+- Show a clear toast like “Please select a zone and subscription plan before renewing”.
+- Return before any database call if validation fails.
 
-### 1. Add `freeze_status` to MemberService interfaces
-In `MemberCard.tsx`, `MemberDetailsSheet.tsx`, and `MemberFilters.tsx`, add `freeze_status?: string | null` to the `MemberService` interface.
+2. Pre-fill the renew dialog with the member’s latest service
+- Update `handleRenewMembership` to set sensible defaults from the member’s most recent service:
+  - default `zone`
+  - default `subscription_plan`
+  - default `coach_name` for PT
+- This reduces operator mistakes and makes renewing faster.
 
-### 2. Update `getMemberStatus` in all 3 locations
-The function exists in `MemberCard.tsx`, `MemberDetailsSheet.tsx`, and `Members.tsx`. Update all three to return `"frozen"` when all active services have `freeze_status = 'frozen'`:
+3. Prevent invalid submit from the UI
+- Disable the renew submit button until the required renewal fields are present.
+- Optionally add inline helper text / warning state when zone or plan is missing.
+- Keep the payment total behavior unchanged.
 
-```typescript
-const getMemberStatus = (member) => {
-  const activeServices = member.member_services?.filter(s => s.is_active && new Date(s.expiry_date) >= new Date());
-  if (!activeServices?.length) return "expired";
-  const allFrozen = activeServices.every(s => s.freeze_status === 'frozen');
-  if (allFrozen) return "frozen";
-  return "active";
-};
-```
+4. Make the renewal logic safer around service deactivation
+- Only run the “deactivate old service in same zone” query after validation passes.
+- Use the validated zone value consistently for:
+  - old service deactivation
+  - new `member_services` insert
+  - `payment_receipts` insert
 
-### 3. Update `MemberCard.tsx` UI
-- Add a third status: frozen (blue/ice themed badge with "Frozen" text)
-- Show a snowflake icon instead of checkmark for frozen members
-- Border color: blue/primary for frozen cards
+5. Check the same issue in “Add Service”
+- `handleAddServiceSubmit` uses the same pattern (`formData.zone as any`), so I’ll apply the same protection there to avoid the exact same enum error in that flow.
 
-### 4. Update `MemberDetailsSheet.tsx` UI
-- Show "Frozen" badge with appropriate styling
-- Each frozen service pill should show a snowflake indicator
+Files to update
+- `src/pages/Members.tsx` — root fix for renewal and add-service validation
 
-### 5. Update `getServiceStatus` in `MemberCard.tsx`
-Check `freeze_status` on individual services too, so service badges show "Frozen" instead of "Active".
+Technical details
+- Root cause: empty string `""` is being cast and sent to a Postgres enum field (`zone_type`), which rejects it.
+- The fix is not in the database; it is in client-side form handling and submit guards.
+- This is a runtime validation gap, not an authentication or RLS issue.
 
-### 6. Update filter/stats in `Members.tsx` and `MemberFilters.tsx`
-- Add "Frozen" as a filter option alongside Active/Expired
-- Show frozen count in the stats bar
-
-### Files to modify
-- `src/components/members/MemberCard.tsx` — interface, status logic, UI
-- `src/components/members/MemberDetailsSheet.tsx` — interface, status logic, UI
-- `src/components/members/MemberFilters.tsx` — interface, frozen filter option, stats
-- `src/pages/Members.tsx` — `getMemberStatus` logic, stats calculation, filter logic
-
+Expected result after implementation
+- Renewing without choosing required values will show a friendly validation toast instead of crashing.
+- Renewing with valid inputs will complete successfully.
+- The same invalid-zone bug will also be prevented in the add-service flow.
