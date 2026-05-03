@@ -165,8 +165,6 @@ export function MemberDetailsSheet({
 }: MemberDetailsSheetProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
 
   if (!member) return null;
 
@@ -184,15 +182,6 @@ export function MemberDetailsSheet({
     .filter(s => !s.is_active)
     .sort((a, b) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime());
 
-  const handlePasswordSubmit = () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      setPasswordDialogOpen(false);
-      setPasswordInput("");
-      setEditPaymentOpen(true);
-    } else {
-      toast.error("Incorrect password");
-    }
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
