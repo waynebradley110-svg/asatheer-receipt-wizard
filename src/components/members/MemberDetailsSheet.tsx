@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "asatheer237";
+const ADMIN_PASSWORD = "asatheer2025";
 
 interface MemberService {
   id: string;
