@@ -303,6 +303,7 @@ const AdminDashboard = () => {
               <ExpiryReminders />
               <MembershipFreezeCard />
             </div>
+            <ZoneMonthlySalesChart />
             <ZoneAnalysis />
           </div>
         )}
