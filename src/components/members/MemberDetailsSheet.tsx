@@ -495,39 +495,7 @@ export function MemberDetailsSheet({
           )}
         </div>
 
-        {/* Password Dialog */}
-        <AlertDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Admin Password Required</AlertDialogTitle>
-              <AlertDialogDescription>
-                Enter the admin password to edit payment details.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-4">
-              <Label htmlFor="admin-password">Password</Label>
-              <Input
-                id="admin-password"
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter admin password"
-                className="mt-2"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handlePasswordSubmit();
-                  }
-                }}
-              />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setPasswordInput("")}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handlePasswordSubmit}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
 
         <EditPaymentDialog
           memberId={member.id}
