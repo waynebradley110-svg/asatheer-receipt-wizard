@@ -27,11 +27,9 @@ import {
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "asatheer2025";
+
 
 interface MemberService {
   id: string;
@@ -167,8 +165,6 @@ export function MemberDetailsSheet({
 }: MemberDetailsSheetProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
 
   if (!member) return null;
 
@@ -186,15 +182,6 @@ export function MemberDetailsSheet({
     .filter(s => !s.is_active)
     .sort((a, b) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime());
 
-  const handlePasswordSubmit = () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      setPasswordDialogOpen(false);
-      setPasswordInput("");
-      setEditPaymentOpen(true);
-    } else {
-      toast.error("Incorrect password");
-    }
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -441,7 +428,7 @@ export function MemberDetailsSheet({
               {isAdmin && (
                 <Button 
                   variant="outline"
-                  onClick={() => setPasswordDialogOpen(true)}
+                  onClick={() => setEditPaymentOpen(true)}
                 >
                   <Receipt className="h-4 w-4 mr-2" />
                   Edit Payment
@@ -508,39 +495,7 @@ export function MemberDetailsSheet({
           )}
         </div>
 
-        {/* Password Dialog */}
-        <AlertDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Admin Password Required</AlertDialogTitle>
-              <AlertDialogDescription>
-                Enter the admin password to edit payment details.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-4">
-              <Label htmlFor="admin-password">Password</Label>
-              <Input
-                id="admin-password"
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter admin password"
-                className="mt-2"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handlePasswordSubmit();
-                  }
-                }}
-              />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setPasswordInput("")}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handlePasswordSubmit}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
 
         <EditPaymentDialog
           memberId={member.id}
