@@ -27,11 +27,9 @@ import {
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "asatheer2025";
+
 
 interface MemberService {
   id: string;
