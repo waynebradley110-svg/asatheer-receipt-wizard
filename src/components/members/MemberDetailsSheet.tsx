@@ -428,7 +428,7 @@ export function MemberDetailsSheet({
               {isAdmin && (
                 <Button 
                   variant="outline"
-                  onClick={() => setPasswordDialogOpen(true)}
+                  onClick={() => setEditPaymentOpen(true)}
                 >
                   <Receipt className="h-4 w-4 mr-2" />
                   Edit Payment
