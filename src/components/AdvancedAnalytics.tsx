@@ -101,12 +101,12 @@ const AdvancedAnalytics = () => {
 
     try {
       // Fetch payment receipts
-      const { data: payments } = await supabase
+      const { data: rawPayments } = await supabase
         .from("payment_receipts")
-        .select("*, members!inner(is_vip)")
-        .eq("members.is_vip", false)
+        .select("*, members(is_vip)")
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
+      const payments = (rawPayments || []).filter(shouldCountPayment);
 
       // Fetch cafe sales
       const { data: cafeSales } = await supabase

@@ -80,21 +80,22 @@ const EnhancedAnalytics = () => {
       const memberGrowth = ((thisMonthCount - lastMonthCount) / lastMonthCount) * 100;
 
       // Fetch payments for revenue growth
-      const { data: thisMonthPayments } = await supabase
+      const { data: rawThisMonthPayments } = await supabase
         .from("payment_receipts")
-        .select("amount, members!inner(is_vip)")
-        .eq("members.is_vip", false)
+        .select("id, amount, members(is_vip)")
         .gte("created_at", thisMonthStart.toISOString());
 
-      const { data: lastMonthPayments } = await supabase
+      const { data: rawLastMonthPayments } = await supabase
         .from("payment_receipts")
-        .select("amount, members!inner(is_vip)")
-        .eq("members.is_vip", false)
+        .select("id, amount, members(is_vip)")
         .gte("created_at", lastMonthStart.toISOString())
         .lte("created_at", lastMonthEnd.toISOString());
 
-      const thisMonthRevenue = thisMonthPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-      const lastMonthRevenue = lastMonthPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 1;
+      const thisMonthPayments = (rawThisMonthPayments || []).filter(shouldCountPayment);
+      const lastMonthPayments = (rawLastMonthPayments || []).filter(shouldCountPayment);
+
+      const thisMonthRevenue = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+      const lastMonthRevenue = lastMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0) || 1;
       const revenueGrowth = ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
 
       // Fetch attendance for growth and peak hours
