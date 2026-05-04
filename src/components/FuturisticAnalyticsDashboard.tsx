@@ -1,3 +1,4 @@
+import { shouldCountPayment } from "@/lib/revenueFilter";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
