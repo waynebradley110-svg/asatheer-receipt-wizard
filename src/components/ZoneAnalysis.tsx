@@ -1,3 +1,4 @@
+import { shouldCountPayment } from "@/lib/revenueFilter";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,10 +23,10 @@ export function ZoneAnalysis() {
   }, []);
 
   const fetchZoneAnalysis = async () => {
-    const { data: payments } = await supabase
+    const { data: rawPayments } = await supabase
       .from("payment_receipts")
-      .select("zone, amount, members!inner(is_vip)")
-      .eq("members.is_vip", false);
+      .select("id, zone, amount, members(is_vip)");
+    const payments = (rawPayments || []).filter(shouldCountPayment);
 
     const { data: members } = await supabase
       .from("members")

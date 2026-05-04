@@ -1,3 +1,4 @@
+import { shouldCountPayment } from "@/lib/revenueFilter";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -69,10 +70,10 @@ export function ZoneMonthlySalesChart() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data: rawData } = await supabase
         .from("payment_receipts")
-        .select("zone, amount, created_at, members!inner(is_vip)")
-        .eq("members.is_vip", false);
+        .select("id, zone, amount, created_at, members(is_vip)");
+      const data = (rawData || []).filter(shouldCountPayment);
 
       const map = new Map<string, MonthRow>();
       (data || []).forEach((p: any) => {

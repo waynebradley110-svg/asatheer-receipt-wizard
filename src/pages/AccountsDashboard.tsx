@@ -1,3 +1,4 @@
+import { shouldCountPayment } from "@/lib/revenueFilter";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,10 +23,10 @@ const AccountsDashboard = () => {
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
 
-    const { data: payments } = await supabase
+    const { data: rawPayments } = await supabase
       .from("payment_receipts")
-      .select("amount, payment_method, created_at, members!inner(is_vip)")
-      .eq("members.is_vip", false);
+      .select("id, amount, payment_method, created_at, members(is_vip)");
+    const payments = (rawPayments || []).filter(shouldCountPayment);
 
     const { data: expenses } = await supabase
       .from("expenses")

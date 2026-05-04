@@ -1,3 +1,4 @@
+import { shouldCountPayment } from "@/lib/revenueFilter";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,7 +100,7 @@ const Reports = () => {
       .from("payment_receipts")
       .select(`
         *,
-        members!inner(full_name, notes, is_vip)
+        members(full_name, notes, is_vip)
       `);
 
     if (reportType === "daily") {
@@ -114,10 +115,9 @@ const Reports = () => {
         .lte("created_at", `${endDateStr}T23:59:59.999`);
     }
 
-    // Exclude VIP members from reports
-    paymentsQuery = paymentsQuery.eq("members.is_vip", false);
-
-    const { data: payments } = await paymentsQuery;
+    const { data: rawPayments } = await paymentsQuery;
+    // Exclude VIP members from reports, except whitelisted VIP payments
+    const payments = (rawPayments || []).filter(shouldCountPayment);
 
     // Fetch cafe sales using date comparison
     const { data: cafeSales } = await supabase
