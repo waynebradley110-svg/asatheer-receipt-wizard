@@ -139,7 +139,11 @@ export default function MemberPortal() {
           </div>
           <h1 className="text-2xl font-bold">{member.full_name}</h1>
           <p className="text-muted-foreground text-sm">Member ID: {member.member_id}</p>
-          {member.is_vip && <Badge variant="secondary">⭐ VIP</Badge>}
+          {member.is_vip && (
+            <div className="inline-block px-3 py-1 rounded-full bg-vip/20 border border-vip text-xs font-semibold" style={{ color: "hsl(var(--vip-foreground))" }}>
+              VIP Member
+            </div>
+          )}
         </div>
 
         {/* Status Card */}
