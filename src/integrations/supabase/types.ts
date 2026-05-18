@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_password_grants: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_snapshots: {
         Row: {
           active_members: number | null
@@ -492,6 +513,7 @@ export type Database = {
           notes: string | null
           phone_number: string
           updated_at: string | null
+          vip_started_at: string | null
         }
         Insert: {
           barcode: string
@@ -505,6 +527,7 @@ export type Database = {
           notes?: string | null
           phone_number: string
           updated_at?: string | null
+          vip_started_at?: string | null
         }
         Update: {
           barcode?: string
@@ -518,6 +541,7 @@ export type Database = {
           notes?: string | null
           phone_number?: string
           updated_at?: string | null
+          vip_started_at?: string | null
         }
         Relationships: []
       }
