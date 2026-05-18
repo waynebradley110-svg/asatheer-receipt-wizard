@@ -22,9 +22,9 @@ import {
   History,
   ChevronDown,
   Receipt,
-  Crown,
   Snowflake
 } from "lucide-react";
+import { isCurrentlyVip, vipDaysRemaining, vipExpiresAt } from "@/lib/vip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -52,6 +52,7 @@ interface Member {
   date_of_birth?: string;
   notes?: string;
   is_vip?: boolean;
+  vip_started_at?: string | null;
   member_services?: MemberService[];
 }
 
@@ -186,16 +187,13 @@ export function MemberDetailsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="space-y-1">
+        <SheetHeader className={cn(
+          "space-y-1 -m-6 mb-0 p-6 rounded-t-lg",
+          isCurrentlyVip(member) && "bg-vip/10 border-b-2 border-vip"
+        )}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SheetTitle className="text-xl">{member.full_name}</SheetTitle>
-              {member.is_vip && (
-                <Badge className="bg-yellow-500/90 hover:bg-yellow-500 text-white border-0">
-                  <Crown className="h-3.5 w-3.5 mr-1" />
-                  VIP
-                </Badge>
-              )}
             </div>
             <Badge 
               variant={isExpired ? "destructive" : "default"}
@@ -229,6 +227,12 @@ export function MemberDetailsSheet({
           <SheetDescription className="font-mono text-sm">
             {member.member_id}
           </SheetDescription>
+          {isCurrentlyVip(member) && (
+            <p className="text-xs font-medium" style={{ color: "hsl(var(--vip-foreground))" }}>
+              VIP active{vipExpiresAt(member) ? ` until ${format(vipExpiresAt(member)!, "dd/MM/yyyy")}` : ""}
+              {vipDaysRemaining(member) !== null ? ` (${vipDaysRemaining(member)}d left)` : ""}
+            </p>
+          )}
         </SheetHeader>
 
         <div className="mt-6 space-y-6">

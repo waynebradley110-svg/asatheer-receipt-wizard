@@ -86,6 +86,10 @@ All colors MUST be HSL.
     --alert-negative: 0 84% 60%;
     --alert-info: 217 91% 55%;
 
+    /* VIP gold accent */
+    --vip: 43 96% 50%;
+    --vip-foreground: 30 50% 12%;
+
     /* Gradient Backgrounds */
     --gradient-energy: linear-gradient(135deg, hsl(var(--gym-energy)) 0%, hsl(var(--gym-energy) / 0.8) 100%);
     --gradient-wellness: linear-gradient(135deg, hsl(var(--wellness)) 0%, hsl(var(--wellness) / 0.8) 100%);
@@ -152,6 +156,9 @@ All colors MUST be HSL.
     --border: 217 33% 20%;
     --input: 217 33% 20%;
     --ring: 217 91% 55%;
+
+    --vip: 45 95% 58%;
+    --vip-foreground: 30 50% 10%;
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 98%;
