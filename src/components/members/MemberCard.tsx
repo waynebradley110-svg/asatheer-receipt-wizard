@@ -26,6 +26,7 @@ interface Member {
   date_of_birth?: string;
   notes?: string;
   is_vip?: boolean;
+  vip_started_at?: string | null;
   member_services?: MemberService[];
 }
 
