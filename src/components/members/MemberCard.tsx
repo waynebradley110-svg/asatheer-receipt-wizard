@@ -101,6 +101,8 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
           ? "border-l-destructive bg-destructive/5 dark:bg-destructive/10" 
           : isFrozen
           ? "border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
+          : isVip
+          ? "border-l-vip bg-vip/5 dark:bg-vip/10"
           : "border-l-accent bg-card"
       )}
       onClick={() => onViewDetails(member)}
@@ -113,12 +115,6 @@ export function MemberCard({ member, onRenew, onViewDetails }: MemberCardProps) 
             <span className="text-xs font-mono text-muted-foreground">
               {member.member_id}
             </span>
-            {member.is_vip && (
-              <Badge className="text-xs bg-yellow-500/90 hover:bg-yellow-500 text-white border-0 px-1.5 py-0">
-                <Crown className="h-3 w-3 mr-0.5" />
-                VIP
-              </Badge>
-            )}
           </div>
           <Badge 
             variant={isExpired ? "destructive" : "default"}
