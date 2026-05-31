@@ -17,15 +17,33 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Members", url: "/members", icon: Users },
-  { title: "Attendance", url: "/attendance", icon: ScanLine },
-  { title: "Reports", url: "/reports", icon: CreditCard },
-  { title: "PT Report", url: "/pt-report", icon: UserCog },
-  { title: "Expenses", url: "/expenses", icon: Receipt },
-  { title: "Schedule", url: "/schedule", icon: CalendarDays },
-  { title: "Notifications", url: "/notifications", icon: Bell },
+const menuGroups = [
+  {
+    label: "Operations",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: Home },
+      { title: "Attendance", url: "/attendance", icon: ScanLine },
+      { title: "Schedule", url: "/schedule", icon: CalendarDays },
+    ],
+  },
+  {
+    label: "People",
+    items: [
+      { title: "Members", url: "/members", icon: Users },
+      { title: "PT Report", url: "/pt-report", icon: UserCog },
+    ],
+  },
+  {
+    label: "Finance",
+    items: [
+      { title: "Reports", url: "/reports", icon: CreditCard },
+      { title: "Expenses", url: "/expenses", icon: Receipt },
+    ],
+  },
+  {
+    label: "System",
+    items: [{ title: "Notifications", url: "/notifications", icon: Bell }],
+  },
 ];
 
 export function AppSidebar() {
@@ -47,43 +65,57 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-4">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground p-2 rounded-lg">
+          <div className="bg-gradient-gold text-sidebar-primary-foreground p-2 rounded-lg shadow-gold">
             <Dumbbell className="h-5 w-5" />
           </div>
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">Asatheer</span>
-              <span className="text-xs text-sidebar-foreground/70">Sports Academy</span>
+            <div className="flex flex-col leading-tight">
+              <span className="font-display text-base font-semibold text-sidebar-foreground tracking-tight">
+                Asatheer
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/60">
+                Sports Academy
+              </span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }) =>
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "hover:bg-sidebar-accent/50"
-                      }
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {menuGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            {!collapsed && (
+              <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/50">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={({ isActive }) =>
+                          [
+                            "relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors",
+                            isActive
+                              ? "bg-sidebar-accent text-sidebar-primary font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
+                              : "hover:bg-sidebar-accent/60 text-sidebar-foreground",
+                          ].join(" ")
+                        }
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
