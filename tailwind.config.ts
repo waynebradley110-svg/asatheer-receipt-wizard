@@ -13,6 +13,19 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["Fraunces", "Georgia", "serif"],
+        sans: ["Inter Tight", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        prestige: "var(--shadow-prestige)",
+        gold: "var(--shadow-gold)",
+      },
+      backgroundImage: {
+        "gradient-prestige": "var(--gradient-prestige)",
+        "gradient-gold": "var(--gradient-gold)",
+        "gradient-primary": "var(--gradient-primary)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

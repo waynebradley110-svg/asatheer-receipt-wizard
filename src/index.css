@@ -22,75 +22,77 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* Emerald Prestige — Light (cream) */
+    --background: 40 30% 96%;
+    --foreground: 158 40% 8%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 40 30% 99%;
+    --card-foreground: 158 40% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 40 30% 99%;
+    --popover-foreground: 158 40% 8%;
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 162 78% 26%;
+    --primary-foreground: 40 30% 98%;
+    --primary-glow: 162 65% 38%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 40 25% 92%;
+    --secondary-foreground: 158 40% 10%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 40 20% 90%;
+    --muted-foreground: 158 15% 38%;
 
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 42 55% 54%;
+    --accent-foreground: 158 40% 8%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --cafe: 25 95% 53%;
+    --cafe: 25 80% 48%;
     --cafe-foreground: 0 0% 100%;
-    --cafe-light: 25 95% 97%;
+    --cafe-light: 25 80% 95%;
 
-    --football: 142 76% 36%;
+    --football: 162 78% 26%;
     --football-foreground: 0 0% 100%;
-    --football-light: 142 76% 97%;
+    --football-light: 162 50% 92%;
 
-    --massage: 280 65% 60%;
+    --massage: 280 45% 50%;
     --massage-foreground: 0 0% 100%;
-    --massage-light: 280 40% 95%;
+    --massage-light: 280 35% 94%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 55%;
+    --border: 158 18% 84%;
+    --input: 158 18% 84%;
+    --ring: 162 78% 26%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    /* Gym Hub Theme Colors */
-    --gym-energy: 142 76% 45%;
-    --gym-energy-light: 142 76% 97%;
+    --gym-energy: 162 78% 26%;
+    --gym-energy-light: 162 50% 92%;
     --gym-energy-foreground: 0 0% 100%;
 
-    --wellness: 280 65% 55%;
-    --wellness-light: 280 40% 95%;
+    --wellness: 280 45% 50%;
+    --wellness-light: 280 35% 94%;
     --wellness-foreground: 0 0% 100%;
 
-    --power: 25 95% 53%;
-    --power-light: 25 95% 97%;
+    --power: 25 80% 48%;
+    --power-light: 25 80% 95%;
     --power-foreground: 0 0% 100%;
 
-    --performance: 217 91% 55%;
-    --performance-light: 217 91% 97%;
+    --performance: 200 60% 35%;
+    --performance-light: 200 50% 92%;
     --performance-foreground: 0 0% 100%;
 
-    --alert-positive: 142 76% 45%;
-    --alert-warning: 25 95% 53%;
-    --alert-negative: 0 84% 60%;
-    --alert-info: 217 91% 55%;
+    --alert-positive: 162 78% 30%;
+    --alert-warning: 42 80% 50%;
+    --alert-negative: 0 70% 45%;
+    --alert-info: 200 60% 40%;
 
-    /* VIP gold accent */
-    --vip: 43 96% 50%;
+    --vip: 42 70% 48%;
     --vip-foreground: 30 50% 12%;
 
-    /* Gradient Backgrounds */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(42 70% 65%) 100%);
+    --gradient-prestige: linear-gradient(135deg, hsl(162 78% 18%) 0%, hsl(158 50% 8%) 60%, hsl(42 55% 30%) 100%);
     --gradient-energy: linear-gradient(135deg, hsl(var(--gym-energy)) 0%, hsl(var(--gym-energy) / 0.8) 100%);
     --gradient-wellness: linear-gradient(135deg, hsl(var(--wellness)) 0%, hsl(var(--wellness) / 0.8) 100%);
     --gradient-power: linear-gradient(135deg, hsl(var(--power)) 0%, hsl(var(--power) / 0.8) 100%);
@@ -98,76 +100,79 @@ All colors MUST be HSL.
     --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
     --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%);
 
-    /* Depth Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-card: 0 2px 8px -2px rgb(0 0 0 / 0.1), 0 4px 12px -4px rgb(0 0 0 / 0.05);
-    --shadow-hover: 0 8px 16px -4px rgb(0 0 0 / 0.15), 0 4px 8px -2px rgb(0 0 0 / 0.08);
-    --shadow-glow-green: 0 0 20px -4px hsl(var(--gym-energy) / 0.3);
-    --shadow-glow-blue: 0 0 20px -4px hsl(var(--performance) / 0.3);
-    --shadow-glow-orange: 0 0 20px -4px hsl(var(--power) / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(158 40% 8% / 0.06);
+    --shadow-card: 0 2px 8px -2px hsl(158 40% 8% / 0.08), 0 4px 12px -4px hsl(158 40% 8% / 0.04);
+    --shadow-hover: 0 10px 28px -8px hsl(158 40% 8% / 0.18), 0 4px 10px -2px hsl(158 40% 8% / 0.08);
+    --shadow-prestige: 0 20px 50px -20px hsl(162 78% 14% / 0.45);
+    --shadow-gold: 0 8px 24px -8px hsl(var(--accent) / 0.45);
+    --shadow-glow-green: 0 0 24px -4px hsl(var(--primary) / 0.35);
+    --shadow-glow-blue: 0 0 24px -4px hsl(var(--accent) / 0.35);
+    --shadow-glow-orange: 0 0 24px -4px hsl(var(--power) / 0.3);
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 217 91% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-ring: 217 91% 55%;
+    --sidebar-background: 158 50% 6%;
+    --sidebar-foreground: 40 30% 95%;
+    --sidebar-primary: 42 55% 54%;
+    --sidebar-primary-foreground: 158 50% 8%;
+    --sidebar-accent: 162 50% 14%;
+    --sidebar-accent-foreground: 40 30% 96%;
+    --sidebar-border: 162 40% 14%;
+    --sidebar-ring: 42 55% 54%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    /* Emerald Prestige — Dark (default brand mood) */
+    --background: 158 50% 4%;
+    --foreground: 40 30% 95%;
 
-    --card: 217 33% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 158 35% 7%;
+    --card-foreground: 40 30% 95%;
 
-    --popover: 217 33% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 158 35% 7%;
+    --popover-foreground: 40 30% 95%;
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 162 70% 34%;
+    --primary-foreground: 40 30% 98%;
+    --primary-glow: 162 65% 45%;
 
-    --secondary: 217 33% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 158 25% 12%;
+    --secondary-foreground: 40 30% 95%;
 
-    --muted: 217 33% 20%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 158 20% 14%;
+    --muted-foreground: 40 12% 65%;
 
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 42 60% 58%;
+    --accent-foreground: 158 50% 8%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 40 30% 98%;
 
-    --cafe: 25 95% 53%;
-    --cafe-foreground: 0 0% 100%;
-    --cafe-light: 25 65% 25%;
+    --cafe: 25 85% 55%;
+    --cafe-foreground: 158 50% 6%;
+    --cafe-light: 25 50% 18%;
 
-    --football: 142 76% 36%;
-    --football-foreground: 0 0% 100%;
-    --football-light: 142 55% 25%;
+    --football: 162 70% 38%;
+    --football-foreground: 158 50% 6%;
+    --football-light: 162 40% 16%;
 
-    --massage: 280 65% 60%;
-    --massage-foreground: 0 0% 100%;
-    --massage-light: 280 30% 20%;
+    --massage: 280 55% 65%;
+    --massage-foreground: 158 50% 6%;
+    --massage-light: 280 30% 18%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 217 91% 55%;
+    --border: 158 25% 16%;
+    --input: 158 25% 16%;
+    --ring: 42 60% 58%;
 
-    --vip: 45 95% 58%;
+    --vip: 42 80% 60%;
     --vip-foreground: 30 50% 10%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 15%;
-    --sidebar-ring: 217 91% 55%;
+    --sidebar-background: 158 55% 3%;
+    --sidebar-foreground: 40 30% 95%;
+    --sidebar-primary: 42 60% 58%;
+    --sidebar-primary-foreground: 158 50% 6%;
+    --sidebar-accent: 162 40% 12%;
+    --sidebar-accent-foreground: 40 30% 96%;
+    --sidebar-border: 162 30% 12%;
+    --sidebar-ring: 42 60% 58%;
   }
 }
 
@@ -178,7 +183,20 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-feature-settings: "ss01" 1, "ss02" 1;
+    letter-spacing: -0.01em;
+  }
+
+  .stat-number {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
 }
 

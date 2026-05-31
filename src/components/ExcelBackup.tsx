@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export function ExcelBackup() {
   const [isExporting, setIsExporting] = useState(false);
@@ -11,6 +10,8 @@ export function ExcelBackup() {
   const exportToExcel = async () => {
     setIsExporting(true);
     try {
+      // Lazy-load xlsx only when the user actually clicks export — keeps it out of the main bundle
+      const XLSX = await import("xlsx");
       // Fetch all data
       const [membersRes, servicesRes, paymentsRes, attendanceRes] = await Promise.all([
         supabase.from("members").select("*").order("created_at", { ascending: false }),
