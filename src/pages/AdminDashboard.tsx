@@ -305,6 +305,7 @@ const AdminDashboard = () => {
               <MembershipFreezeCard />
             </div>
             <ZoneMonthlySalesChart />
+            <TopCashDaysChart />
             <ZoneAnalysis />
           </div>
         )}
