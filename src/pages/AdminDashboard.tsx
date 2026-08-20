@@ -12,6 +12,7 @@ import { SystemSettings } from "@/components/SystemSettings";
 import { FinancialCorrections } from "@/components/FinancialCorrections";
 import { ZoneAnalysis } from "@/components/ZoneAnalysis";
 import { ZoneMonthlySalesChart } from "@/components/charts/ZoneMonthlySalesChart";
+import { TopCashDaysChart } from "@/components/charts/TopCashDaysChart";
 import { ExcelBackup } from "@/components/ExcelBackup";
 import { CafeSales } from "@/components/CafeSales";
 import { FootballSales } from "@/components/FootballSales";
@@ -304,6 +305,7 @@ const AdminDashboard = () => {
               <MembershipFreezeCard />
             </div>
             <ZoneMonthlySalesChart />
+            <TopCashDaysChart />
             <ZoneAnalysis />
           </div>
         )}
