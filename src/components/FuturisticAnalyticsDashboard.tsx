@@ -116,7 +116,7 @@ const FuturisticAnalyticsDashboard = () => {
 
   useEffect(() => {
     fetchAnalyticsData();
-  }, [dateRange, selectedZone, viewMode]);
+  }, [dateRange, selectedZone, viewMode, paymentMethod]);
 
   const fetchAnalyticsData = async () => {
     setLoading(true);
