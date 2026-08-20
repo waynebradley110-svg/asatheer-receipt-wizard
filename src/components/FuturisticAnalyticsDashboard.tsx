@@ -40,11 +40,13 @@ interface LifetimeStats {
 
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "thisMonth" | "lastMonth";
 type ViewMode = "weekly" | "monthly";
+type PaymentMethod = "all" | "cash" | "card";
 
 const FuturisticAnalyticsDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>("thisMonth");
   const [selectedZone, setSelectedZone] = useState<string>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [loading, setLoading] = useState(true);
   const [zoneData, setZoneData] = useState<ZoneData[]>([]);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
