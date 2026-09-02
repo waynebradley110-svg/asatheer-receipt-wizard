@@ -40,7 +40,18 @@ export function FootballSales() {
   });
   const [dailyTotals, setDailyTotals] = useState({ cash: 0, card: 0, total: 0 });
   const [deletingSale, setDeletingSale] = useState<string | null>(null);
+  const [editingSale, setEditingSale] = useState<FootballSale | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState({
+    sale_date: "",
+    description: "",
+    cash_amount: "",
+    card_amount: "",
+    cashier_name: "",
+    notes: "",
+  });
   const { isAdmin } = useAuth();
+
   
   // Date filter state
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
