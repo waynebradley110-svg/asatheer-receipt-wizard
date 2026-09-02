@@ -544,8 +544,10 @@ export function FootballSales() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   )}
+
                 </TableRow>
               ))}
               {filteredSales.length === 0 && (
