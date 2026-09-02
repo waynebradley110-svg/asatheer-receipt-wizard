@@ -574,6 +574,92 @@ export function FootballSales() {
         </CardContent>
       </Card>
 
+      {/* Edit Sale Dialog */}
+      <Dialog open={!!editingSale} onOpenChange={(open) => !open && setEditingSale(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Football Sale</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSale} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit_sale_date">Date *</Label>
+                <Input
+                  id="edit_sale_date"
+                  type="date"
+                  value={editForm.sale_date}
+                  onChange={(e) => setEditForm({ ...editForm, sale_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_description">Description *</Label>
+                <Input
+                  id="edit_description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_cash">Cash Amount (AED)</Label>
+                <Input
+                  id="edit_cash"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editForm.cash_amount}
+                  onChange={(e) => setEditForm({ ...editForm, cash_amount: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_card">Card Amount (AED)</Label>
+                <Input
+                  id="edit_card"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editForm.card_amount}
+                  onChange={(e) => setEditForm({ ...editForm, card_amount: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_cashier">Cashier Name</Label>
+                <Input
+                  id="edit_cashier"
+                  value={editForm.cashier_name}
+                  onChange={(e) => setEditForm({ ...editForm, cashier_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_notes">Notes</Label>
+                <Input
+                  id="edit_notes"
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              New Total:{" "}
+              <span className="font-bold text-primary">
+                {(parseFloat(editForm.cash_amount || "0") + parseFloat(editForm.card_amount || "0")).toFixed(2)} AED
+              </span>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingSale(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+
+
       {/* Print View - shown during print using portal with print-root */}
       {showPrintView && createPortal(
         <div className="fixed inset-0 z-[99999] bg-white overflow-auto print-root">
