@@ -515,7 +515,12 @@ export function FootballSales() {
                   <TableCell>{sale.notes || "-"}</TableCell>
                   {isAdmin && (
                     <TableCell>
+                      <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(sale)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
+
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
                             <Trash2 className="h-4 w-4" />
