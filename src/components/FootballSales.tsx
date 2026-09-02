@@ -225,6 +225,62 @@ export function FootballSales() {
     }
   };
 
+  const openEditDialog = (sale: FootballSale) => {
+    setEditingSale(sale);
+    setEditForm({
+      sale_date: sale.sale_date,
+      description: sale.description,
+      cash_amount: String(Number(sale.cash_amount || 0)),
+      card_amount: String(Number(sale.card_amount || 0)),
+      cashier_name: sale.cashier_name || "",
+      notes: sale.notes || "",
+    });
+  };
+
+  const handleUpdateSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSale) return;
+
+    const cashAmount = parseFloat(editForm.cash_amount || "0");
+    const cardAmount = parseFloat(editForm.card_amount || "0");
+
+    if (!editForm.description.trim()) {
+      toast.error("Please enter description");
+      return;
+    }
+    if (cashAmount === 0 && cardAmount === 0) {
+      toast.error("Please enter at least cash or card amount");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from("football_sales")
+        .update({
+          sale_date: editForm.sale_date,
+          description: editForm.description.trim(),
+          cash_amount: cashAmount,
+          card_amount: cardAmount,
+          cashier_name: editForm.cashier_name?.trim() || null,
+          notes: editForm.notes?.trim() || null,
+        })
+        .eq("id", editingSale.id);
+
+      if (error) throw error;
+
+      toast.success("Sale updated successfully");
+      setEditingSale(null);
+      fetchSales();
+    } catch (error) {
+      console.error("Error updating sale:", error);
+      toast.error("Failed to update sale");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       <Card className="bg-[hsl(var(--football-light))] border-[hsl(var(--football))]">
