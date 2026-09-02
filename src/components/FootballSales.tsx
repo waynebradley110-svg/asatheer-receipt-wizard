@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, Trash2, FileDown, Printer, Calendar, X } from "lucide-react";
+import { Trophy, Trash2, FileDown, Printer, Calendar, X, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -40,7 +42,18 @@ export function FootballSales() {
   });
   const [dailyTotals, setDailyTotals] = useState({ cash: 0, card: 0, total: 0 });
   const [deletingSale, setDeletingSale] = useState<string | null>(null);
+  const [editingSale, setEditingSale] = useState<FootballSale | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState({
+    sale_date: "",
+    description: "",
+    cash_amount: "",
+    card_amount: "",
+    cashier_name: "",
+    notes: "",
+  });
   const { isAdmin } = useAuth();
+
   
   // Date filter state
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -224,6 +237,62 @@ export function FootballSales() {
       toast.error("Failed to delete sale");
     }
   };
+
+  const openEditDialog = (sale: FootballSale) => {
+    setEditingSale(sale);
+    setEditForm({
+      sale_date: sale.sale_date,
+      description: sale.description,
+      cash_amount: String(Number(sale.cash_amount || 0)),
+      card_amount: String(Number(sale.card_amount || 0)),
+      cashier_name: sale.cashier_name || "",
+      notes: sale.notes || "",
+    });
+  };
+
+  const handleUpdateSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSale) return;
+
+    const cashAmount = parseFloat(editForm.cash_amount || "0");
+    const cardAmount = parseFloat(editForm.card_amount || "0");
+
+    if (!editForm.description.trim()) {
+      toast.error("Please enter description");
+      return;
+    }
+    if (cashAmount === 0 && cardAmount === 0) {
+      toast.error("Please enter at least cash or card amount");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from("football_sales")
+        .update({
+          sale_date: editForm.sale_date,
+          description: editForm.description.trim(),
+          cash_amount: cashAmount,
+          card_amount: cardAmount,
+          cashier_name: editForm.cashier_name?.trim() || null,
+          notes: editForm.notes?.trim() || null,
+        })
+        .eq("id", editingSale.id);
+
+      if (error) throw error;
+
+      toast.success("Sale updated successfully");
+      setEditingSale(null);
+      fetchSales();
+    } catch (error) {
+      console.error("Error updating sale:", error);
+      toast.error("Failed to update sale");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -448,7 +517,12 @@ export function FootballSales() {
                   <TableCell>{sale.notes || "-"}</TableCell>
                   {isAdmin && (
                     <TableCell>
+                      <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(sale)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
+
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
                             <Trash2 className="h-4 w-4" />
@@ -472,8 +546,10 @@ export function FootballSales() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   )}
+
                 </TableRow>
               ))}
               {filteredSales.length === 0 && (
@@ -497,6 +573,92 @@ export function FootballSales() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Sale Dialog */}
+      <Dialog open={!!editingSale} onOpenChange={(open) => !open && setEditingSale(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Football Sale</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSale} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit_sale_date">Date *</Label>
+                <Input
+                  id="edit_sale_date"
+                  type="date"
+                  value={editForm.sale_date}
+                  onChange={(e) => setEditForm({ ...editForm, sale_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_description">Description *</Label>
+                <Input
+                  id="edit_description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_cash">Cash Amount (AED)</Label>
+                <Input
+                  id="edit_cash"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editForm.cash_amount}
+                  onChange={(e) => setEditForm({ ...editForm, cash_amount: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_card">Card Amount (AED)</Label>
+                <Input
+                  id="edit_card"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editForm.card_amount}
+                  onChange={(e) => setEditForm({ ...editForm, card_amount: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_cashier">Cashier Name</Label>
+                <Input
+                  id="edit_cashier"
+                  value={editForm.cashier_name}
+                  onChange={(e) => setEditForm({ ...editForm, cashier_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_notes">Notes</Label>
+                <Input
+                  id="edit_notes"
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              New Total:{" "}
+              <span className="font-bold text-primary">
+                {(parseFloat(editForm.cash_amount || "0") + parseFloat(editForm.card_amount || "0")).toFixed(2)} AED
+              </span>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingSale(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+
 
       {/* Print View - shown during print using portal with print-root */}
       {showPrintView && createPortal(
