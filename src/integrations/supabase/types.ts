@@ -923,6 +923,363 @@ export type Database = {
           },
         ]
       }
+      swimming_attendance: {
+        Row: {
+          child_id: string
+          class_date: string
+          class_id: string | null
+          created_at: string
+          id: string
+          marked_by: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          class_date: string
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          class_date?: string
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_attendance_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swimming_attendance_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_calendar_tokens: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_calendar_tokens_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: true
+            referencedRelation: "swimming_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_children: {
+        Row: {
+          classes_total: number | null
+          coach_name: string | null
+          created_at: string
+          emergency_contact: string | null
+          id: string
+          is_active: boolean
+          level: string | null
+          member_id: string
+          notes: string | null
+          parent_name: string | null
+          parent_whatsapp: string | null
+          pool_name: string | null
+          program_id: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          classes_total?: number | null
+          coach_name?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          member_id: string
+          notes?: string | null
+          parent_name?: string | null
+          parent_whatsapp?: string | null
+          pool_name?: string | null
+          program_id?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Update: {
+          classes_total?: number | null
+          coach_name?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          member_id?: string
+          notes?: string | null
+          parent_name?: string | null
+          parent_whatsapp?: string | null
+          pool_name?: string | null
+          program_id?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_children_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swimming_children_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_class_exceptions: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          new_date: string | null
+          new_end_time: string | null
+          new_start_time: string | null
+          original_date: string
+          reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          new_date?: string | null
+          new_end_time?: string | null
+          new_start_time?: string | null
+          original_date: string
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          new_date?: string | null
+          new_end_time?: string | null
+          new_start_time?: string | null
+          original_date?: string
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_class_exceptions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_classes: {
+        Row: {
+          capacity: number
+          coach_name: string | null
+          created_at: string
+          day_of_week: number
+          end_date: string | null
+          end_time: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          pool_name: string | null
+          program_id: string | null
+          start_date: string
+          start_time: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          coach_name?: string | null
+          created_at?: string
+          day_of_week: number
+          end_date?: string | null
+          end_time: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          pool_name?: string | null
+          program_id?: string | null
+          start_date?: string
+          start_time: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          coach_name?: string | null
+          created_at?: string
+          day_of_week?: number
+          end_date?: string | null
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          pool_name?: string | null
+          program_id?: string | null
+          start_date?: string
+          start_time?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_classes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_enrollments: {
+        Row: {
+          child_id: string
+          class_id: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          class_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          class_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swimming_enrollments_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swimming_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "swimming_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swimming_programs: {
+        Row: {
+          age_max: number | null
+          age_min: number | null
+          coach_name: string | null
+          created_at: string
+          description: string | null
+          duration_weeks: number | null
+          id: string
+          is_active: boolean
+          level: string | null
+          max_students: number
+          name: string
+          pool_name: string | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          age_max?: number | null
+          age_min?: number | null
+          coach_name?: string | null
+          created_at?: string
+          description?: string | null
+          duration_weeks?: number | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          max_students?: number
+          name: string
+          pool_name?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          age_max?: number | null
+          age_min?: number | null
+          coach_name?: string | null
+          created_at?: string
+          description?: string | null
+          duration_weeks?: number | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          max_students?: number
+          name?: string
+          pool_name?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -996,6 +1353,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_swimming_calendar: { Args: { _token: string }; Returns: Json }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
