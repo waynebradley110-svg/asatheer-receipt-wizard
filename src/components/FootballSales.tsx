@@ -71,8 +71,8 @@ export function FootballSales() {
     const { data, error } = await supabase
       .from("football_sales")
       .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
+      .order("sale_date", { ascending: false })
+      .order("created_at", { ascending: false });
 
     if (error) {
       toast.error("Failed to load football sales");
@@ -82,6 +82,7 @@ export function FootballSales() {
     setSales(data || []);
     calculateDailyTotals(data || []);
   };
+
 
   const calculateDailyTotals = (salesData: FootballSale[]) => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -95,10 +96,9 @@ export function FootballSales() {
 
   // Filtered sales based on date range
   const filteredSales = useMemo(() => {
-    return sales.filter(sale => {
-      const saleDate = parseISO(sale.sale_date);
-      return isWithinInterval(saleDate, { start: dateRange.from, end: dateRange.to });
-    });
+    const fromStr = format(dateRange.from, "yyyy-MM-dd");
+    const toStr = format(dateRange.to, "yyyy-MM-dd");
+    return sales.filter(sale => sale.sale_date >= fromStr && sale.sale_date <= toStr);
   }, [sales, dateRange]);
 
   // Calculate totals for filtered sales
