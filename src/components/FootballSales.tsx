@@ -96,10 +96,9 @@ export function FootballSales() {
 
   // Filtered sales based on date range
   const filteredSales = useMemo(() => {
-    return sales.filter(sale => {
-      const saleDate = parseISO(sale.sale_date);
-      return isWithinInterval(saleDate, { start: dateRange.from, end: dateRange.to });
-    });
+    const fromStr = format(dateRange.from, "yyyy-MM-dd");
+    const toStr = format(dateRange.to, "yyyy-MM-dd");
+    return sales.filter(sale => sale.sale_date >= fromStr && sale.sale_date <= toStr);
   }, [sales, dateRange]);
 
   // Calculate totals for filtered sales
